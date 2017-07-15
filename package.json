@@ -1,0 +1,27 @@
+{
+  "name": "mongo-query-top",
+  "version": "0.0.1",
+  "description": "Show the current operations on a MongoDB instance in an easy to read table",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mongodb",
+    "top"
+  ],
+  "author": "Rushi Vishavadia <rushi.v@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^2.0.1",
+    "clear": "0.0.1",
+    "cli-table2": "^0.2.0",
+    "humanize-duration": "^3.10.0",
+    "json-beautify": "^1.0.1",
+    "lodash": "^4.17.4",
+    "moment": "^2.18.1",
+    "mongodb": "^2.2.30",
+    "sleep": "^5.1.1",
+    "yargs": "^8.0.2"
+  }
+}

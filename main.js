@@ -28,7 +28,7 @@ async function main() {
     try {
         server = await MongoClient.connect(argv.uri);
     } catch (err) {
-        console.log(chalk.red("Error connecting to MongoDB URI:", uri));
+        console.log(chalk.red("Error connecting to MongoDB URI:", argv.uri));
         console.log(chalk.white.bgRed(err));
         cleanupAndExit(false);
     }

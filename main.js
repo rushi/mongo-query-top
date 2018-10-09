@@ -40,7 +40,7 @@ async function main() {
 
             shouldWatch && clear(); // Clear the existing screen if user specified --watch
             console.log(Renderer.renderHeader(argv.uri, shouldWatch ? refreshInterval : null));
-            console.log(Renderer.renderBody(queries.inprog, shouldWatch));
+            console.log(Renderer.renderBody(queries.inprog));
 
             shouldContinue = shouldWatch;
             sleep.sleep(refreshInterval);

@@ -1,7 +1,9 @@
+const _ = require('lodash');
 const MongoClient = require('mongodb').MongoClient;
 const chalk = require('chalk');
 const clear = require('clear');
 const sleep = require('sleep');
+const config = require('config');
 
 const Renderer = require('./lib/renderer');
 const argv = require('./lib/usage');
@@ -9,6 +11,17 @@ const shouldWatch = argv.watch;
 const refreshInterval = parseInt(argv.interval, 10);
 
 let server;
+
+function cleanupAndExit(closeConnection = true) {
+    console.log('Bye');
+    closeConnection && server && server.close()
+    process.exit();
+}
+
+function getConfigs() {
+    const savedConfig = (argv.config) ? config.get(argv.config) : '';
+    return _.extend(argv, savedConfig);
+}
 
 (async function () {
 
@@ -26,7 +39,7 @@ let server;
     }
 
     try {
-        server = await MongoClient.connect(argv.uri);
+        server = await MongoClient.connect(getConfigs().uri);
     } catch (err) {
         console.log(chalk.red("Error connecting to MongoDB URI: " + argv.uri));
         console.log(chalk.white.bgRed(err));
@@ -53,9 +66,3 @@ let server;
 
     cleanupAndExit();
 })();
-
-function cleanupAndExit(closeConnection = true) {
-    console.log('Bye');
-    closeConnection && server.close()
-    process.exit();
-}

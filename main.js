@@ -2,14 +2,15 @@ const _ = require('lodash');
 const MongoClient = require('mongodb').MongoClient;
 const chalk = require('chalk');
 const clear = require('clear');
-const sleep = require('sleep');
 const config = require('config');
 
 const Renderer = require('./lib/renderer');
 const argv = require('./lib/usage');
+const sleep = require('./lib/helpers').sleep;
 const shouldWatch = argv.watch;
 const refreshInterval = parseInt(argv.interval, 10);
 
+let isPaused = false;
 let server;
 
 (async function () {
@@ -24,6 +25,10 @@ let server;
                 // q or Ctrl-C pressed. Close db connection and exit
                 cleanupAndExit();
             }
+
+            if (key.toLowerCase() === 'p') {
+                isPaused = !isPaused;
+            }
         });
     }
 
@@ -37,16 +42,26 @@ let server;
 
     try {
         let shouldContinue = true;
+        let header = body = '';
         while (shouldContinue) {
             let queries = await server.command({currentOp: 1});
-
             shouldWatch && clear(); // Clear the existing screen if user specified --watch
-            const interval = shouldWatch ? refreshInterval : null;
-            console.log(Renderer.renderHeader(interval));
-            console.log(Renderer.renderBody(queries.inprog));
+
+            if (!isPaused) {
+                const interval = shouldWatch ? refreshInterval : null;
+                header = Renderer.renderHeader(interval);
+                body = Renderer.renderBody(queries.inprog);
+            }
+
+            let headerLine = header;
+            if (isPaused) {
+                headerLine += chalk.italic.yellow('(paused)');
+            }
+            console.log(headerLine);
+            console.log(body);
 
             shouldContinue = shouldWatch;
-            sleep.sleep(refreshInterval);
+            await sleep(refreshInterval);
         }
 
     } catch (err) {

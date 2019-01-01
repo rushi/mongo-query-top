@@ -12,17 +12,6 @@ const refreshInterval = parseInt(argv.interval, 10);
 
 let server;
 
-function cleanupAndExit(closeConnection = true) {
-    console.log('Bye');
-    closeConnection && server && server.close()
-    process.exit();
-}
-
-function getConfigs() {
-    const savedConfig = (argv.config) ? config.get(argv.config) : '';
-    return _.extend(argv, savedConfig);
-}
-
 (async function () {
 
     if (shouldWatch) {
@@ -66,3 +55,14 @@ function getConfigs() {
 
     cleanupAndExit();
 })();
+
+function cleanupAndExit(closeConnection = true) {
+    console.log('Bye');
+    closeConnection && server && server.close()
+    process.exit();
+}
+
+function getConfigs() {
+    const savedConfig = (argv.config) ? config.get(argv.config) : '';
+    return _.extend(argv, savedConfig);
+}

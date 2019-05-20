@@ -1,6 +1,7 @@
 {
   "name": "mongo-query-top",
-  "version": "0.0.1",
+  "version": "0.7.0",
+  "repository": "https://github.com/rushi/mongo-query-top",
   "description": "Show the current operations on a MongoDB instance in an easy to read table",
   "main": "main.js",
   "scripts": {
@@ -15,7 +16,7 @@
   "dependencies": {
     "chalk": "^2.0.1",
     "clear": "0.0.1",
-    "cli-table2": "^0.2.0",
+    "cli-table3": "^0.5.1",
     "config": "^3.0.0",
     "humanize-duration": "^3.10.0",
     "json-beautify": "^1.0.1",

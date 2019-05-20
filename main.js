@@ -61,7 +61,8 @@ let server;
             console.log(body);
 
             shouldContinue = shouldWatch;
-            await sleep(refreshInterval);
+            const sleepTime = (refreshInterval * 1000) - 100; // subtract 100ms to run a query and bring it down
+            await sleep(sleepTime);
         }
 
     } catch (err) {

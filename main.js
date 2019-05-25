@@ -12,7 +12,7 @@ const sleep = require('./lib/helpers').sleep;
 const shouldWatch = argv.watch;
 const refreshInterval = parseInt(argv.interval, 10);
 
-let isPaused = false;
+const prefs = {paused: false, reversed: false};
 let server;
 
 (async function () {
@@ -28,8 +28,13 @@ let server;
                 cleanupAndExit();
             }
 
-            if (key.toLowerCase() === 'p') {
-                isPaused = !isPaused;
+            key = key.toLowerCase();
+            if (key === 'p') {
+                prefs.paused = !prefs.paused;
+            }
+
+            if (key === 'r') {
+                prefs.reversed = !prefs.reversed;
             }
         });
     }
@@ -49,17 +54,15 @@ let server;
             let queries = await server.command({currentOp: 1});
             shouldWatch && clear(); // Clear the existing screen if user specified --watch
 
-            if (!isPaused) {
-                const interval = shouldWatch ? refreshInterval : null;
-                header = Renderer.renderHeader(interval, argv.config);
+            const interval = shouldWatch ? refreshInterval : null;
+            header = Renderer.renderHeader(interval, argv.config);
+            if (prefs.paused) {
+                header += chalk.italic.yellow('(paused)');
+            } else {
                 body = Renderer.renderBody(queries.inprog);
             }
 
-            let headerLine = header;
-            if (isPaused) {
-                headerLine += chalk.italic.yellow('(paused)');
-            }
-            console.log(headerLine);
+            console.log(header);
             console.log(body);
 
             shouldContinue = shouldWatch;

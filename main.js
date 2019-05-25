@@ -10,7 +10,7 @@ const Renderer = require('./lib/renderer');
 const argv = require('./lib/usage');
 const sleep = require('./lib/helpers').sleep;
 
-const prefs = {paused: false, reversed: false, refreshInterval: parseInt(argv.interval, 10)};
+const prefs = {paused: false, reversed: false, refreshInterval: Number(argv.interval), minTime: Number(argv.minTime)};
 let server;
 
 (async function () {

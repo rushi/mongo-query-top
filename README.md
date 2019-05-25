@@ -34,9 +34,11 @@ Usage: main.js --interval=[num]
 Options:
   -h, --help      Show help                                            [boolean]
   --uri           MongoDB instance uri
-  -i, --interval  Refresh data every X second                       [default: 2]
   -c, --config    Name of the configuration to use from the config folder
                                                           [default: "localhost"]
+  -i, --interval  Refresh data every X second                       [default: 2]
+  -t, --minTime   Only show queries with a run time longer than this value
+                                                                    [default: 0]
 ```
 
 ## Requirements

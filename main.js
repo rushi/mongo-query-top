@@ -9,9 +9,8 @@ const config = require('config');
 const Renderer = require('./lib/renderer');
 const argv = require('./lib/usage');
 const sleep = require('./lib/helpers').sleep;
-const refreshInterval = parseInt(argv.interval, 10);
 
-const prefs = {paused: false, reversed: false};
+const prefs = {paused: false, reversed: false, refreshInterval: parseInt(argv.interval, 10)};
 let server;
 
 (async function () {
@@ -28,21 +27,21 @@ let server;
 
     try {
         let header = body = '';
+        const renderer = new Renderer(prefs, argv.config);
+
         while (true) {
-            header = Renderer.renderHeader(refreshInterval, argv.config);
-            if (prefs.paused) {
-                header += chalk.italic.yellow('(paused)');
-            } else {
+            header = renderer.renderHeader();
+            if (!prefs.paused) {
                 // we are not paused so let's fetch the queries and update the display of the body
                 let queries = await server.command({currentOp: 1});
-                body = Renderer.renderBody(queries.inprog);
+                body = renderer.renderBody(queries.inprog);
             }
 
             clear(); // Clear the existing screen
             console.log(header);
             console.log(body);
 
-            const sleepTime = (refreshInterval * 1000) - 100; // subtract 100ms to run a query and bring it down
+            const sleepTime = (prefs.refreshInterval * 1000) - 100; // subtract 100ms to run a query and bring it down
             await sleep(sleepTime);
         }
 

@@ -34,7 +34,6 @@ Usage: main.js --interval=[num]
 Options:
   -h, --help      Show help                                            [boolean]
   --uri           MongoDB instance uri
-  --watch         Keep watching for change in queries  [boolean] [default: true]
   -i, --interval  Refresh data every X second                       [default: 2]
   -c, --config    Name of the configuration to use from the config folder
                                                           [default: "localhost"]

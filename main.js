@@ -9,7 +9,6 @@ const config = require('config');
 const Renderer = require('./lib/renderer');
 const argv = require('./lib/usage');
 const sleep = require('./lib/helpers').sleep;
-const shouldWatch = argv.watch;
 const refreshInterval = parseInt(argv.interval, 10);
 
 const prefs = {paused: false, reversed: false};
@@ -17,27 +16,7 @@ let server;
 
 (async function () {
 
-    if (shouldWatch) {
-        // This will allow us to catch if the user presses 'q' or 'Ctrl-C' and quit the app
-        process.stdin.setRawMode(true); // without this, we would only get streams once enter is pressed
-        process.stdin.resume();
-        process.stdin.setEncoding('utf8');
-        process.stdin.on('data', key => {
-            if (key === 'q' || key === '\u0003') {
-                // q or Ctrl-C pressed. Close db connection and exit
-                cleanupAndExit();
-            }
-
-            key = key.toLowerCase();
-            if (key === 'p') {
-                prefs.paused = !prefs.paused;
-            }
-
-            if (key === 'r') {
-                prefs.reversed = !prefs.reversed;
-            }
-        });
-    }
+    setupRawMode();
 
     try {
         server = await MongoClient.connect(getConfigs().uri);
@@ -48,24 +27,21 @@ let server;
     }
 
     try {
-        let shouldContinue = true;
         let header = body = '';
-        while (shouldContinue) {
-            let queries = await server.command({currentOp: 1});
-            shouldWatch && clear(); // Clear the existing screen if user specified --watch
-
-            const interval = shouldWatch ? refreshInterval : null;
-            header = Renderer.renderHeader(interval, argv.config);
+        while (true) {
+            header = Renderer.renderHeader(refreshInterval, argv.config);
             if (prefs.paused) {
                 header += chalk.italic.yellow('(paused)');
             } else {
+                // we are not paused so let's fetch the queries and update the display of the body
+                let queries = await server.command({currentOp: 1});
                 body = Renderer.renderBody(queries.inprog);
             }
 
+            clear(); // Clear the existing screen
             console.log(header);
             console.log(body);
 
-            shouldContinue = shouldWatch;
             const sleepTime = (refreshInterval * 1000) - 100; // subtract 100ms to run a query and bring it down
             await sleep(sleepTime);
         }
@@ -76,6 +52,30 @@ let server;
 
     cleanupAndExit();
 })();
+
+/**
+ * Setup the mode required to catch key presses
+ */
+function setupRawMode() {
+    process.stdin.setRawMode(true); // without this, we would only get streams once enter is pressed
+    process.stdin.resume();
+    process.stdin.setEncoding('utf8');
+    process.stdin.on('data', key => {
+        if (key === 'q' || key === '\u0003') {
+            // q or Ctrl-C pressed. Close db connection and exit
+            cleanupAndExit();
+        }
+
+        key = key.toLowerCase();
+        if (key === 'p') {
+            prefs.paused = !prefs.paused;
+        }
+
+        if (key === 'r') {
+            prefs.reversed = !prefs.reversed;
+        }
+    });
+}
 
 function cleanupAndExit(closeConnection = true) {
     console.log('Bye');

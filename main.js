@@ -47,6 +47,7 @@ let server;
 
     } catch (err) {
         console.log(chalk.white.bgRed('Error running db.currentOp(): ' + err + ' '));
+        console.log(err);
     }
 
     cleanupAndExit();

@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const _ = require('lodash');
 const MongoClient = require('mongodb').MongoClient;
 const chalk = require('chalk');

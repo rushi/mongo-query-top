@@ -49,7 +49,7 @@ let server;
 
             if (!isPaused) {
                 const interval = shouldWatch ? refreshInterval : null;
-                header = Renderer.renderHeader(interval);
+                header = Renderer.renderHeader(interval, argv.config);
                 body = Renderer.renderBody(queries.inprog);
             }
 

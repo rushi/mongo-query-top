@@ -18,7 +18,7 @@ Other reasons for a dev ops engineer or a developer:
 
 This will start the app against the `localhost` server configured in `config/default.json`.
 * `npm install`
-* `node main.js` (same as `node main.js -c localhost`)
+* `node app.js` (same as `node app.js -c localhost`)
 
 To run this against your own set of servers:
 * Create a file `config/local.json` and define servers in it as indicated in `config/default.json`. You just need the URIs.
@@ -26,7 +26,7 @@ To run this against your own set of servers:
 
 More details can be obtained by passing the `-h` flag. 
 ```
-§ node main.js -h
+§ node app.js -h
 Show the current operations on a MongoDB instance in an easy to read table
 
 Usage: main.js --interval=[num]

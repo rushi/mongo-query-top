@@ -44,6 +44,7 @@ Options:
 ## Requirements
 
 * NodeJS > v8.0
+* MongoDB version > 3.6
 
 ## Author
 

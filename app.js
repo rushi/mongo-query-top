@@ -9,13 +9,14 @@ import Renderer from './lib/renderer';
 import { sleep, clear, setupRawMode, cleanupAndExit } from './lib/helpers';
 
 const prefs = { paused: false, reversed: false, refreshInterval: Number(args.interval), minTime: Number(args.minTime) };
-let server;
+let server, db;
 
 async function run() {
     setupRawMode(prefs);
 
     try {
         server = await MongoClient.connect(getConfigs().uri);
+        db = server.db('admin');
     } catch (err) {
         console.log(chalk.red('Error connecting to MongoDB URI: ' + args.uri));
         console.log(chalk.white.bgRed(err));
@@ -30,7 +31,7 @@ async function run() {
         while (true) {
             header = renderer.renderHeader();
             if (!prefs.paused) {
-                let queries = await server.command({ currentOp: 1 });
+                let queries = await db.command({ currentOp: 1 });
                 body = renderer.renderBody(queries.inprog);
             }
 

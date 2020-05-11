@@ -29,14 +29,15 @@ More details can be obtained by passing the `-h` flag.
 § node -r esm app.js -h
 Show the current operations on a MongoDB instance in an easy to read table
 
-Usage: main.js --interval=[num]
+Usage: app.js --interval=[num]
 
 Options:
   -h, --help      Show help                                            [boolean]
   --uri           MongoDB instance uri
+  --once          Run once and quit                                    [boolean]
   -c, --config    Name of the configuration to use from the config folder
                                                           [default: "localhost"]
-  -i, --interval  Refresh data every X second                       [default: 2]
+  -i, --interval  Refresh data every X seconds                      [default: 2]
   -t, --minTime   Only show queries with a run time longer than this value
                                                                     [default: 0]
 ```

@@ -6,7 +6,7 @@ This app aims to be a unix-like "top" experience for MongoDB's running queries. 
 
 You could read the output of `db.currentOp()`, but:
 * The output is in JSON, and while it is programmer friendly, it's long vertical output isn't easily readable for human eyes.
-* The output is literred with system & replication queries which you may have to ignore. 
+* The output is literred with system & replication queries which you may have to ignore.
 * There is no way to auto-refresh it every X seconds and present a summary.
 
 Other reasons for a dev ops engineer or a developer:
@@ -18,15 +18,15 @@ Other reasons for a dev ops engineer or a developer:
 
 This will start the app against the `localhost` server configured in `config/default.json`.
 * `npm install`
-* `node app.js` (same as `node app.js -c localhost`)
+* `./app.js` (same as `node -r esm app.js -c localhost`)
 
 To run this against your own set of servers:
 * Create a file `config/local.json` and define servers in it as indicated in `config/default.json`. You just need the URIs.
-* Start the app using `node main.js -c <server-name>`
+* Start the app using `node -r esm app.js -c <server-name>`
 
-More details can be obtained by passing the `-h` flag. 
+More details can be obtained by passing the `-h` flag.
 ```
-§ node app.js -h
+§ node -r esm app.js -h
 Show the current operations on a MongoDB instance in an easy to read table
 
 Usage: main.js --interval=[num]

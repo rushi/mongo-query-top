@@ -42,6 +42,13 @@ Options:
                                                                     [default: 0]
 ```
 
+### Commands
+
+While the app is running you can press the following keys to execute special functions:
+* `p` - Pause fetching and rendering of queries
+* `r` - Reverse the sorting of the queries (Default: Longest running at the bottom for easy diagnosis)
+* `s` - Save a JSON snapshot of the current queries to disk as `.json` file for later review
+
 ## Requirements
 
 * NodeJS > v8.0

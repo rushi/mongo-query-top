@@ -39,7 +39,7 @@ Options:
                                                           [default: "localhost"]
   -i, --interval  Refresh data every X seconds                      [default: 2]
   -t, --minTime   Only show queries with a run time longer than this value
-                                                                    [default: 0]
+                                                                    [default: 1]
 ```
 
 ### Commands

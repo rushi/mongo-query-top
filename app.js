@@ -32,10 +32,10 @@ async function run() {
 
     try {
         const renderer = new Renderer(prefs, args.config);
-
+        let body;
         while (true) {
             let header = renderer.renderHeader();
-            let body, queries;
+            let queries;
             if (!prefs.paused) {
                 queries = await db.command({ currentOp: 1 });
                 body = renderer.renderBody(queries.inprog);

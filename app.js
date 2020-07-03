@@ -20,6 +20,7 @@ let server, db;
 async function run() {
     const serverConfig = config.get(args.config);
     setupRawMode(prefs);
+    prefs.ip = args.ip;
 
     try {
         server = await MongoClient.connect(serverConfig.uri);

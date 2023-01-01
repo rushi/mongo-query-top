@@ -17,7 +17,7 @@
   "dependencies": {
     "chalk": "^2.0.1",
     "cli-table3": "^0.5.1",
-    "config": "^3.0.0",
+    "config": "^3.3.8",
     "date-fns": "^2.13.0",
     "esm": "^3.2.25",
     "geoip-lite": "^1.4.1",

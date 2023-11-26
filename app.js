@@ -1,21 +1,23 @@
-#!/usr/bin/env node -r esm
+#!/usr/bin/env node
 
 import _ from 'lodash';
 import { MongoClient } from 'mongodb';
 import chalk from 'chalk';
 import config from 'config';
-import args from './lib/usage';
-import Renderer from './lib/renderer';
-import { sleep, clear, setupRawMode, cleanupAndExit } from './lib/helpers';
+import args from './lib/usage.js';
+import Renderer from './lib/renderer.js';
+import { sleep, clear, setupRawMode, cleanupAndExit } from './lib/helpers.js';
 
 const prefs = {
     paused: false,
     reversed: false,
     snapshot: false,
-    refreshInterval: Number(args.interval),
+    refreshInterval: Number(args.refresh),
     minTime: Number(args.minTime),
 };
-let server, db;
+
+let server;
+let db;
 
 async function run() {
     const serverConfig = config.get(args.config);
@@ -26,7 +28,7 @@ async function run() {
         server = await MongoClient.connect(serverConfig.uri);
         db = server.db('admin');
     } catch (err) {
-        console.log(chalk.red('Error connecting to MongoDB URI: ' + args.uri));
+        console.log(chalk.red(`Error connecting to MongoDB URI: ${args.uri}`));
         console.log(chalk.white.bgRed(err));
         cleanupAndExit();
     }
@@ -61,7 +63,7 @@ async function run() {
             }
         }
     } catch (err) {
-        console.log(chalk.white.bgRed('Error running db.currentOp(): ' + err + ' '));
+        console.log(chalk.white.bgRed(`Error running db.currentOp(): ${err}`));
         console.log(err);
     }
 
@@ -69,8 +71,8 @@ async function run() {
 }
 
 process.on('exit', () => {
-    // console.log('Closing server connection');
-    server && server.close();
+    console.log('Closing server connection');
+    server?.close();
 });
 
 run(); // Start

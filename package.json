@@ -4,9 +4,11 @@
     "repository": "https://github.com/rushi/mongo-query-top",
     "description": "Show the current operations on a MongoDB instance in an easy to read table",
     "main": "main.js",
+    "type": "module",
     "scripts": {
         "start": "./app.js",
-        "format": "prettier --write ."
+        "dev": "./app.js",
+        "format": "prettier -l --write ."
     },
     "keywords": [
         "mongodb",
@@ -15,18 +17,18 @@
     "author": "Rushi Vishavadia <rushi@hey.com>",
     "license": "MIT",
     "dependencies": {
-        "chalk": "^2.0.1",
+        "chalk": "^5.3.0",
         "cli-table3": "^0.6.3",
-        "config": "^3.0.0",
-        "date-fns": "^2.13.0",
-        "esm": "^3.2.25",
-        "geoip-lite": "^1.4.1",
-        "humanize-duration": "^3.10.0",
-        "json-beautify": "^1.0.1",
+        "config": "^3.3.9",
+        "dayjs": "^1.11.10",
+        "geoip-lite": "^1.4.8",
+        "humanize-duration": "^3.31.0",
+        "json-beautify": "^1.1.1",
         "lodash": "^4.17.21",
-        "mongodb": "^3.5.7",
-        "prettier": "^2.8.8",
+        "mongodb": "^6.3.0",
+        "nodemon": "^3.0.1",
+        "prettier": "^3.1.0",
         "window-size": "^1.1.1",
-        "yargs": "^15.3.1"
+        "yargs": "^17.7.2"
     }
 }

@@ -35,10 +35,10 @@ async function run() {
         const renderer = new Renderer(prefs, args.config);
         let body;
         while (true) {
-            let header = renderer.renderHeader();
+            const header = renderer.renderHeader();
             let queries;
             if (!prefs.paused) {
-                queries = await db.command({ currentOp: 1 });
+                queries = await db.command({ currentOp: 1, secs_running: { $gte: Number(prefs.minTime) } });
                 body = renderer.renderBody(queries.inprog);
             }
 

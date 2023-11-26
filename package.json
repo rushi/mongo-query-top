@@ -1,6 +1,6 @@
 {
     "name": "mongo-query-top",
-    "version": "0.9.0",
+    "version": "1.0.0",
     "repository": "https://github.com/rushi/mongo-query-top",
     "description": "Show the current operations on a MongoDB instance in an easy to read table",
     "main": "main.js",

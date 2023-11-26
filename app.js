@@ -15,6 +15,7 @@ const prefs = {
     refreshInterval: Number(args.refresh),
     minTime: Number(args.minTime),
     all: args.all,
+    log: args.log
 };
 
 let server;

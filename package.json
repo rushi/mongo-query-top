@@ -7,7 +7,7 @@
     "type": "module",
     "scripts": {
         "start": "./app.js",
-        "dev": "./app.js",
+        "dev": "node --watch ./app.js",
         "format": "prettier -l --write ."
     },
     "keywords": [
@@ -23,10 +23,9 @@
         "dayjs": "^1.11.10",
         "geoip-lite": "^1.4.8",
         "humanize-duration": "^3.31.0",
-        "json-beautify": "^1.1.1",
+        "json-stringify-pretty-compact": "^4.0.0",
         "lodash": "^4.17.21",
         "mongodb": "^6.3.0",
-        "nodemon": "^3.0.1",
         "prettier": "^3.1.0",
         "window-size": "^1.1.1",
         "yargs": "^17.7.2"

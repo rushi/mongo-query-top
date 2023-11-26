@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-import _ from 'lodash';
-import { MongoClient } from 'mongodb';
-import chalk from 'chalk';
-import config from 'config';
-import args from './lib/usage.js';
-import Renderer from './lib/renderer.js';
-import { sleep, clear, setupRawMode, cleanupAndExit } from './lib/helpers.js';
+import _ from "lodash";
+import { MongoClient } from "mongodb";
+import chalk from "chalk";
+import config from "config";
+import args from "./lib/usage.js";
+import Renderer from "./lib/renderer.js";
+import { sleep, clear, setupRawMode, cleanupAndExit } from "./lib/helpers.js";
 
 const prefs = {
     paused: false,
@@ -14,6 +14,7 @@ const prefs = {
     snapshot: false,
     refreshInterval: Number(args.refresh),
     minTime: Number(args.minTime),
+    all: args.all,
 };
 
 let server;
@@ -26,7 +27,7 @@ async function run() {
 
     try {
         server = await MongoClient.connect(serverConfig.uri);
-        db = server.db('admin');
+        db = server.db("admin");
     } catch (err) {
         console.log(chalk.red(`Error connecting to MongoDB URI: ${args.uri}`));
         console.log(chalk.white.bgRed(err));
@@ -70,8 +71,8 @@ async function run() {
     cleanupAndExit();
 }
 
-process.on('exit', () => {
-    console.log('Closing server connection');
+process.on("exit", () => {
+    console.log("Closing server connection");
     server?.close();
 });
 

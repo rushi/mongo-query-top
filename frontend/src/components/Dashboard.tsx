@@ -1,18 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { MongoApiService } from "@/lib/api";
-import { startCase } from "lodash-es";
-import { CurrentOpResponse, MongoQuery } from "@/lib/types";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import QueryDetailSheet from "@/components/QueryDetailSheet";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
-import { Play, Pause, RefreshCw, Save, AlertTriangle, Database, Clock, Users } from "lucide-react";
+import { MongoApiService } from "@/lib/api";
+import { CurrentOpResponse, MongoQuery } from "@/lib/types";
+import { AlertTriangle, Clock, Pause, Play, RefreshCw, Save } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
-interface DashboardProps {}
-
-const Dashboard = (props: DashboardProps) => {
+const Dashboard = () => {
     const [data, setData] = useState<CurrentOpResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -60,7 +58,9 @@ const Dashboard = (props: DashboardProps) => {
     }, [fetchData]);
 
     useEffect(() => {
-        if (!autoRefresh || !data?.metadata?.refreshInterval) return;
+        if (!autoRefresh || !data?.metadata?.refreshInterval) {
+            return;
+        }
 
         const interval = setInterval(() => {
             fetchData();
@@ -68,15 +68,6 @@ const Dashboard = (props: DashboardProps) => {
 
         return () => clearInterval(interval);
     }, [autoRefresh, data?.metadata?.refreshInterval, fetchData]);
-
-    const formatQuery = (query: any): string => {
-        if (typeof query === "string") return query;
-        try {
-            return JSON.stringify(query, null, 2);
-        } catch {
-            return String(query);
-        }
-    };
 
     if (loading) {
         return (
@@ -97,7 +88,7 @@ const Dashboard = (props: DashboardProps) => {
                     <CardContent>
                         <p className="mb-4 text-red-600">{error}</p>
                         <Button onClick={fetchData} variant="outline">
-                            <RefreshCw className="mr-2 h-4 w-4" />
+                            <RefreshCw className="mr-2 size-4" />
                             Retry
                         </Button>
                     </CardContent>
@@ -106,7 +97,9 @@ const Dashboard = (props: DashboardProps) => {
         );
     }
 
-    if (!data) return null;
+    if (!data) {
+        return null;
+    }
 
     const { metadata, data: queryData } = data;
     const { queries, summary } = queryData;
@@ -138,18 +131,18 @@ const Dashboard = (props: DashboardProps) => {
                         </div>
                         <div className="flex items-center gap-2">
                             <Button
-                                onClick={() => setAutoRefresh(!autoRefresh)}
-                                variant={autoRefresh ? "default" : "outline"}
                                 size="sm"
+                                variant={autoRefresh ? "default" : "outline"}
+                                onClick={() => setAutoRefresh(!autoRefresh)}
                             >
-                                {autoRefresh ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                                {autoRefresh ? <Pause className="size-4" /> : <Play className="size-4" />}
                                 {autoRefresh ? "Pause" : "Resume"}
                             </Button>
                             <Button onClick={fetchData} variant="outline" size="sm">
-                                <RefreshCw className="h-4 w-4" />
+                                <RefreshCw className="size-4" />
                             </Button>
                             <Button onClick={handleSaveSnapshot} variant="outline" size="sm">
-                                <Save className="h-4 w-4" />
+                                <Save className="size-4" />
                                 Snapshot
                             </Button>
                         </div>
@@ -185,14 +178,12 @@ const Dashboard = (props: DashboardProps) => {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-1">
-                            {Object.entries(summary.operations)
-                                .slice(0, 3)
-                                .map(([op, count]) => (
-                                    <div key={op} className="flex justify-between text-sm">
-                                        <span>{op}</span>
-                                        <span>{count}</span>
-                                    </div>
-                                ))}
+                            {Object.entries(summary.operations).map(([op, count]) => (
+                                <div key={op} className="flex justify-between text-sm">
+                                    <span>{op}</span>
+                                    <span>{count}</span>
+                                </div>
+                            ))}
                         </div>
                     </CardContent>
                 </Card>
@@ -203,14 +194,12 @@ const Dashboard = (props: DashboardProps) => {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-1">
-                            {Object.entries(summary.namespaces)
-                                .slice(0, 3)
-                                .map(([ns, count]) => (
-                                    <div key={ns} className="flex justify-between text-sm">
-                                        <span className="truncate">{ns}</span>
-                                        <span>{count}</span>
-                                    </div>
-                                ))}
+                            {Object.entries(summary.namespaces).map(([ns, count]) => (
+                                <div key={ns} className="flex justify-between text-sm">
+                                    <span className="truncate">{ns}</span>
+                                    <span>{count}</span>
+                                </div>
+                            ))}
                         </div>
                     </CardContent>
                 </Card>
@@ -331,65 +320,13 @@ const Dashboard = (props: DashboardProps) => {
                 </CardContent>
             </Card>
 
-            {/* Query Detail Modal/Panel */}
-            {selectedQuery && (
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <CardTitle>Query Details - {selectedQuery.opid}</CardTitle>
-                            <Button variant="outline" onClick={() => setSelectedQuery(null)}>
-                                Close
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-sm font-medium">Operation</label>
-                                    <p>{selectedQuery.operation}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium">Runtime</label>
-                                    <p>{selectedQuery.runTimeFormatted}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium">Namespace</label>
-                                    <p>{selectedQuery.namespace}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium">Plan Summary</label>
-                                    <p>{selectedQuery.planSummary || "N/A"}</p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="text-sm font-medium">Query</label>
-                                <pre className="bg-muted mt-1 max-h-64 overflow-auto rounded-lg p-4 text-sm">
-                                    {formatQuery(selectedQuery.query)}
-                                </pre>
-                            </div>
-
-                            {selectedQuery.client && (
-                                <div>
-                                    <label className="text-sm font-medium">Client Information</label>
-                                    <div className="mt-1 space-y-1">
-                                        <p>IP: {selectedQuery.client.ip}</p>
-                                        {selectedQuery.client.location && (
-                                            <p>
-                                                Location: {selectedQuery.client.location.city},{" "}
-                                                {selectedQuery.client.location.region},{" "}
-                                                {selectedQuery.client.location.country}
-                                            </p>
-                                        )}
-                                        <p>User Agent: {selectedQuery.userAgent}</p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+            {/* Query Detail Sheet */}
+            <QueryDetailSheet
+                query={selectedQuery}
+                isOpen={!!selectedQuery}
+                onClose={() => setSelectedQuery(null)}
+                onKillQuery={handleKillQuery}
+            />
         </div>
     );
 };

@@ -44,11 +44,10 @@ async function run() {
             await apiServer.start(args.port);
 
             // Keep the process running
-            process.on('SIGINT', () => {
-                console.log(chalk.yellow('\nShutting down API server...'));
+            process.on("SIGINT", () => {
+                console.log(chalk.yellow("\nShutting down API server..."));
                 cleanupAndExit();
             });
-
         } else {
             // Run in CLI mode (original behavior)
             setupRawMode(prefs);

@@ -15,7 +15,7 @@ A modern React web interface for monitoring MongoDB operations in real-time. Bui
 
 ## Prerequisites
 
--   Node.js 18+
+-   Node.js 20+
 -   MongoDB Query Top API server running (see parent directory)
 
 ## Quick Start
@@ -121,7 +121,7 @@ Built using shadcn/ui components:
 
 The frontend consumes the MongoDB Query Top REST API:
 
--   `GET /api/currentop` - Fetch current operations
+-   `GET /api/currentOp` - Fetch current operations
 -   `GET /api/info` - Get server information
 -   `POST /api/preferences` - Update monitoring settings
 -   `POST /api/snapshot` - Save query snapshot

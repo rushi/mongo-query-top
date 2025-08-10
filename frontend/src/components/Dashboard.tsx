@@ -247,7 +247,15 @@ const Dashboard = () => {
                                         <TableCell className="font-medium">{query.index}</TableCell>
                                         <TableCell className="font-mono text-sm">{query.opid}</TableCell>
                                         <TableCell>
-                                            <Badge variant={query.runTime > 10 ? "destructive" : "secondary"}>
+                                            <Badge
+                                                variant={
+                                                    query.runTime > 180
+                                                        ? "destructive"
+                                                        : query.runTime < 60
+                                                          ? "outline"
+                                                          : "secondary"
+                                                }
+                                            >
                                                 {query.runTimeFormatted}
                                             </Badge>
                                         </TableCell>

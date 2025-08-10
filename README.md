@@ -19,7 +19,7 @@ This app aims to be a unix-like "top" experience for MongoDB's running queries. 
 You could read the output of `db.currentOp()`, but:
 
 - The output is in JSON, and while it is programmer friendly, it's long vertical output isn't easily readable for human eyes.
-- The output is literred with system & replication queries which you may have to ignore.
+- The output is littered with system & replication queries which you may have to ignore.
 - There is no way to auto-refresh it every X seconds and present a summary.
 
 Other reasons for a dev ops engineer or a developer:
@@ -41,7 +41,7 @@ npm install
 ```bash
 npm install
 npm run api  # Start API server on port 3000
-curl http://localhost:3000/api/currentop  # Get current operations as JSON
+curl http://localhost:3000/api/currentOp  # Get current operations as JSON
 ```
 
 ## Installation & Usage
@@ -57,10 +57,10 @@ To run this against your own set of servers:
 - Create a file `config/local.json` and define servers in it as indicated in `config/default.json`. You just need the URIs.
 - Start the app using `./app.js -c <server-name>`
 
-### API Mode  
+### API Mode
 Start the API server:
 ```bash
-# Default settings (port 3000)  
+# Default settings (port 3000)
 ./app.js --api
 
 # Custom port and config

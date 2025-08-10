@@ -5,7 +5,8 @@ import { MongoClient } from "mongodb";
 import chalk from "chalk";
 import config from "config";
 import args from "./lib/usage.js";
-import Renderer from "./lib/renderer.js";
+import AsciiRenderer from "./lib/asciiRenderer.js";
+import ApiServer from "./lib/apiServer.js";
 import { sleep, clear, setupRawMode, cleanupAndExit } from "./lib/helpers.js";
 
 const prefs = {
@@ -23,7 +24,6 @@ let db;
 
 async function run() {
     const serverConfig = config.get(args.config);
-    setupRawMode(prefs);
     prefs.ip = args.ip;
 
     try {
@@ -36,40 +36,60 @@ async function run() {
     }
 
     try {
-        const renderer = new Renderer(prefs, args.config);
-        let body;
-        while (true) {
-            const header = renderer.renderHeader();
-            let queries;
-            if (!prefs.paused) {
-                queries = await db.command({ currentOp: 1, secs_running: { $gte: Number(prefs.minTime) } });
-                body = renderer.renderBody(queries.inprog);
-            }
+        if (args.api) {
+            // Run in API mode
+            console.log(chalk.blue("Starting MongoDB Query Top in API mode..."));
+            const apiServer = new ApiServer(db, prefs, args.config);
+            await apiServer.start(args.port);
 
-            if (!prefs.paused || !prefs.finishedPausing) {
-                clear();
-                console.log(header, body);
-                prefs.finishedPausing = prefs.paused;
-            }
+            // Keep the process running
+            process.on('SIGINT', () => {
+                console.log(chalk.yellow('\nShutting down API server...'));
+                cleanupAndExit();
+            });
 
-            if (args.once) {
-                break;
-            }
+        } else {
+            // Run in CLI mode (original behavior)
+            setupRawMode(prefs);
+            const renderer = new AsciiRenderer(prefs, args.config);
+            let body;
 
-            const interval = prefs.paused ? 0.5 : prefs.refreshInterval;
-            await sleep(interval);
+            while (true) {
+                const header = renderer.renderHeader();
+                let queries;
+                if (!prefs.paused) {
+                    queries = await db.command({ currentOp: 1, secs_running: { $gte: Number(prefs.minTime) } });
+                    body = renderer.renderBody(queries.inprog);
+                }
 
-            if (prefs.snapshot && queries) {
-                // User requested to save a snapshot of the current queries to disk for later analysis
-                renderer.save(queries.inprog);
+                if (!prefs.paused || !prefs.finishedPausing) {
+                    clear();
+                    console.log(header, body);
+                    prefs.finishedPausing = prefs.paused;
+                }
+
+                if (args.once) {
+                    break;
+                }
+
+                const interval = prefs.paused ? 0.5 : prefs.refreshInterval;
+                await sleep(interval);
+
+                if (prefs.snapshot && queries) {
+                    // User requested to save a snapshot of the current queries to disk for later analysis
+                    renderer.save(queries.inprog);
+                }
             }
         }
     } catch (err) {
         console.log(chalk.white.bgRed(`Error running db.currentOp(): ${err}`));
         console.log(err);
+        cleanupAndExit();
     }
 
-    cleanupAndExit();
+    if (!args.api) {
+        cleanupAndExit();
+    }
 }
 
 process.on("exit", () => {

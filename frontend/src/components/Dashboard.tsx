@@ -112,7 +112,7 @@ const Dashboard = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <CardTitle className="flex items-center gap-2 gap-x-1">
-                                MongoDB Query Top - <span>{metadata.server}</span>
+                                MongoDB Query Top - <span>{metadata.name}</span>
                             </CardTitle>
                             <CardDescription className="text-xs">
                                 <div className="mt-2 flex items-center gap-4">

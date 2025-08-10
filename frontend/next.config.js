@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 
 const PORT = process.env.PORT_API || 3000;
+console.log(`⏩ Using API port: ${PORT}`);
 
 const nextConfig = {
     outputFileTracingRoot: __dirname,

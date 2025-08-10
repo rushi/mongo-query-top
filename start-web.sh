@@ -19,12 +19,13 @@ fi
 
 PORT_API=${PORT_API:-3000}
 PORT_FRONTEND=${PORT_FRONTEND:-3001}
+API_BASE_URL="${API_BASE_URL:-http://localhost:${PORT_API}}"
 
-echo "🌐 Starting API server on port ${PORT_API}..."
+echo "Starting API server on port ${PORT_API}..."
 ./app.js --api --port="${PORT_API}" "$@" &
 API_PID=$!
 
-echo "🎨 Starting React frontend on port ${PORT_FRONTEND} in 5s..."
+echo "Starting React frontend on port ${PORT_FRONTEND} in 5s..."
 cd frontend || exit 1
 sleep 5  # Give some time for the API to start
 npm run dev -- -p "${PORT_FRONTEND}" &

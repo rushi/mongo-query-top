@@ -3,3 +3,4 @@ config/local.json
 references/*
 mongodb-query-top-snapshot-*
 logs/*
+.next

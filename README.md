@@ -6,9 +6,11 @@ This app aims to be a unix-like "top" experience for MongoDB's running queries. 
 
 - **CLI Mode**: Real-time terminal interface similar to unix `top`
 - **API Mode**: RESTful HTTP API returning JSON responses  
+- **Web UI**: Modern React dashboard for monitoring queries in a browser
 - Filter out system/replication queries for cleaner output
 - Auto-refresh every X seconds with customizable intervals
 - Identify slow queries, collection scans, and query sources
+- Kill long-running queries directly from the interface
 - Save snapshots to disk for later analysis
 - GeoIP lookup for client locations
 
@@ -55,7 +57,7 @@ To run this against your own set of servers:
 - Create a file `config/local.json` and define servers in it as indicated in `config/default.json`. You just need the URIs.
 - Start the app using `./app.js -c <server-name>`
 
-### API Mode
+### API Mode  
 Start the API server:
 ```bash
 # Default settings (port 3000)  
@@ -65,7 +67,21 @@ Start the API server:
 ./app.js --api --port 4000 --config production --minTime 2
 ```
 
-See [API_USAGE.md](API_USAGE.md) for detailed API documentation and examples.
+### Web UI Mode
+Start both the API server and the React frontend:
+```bash
+# Terminal 1: Start API server
+./app.js --api
+
+# Terminal 2: Start React frontend  
+cd frontend
+npm install
+npm run dev
+```
+
+Then open http://localhost:3001 in your browser.
+
+See [API_USAGE.md](API_USAGE.md) for detailed API documentation and [frontend/README.md](frontend/README.md) for React app details.
 
 More details can be obtained by passing the `-h` flag.
 

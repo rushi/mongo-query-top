@@ -17,28 +17,22 @@ if [ ! -d "frontend" ]; then
     exit 1
 fi
 
-echo "📦 Installing frontend dependencies..."
-cd frontend || exit 1
-npm install --silent
+PORT_API=${PORT_API:-3000}
+PORT_FRONTEND=${PORT_FRONTEND:-3001}
 
-# echo "🔧 Building frontend..."
-# npm run build --silent
-
-echo "🌐 Starting API server on port 3000..."
-cd ..
-./app.js --api &
+echo "🌐 Starting API server on port ${PORT_API}..."
+./app.js --api --port="${PORT_API}" "$@" &
 API_PID=$!
 
-echo "🎨 Starting React frontend on port 3001..."
+echo "🎨 Starting React frontend on port ${PORT_FRONTEND} in 2s..."
 cd frontend || exit 1
-npm run dev &
+sleep 2  # Give some time for the API to start
+npm run dev -- -p "${PORT_FRONTEND}" &
 FRONTEND_PID=$!
 
 echo ""
-echo "✅ Services started successfully!"
-echo ""
-echo "🔗 Web Interface: http://localhost:3001"
-echo "🔗 API Endpoint: http://localhost:3000/api"
+echo "🔗 Web Interface: http://localhost:${PORT_FRONTEND}"
+echo "🔗 API Endpoint: http://localhost:${PORT_API}/api"
 echo ""
 echo "Press Ctrl+C to stop all services"
 

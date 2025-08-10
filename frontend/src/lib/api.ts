@@ -1,6 +1,6 @@
 import { CurrentOpResponse, ServerInfo } from "./types";
 
-const API_BASE_URL = process.env.NODE_ENV === "production" ? "http://localhost:3000" : "/api/mongo";
+const API_BASE_URL = process.env.NODE_ENV === "production" ? process.env.API_BASE_URL : "/api/mongo";
 
 export class MongoApiService {
     private static instance: MongoApiService;
@@ -30,7 +30,7 @@ export class MongoApiService {
 
     public async getCurrentOperations(minTime?: number): Promise<CurrentOpResponse> {
         const queryParams = minTime ? `?minTime=${minTime}` : "";
-        return this.fetchApi<CurrentOpResponse>(`/currentop${queryParams}`);
+        return this.fetchApi<CurrentOpResponse>(`/currentOp${queryParams}`);
     }
 
     public async getServerInfo(): Promise<ServerInfo> {

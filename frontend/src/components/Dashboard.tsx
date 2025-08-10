@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { MongoApiService } from "@/lib/api";
+import { startCase } from "lodash-es";
 import { CurrentOpResponse, MongoQuery } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -111,28 +112,28 @@ const Dashboard = (props: DashboardProps) => {
     const { queries, summary } = queryData;
 
     return (
-        <div className="container mx-auto space-y-6 p-4">
+        <div className="w-full space-y-6 p-4">
             {/* Header */}
             <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle className="flex items-center gap-2">
-                                <Database className="h-6 w-6" />
-                                MongoDB Query Top - {metadata.server}
+                            <CardTitle className="flex items-center gap-2 gap-x-1">
+                                MongoDB Query Top - <span>{metadata.server}</span>
                             </CardTitle>
-                            <CardDescription>
+                            <CardDescription className="text-xs">
                                 <div className="mt-2 flex items-center gap-4">
                                     <span className="flex items-center gap-1">
-                                        <RefreshCw className="h-4 w-4" />
+                                        <RefreshCw className="size-3" />
                                         {metadata.refreshInterval}s refresh
                                     </span>
                                     <span className="flex items-center gap-1">
-                                        <Clock className="h-4 w-4" />
+                                        <Clock className="size-3" />
                                         Min time: {metadata.minTime}s
                                     </span>
                                     <span>Last updated: {new Date(metadata.timestamp).toLocaleTimeString()}</span>
                                 </div>
+                                <div className="pt-1 text-xs text-gray-400">{metadata.uri}</div>
                             </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">

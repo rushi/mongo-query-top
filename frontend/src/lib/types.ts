@@ -34,6 +34,7 @@ export interface QuerySummary {
 
 export interface ServerMetadata {
     server: string;
+    uri: string;
     refreshInterval: number;
     minTime: number;
     timestamp: string;

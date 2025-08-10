@@ -24,9 +24,9 @@ echo "🌐 Starting API server on port ${PORT_API}..."
 ./app.js --api --port="${PORT_API}" "$@" &
 API_PID=$!
 
-echo "🎨 Starting React frontend on port ${PORT_FRONTEND} in 2s..."
+echo "🎨 Starting React frontend on port ${PORT_FRONTEND} in 5s..."
 cd frontend || exit 1
-sleep 2  # Give some time for the API to start
+sleep 5  # Give some time for the API to start
 npm run dev -- -p "${PORT_FRONTEND}" &
 FRONTEND_PID=$!
 

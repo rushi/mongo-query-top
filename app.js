@@ -27,10 +27,11 @@ async function run() {
     prefs.ip = args.ip;
 
     try {
+        console.log(chalk.blue(`Connecting to MongoDB URI...`));
         server = await MongoClient.connect(serverConfig.uri);
         db = server.db("admin");
     } catch (err) {
-        console.log(chalk.red(`Error connecting to MongoDB URI: ${args.uri}`));
+        console.log(chalk.red(`Error connecting to MongoDB URI: ${serverConfig.uri}`));
         console.log(chalk.white.bgRed(err));
         cleanupAndExit();
     }
@@ -38,7 +39,7 @@ async function run() {
     try {
         if (args.api) {
             // Run in API mode
-            console.log(chalk.blue("Starting MongoDB Query Top in API mode..."));
+            console.log(chalk.green("Connected to database. Starting app in API mode"));
             const apiServer = new ApiServer(db, prefs, args.config);
             await apiServer.start(args.port);
 

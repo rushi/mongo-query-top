@@ -32,6 +32,18 @@ export interface QuerySummary {
     userAgents: Record<string, number>;
 }
 
+export interface ConnectionInfo {
+    current: number;
+    available: number;
+    totalCreated: number;
+    rejected: number;
+    active: number;
+    threaded: number;
+    exhaustIsMaster: number;
+    exhaustHello: number;
+    awaitingTopologyChanges: number;
+}
+
 export interface ServerMetadata {
     server: string;
     name: string;
@@ -43,6 +55,7 @@ export interface ServerMetadata {
     reversed: boolean;
     showAll: boolean;
     message?: string;
+    connections?: ConnectionInfo;
 }
 
 export interface CurrentOpResponse {
@@ -67,5 +80,6 @@ export interface ServerInfo {
             paused: boolean;
             reversed: boolean;
         };
+        connections?: ConnectionInfo;
     };
 }

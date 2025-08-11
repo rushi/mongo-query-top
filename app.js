@@ -55,12 +55,17 @@ async function run() {
             let body;
 
             while (true) {
-                const header = renderer.renderHeader();
-                let queries;
+                let queries, serverStatus;
                 if (!prefs.paused) {
-                    queries = await db.command({ currentOp: 1, secs_running: { $gte: Number(prefs.minTime) } });
+                    // Fetch current operations and server status in parallel
+                    [queries, serverStatus] = await Promise.all([
+                        db.command({ currentOp: 1, secs_running: { $gte: Number(prefs.minTime) } }),
+                        db.command({ serverStatus: 1 })
+                    ]);
                     body = renderer.renderBody(queries.inprog);
                 }
+
+                const header = renderer.renderHeader(serverStatus?.connections);
 
                 if (!prefs.paused || !prefs.finishedPausing) {
                     clear();

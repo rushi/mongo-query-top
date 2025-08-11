@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { MongoApiService } from "@/lib/api";
 import { CurrentOpResponse, MongoQuery } from "@/lib/types";
-import { AlertTriangle, Clock, Pause, Play, RefreshCw, Save } from "lucide-react";
+import { Play, Pause, RefreshCw, Save, AlertTriangle, Database, Clock, Users, Activity } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 const Dashboard = () => {
@@ -124,6 +124,12 @@ const Dashboard = () => {
                                         <Clock className="size-3" />
                                         Min time: {metadata.minTime}s
                                     </span>
+                                    {metadata.connections && (
+                                        <span className="flex items-center gap-1">
+                                            <Users className="size-3" />
+                                            {metadata.connections.current}/{metadata.connections.available} connections
+                                        </span>
+                                    )}
                                     <span>Last updated: {new Date(metadata.timestamp).toLocaleTimeString()}</span>
                                 </div>
                                 <div className="pt-1 text-xs text-gray-400">{metadata.uri}</div>
@@ -151,7 +157,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium">Total Queries</CardTitle>
@@ -172,18 +178,48 @@ const Dashboard = () => {
                     </CardContent>
                 </Card>
 
+                {/* Connections Card */}
+                {metadata.connections && (
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium flex items-center gap-1">
+                                <Activity className="h-4 w-4" />
+                                Connections
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{metadata.connections.current}</div>
+                            <p className="text-muted-foreground text-xs">
+                                of {metadata.connections.available} available
+                            </p>
+                            <div className="mt-2 space-y-1">
+                                <div className="flex justify-between text-xs">
+                                    <span>Active:</span>
+                                    <span>{metadata.connections.active}</span>
+                                </div>
+                                <div className="flex justify-between text-xs">
+                                    <span>Total Created:</span>
+                                    <span>{metadata.connections.totalCreated}</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium">Operations</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-1">
-                            {Object.entries(summary.operations).map(([op, count]) => (
-                                <div key={op} className="flex justify-between text-sm">
-                                    <span>{op}</span>
-                                    <span>{count}</span>
-                                </div>
-                            ))}
+                            {Object.entries(summary.operations)
+                                .slice(0, 3)
+                                .map(([op, count]) => (
+                                    <div key={op} className="flex justify-between text-sm">
+                                        <span>{op}</span>
+                                        <span>{count}</span>
+                                    </div>
+                                ))}
                         </div>
                     </CardContent>
                 </Card>
@@ -194,12 +230,14 @@ const Dashboard = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-1">
-                            {Object.entries(summary.namespaces).map(([ns, count]) => (
-                                <div key={ns} className="flex justify-between text-sm">
-                                    <span className="truncate">{ns}</span>
-                                    <span>{count}</span>
-                                </div>
-                            ))}
+                            {Object.entries(summary.namespaces)
+                                .slice(0, 3)
+                                .map(([ns, count]) => (
+                                    <div key={ns} className="flex justify-between text-sm">
+                                        <span className="truncate">{ns}</span>
+                                        <span>{count}</span>
+                                    </div>
+                                ))}
                         </div>
                     </CardContent>
                 </Card>

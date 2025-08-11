@@ -140,7 +140,8 @@ const Dashboard = () => {
                                     {metadata.connections && (
                                         <span className="flex items-center gap-1">
                                             <Users className="size-3" />
-                                            {metadata.connections.current}/{metadata.connections.available} connections
+                                            {metadata.connections.current.toLocaleString()}/
+                                            {metadata.connections.available.toLocaleString()} connections
                                         </span>
                                     )}
                                     <span>Last updated: {new Date(metadata.timestamp).toLocaleTimeString()}</span>
@@ -213,12 +214,12 @@ const Dashboard = () => {
                             </p>
                             <div className="mt-2 space-y-1">
                                 <div className="flex justify-between text-xs">
-                                    <span>Active:</span>
+                                    <span>Active</span>
                                     <span>{metadata.connections.active}</span>
                                 </div>
                                 <div className="flex justify-between text-xs">
-                                    <span>Total Created:</span>
-                                    <span>{metadata.connections.totalCreated}</span>
+                                    <span>Total Created</span>
+                                    <span>{metadata.connections.totalCreated.toLocaleString()}</span>
                                 </div>
                             </div>
                         </CardContent>

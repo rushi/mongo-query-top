@@ -7,7 +7,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { MongoApiService } from "@/lib/api";
 import { CurrentOpResponse, MongoQuery } from "@/lib/types";
-import { Play, Pause, RefreshCw, Save, AlertTriangle, Database, Clock, Users, Activity } from "lucide-react";
+import {
+    Play,
+    Pause,
+    RefreshCw,
+    Save,
+    AlertTriangle,
+    Database,
+    Clock,
+    Users,
+    Activity,
+    Search,
+    FileText,
+    Settings,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 const Dashboard = () => {
@@ -160,7 +173,10 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Total Queries</CardTitle>
+                        <CardTitle className="flex items-center gap-1 text-sm font-medium">
+                            <Database className="h-4 w-4" />
+                            Total Queries
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{summary.displayedQueries}</div>
@@ -170,7 +186,10 @@ const Dashboard = () => {
 
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Collection Scans</CardTitle>
+                        <CardTitle className="flex items-center gap-1 text-sm font-medium">
+                            <Search className="h-4 w-4" />
+                            Collection Scans
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-yellow-600">{summary.unindexedQueries}</div>
@@ -182,7 +201,7 @@ const Dashboard = () => {
                 {metadata.connections && (
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium flex items-center gap-1">
+                            <CardTitle className="flex items-center gap-1 text-sm font-medium">
                                 <Activity className="h-4 w-4" />
                                 Connections
                             </CardTitle>
@@ -208,7 +227,10 @@ const Dashboard = () => {
 
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Operations</CardTitle>
+                        <CardTitle className="flex items-center gap-1 text-sm font-medium">
+                            <Settings className="h-4 w-4" />
+                            Operations
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-1">
@@ -226,7 +248,10 @@ const Dashboard = () => {
 
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Namespaces</CardTitle>
+                        <CardTitle className="flex items-center gap-1 text-sm font-medium">
+                            <FileText className="h-4 w-4" />
+                            Namespaces
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-1">

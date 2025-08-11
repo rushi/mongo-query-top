@@ -27,9 +27,9 @@ export interface QuerySummary {
     displayedQueries: number;
     skippedQueries: number;
     unindexedQueries: number;
-    operations: Record<string, number>;
-    namespaces: Record<string, number>;
-    userAgents: Record<string, number>;
+    operations: Record;
+    namespaces: Record;
+    userAgents: Record;
 }
 
 export interface ConnectionInfo {

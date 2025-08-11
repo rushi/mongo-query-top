@@ -145,6 +145,7 @@ const Dashboard = () => {
                                         </span>
                                     )}
                                     <span>Last updated: {new Date(metadata.timestamp).toLocaleTimeString()}</span>
+                                    {/* TODO: Add live relative time */}
                                 </div>
                                 <div className="pt-1 text-xs text-gray-400">{metadata.uri}</div>
                             </CardDescription>

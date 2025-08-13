@@ -1,0 +1,105 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
+@font-face {
+    font-family: "Sohne";
+    src: url("/fonts/soehne-web-light.woff") format("woff");
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Sohne";
+    src: url("/fonts/soehne-web-light-italic.woff") format("woff");
+    font-weight: 300;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Sohne";
+    src: url("/fonts/soehne-web-book.woff") format("woff");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Sohne";
+    src: url("/fonts/soehne-web-book-italic.woff") format("woff");
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Sohne";
+    src: url("/fonts/soehne-web-semi-bold.woff") format("woff");
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Sohne";
+    src: url("/fonts/soehne-web-semi-bold-italic.woff") format("woff");
+    font-weight: 600;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Sohne";
+    src: url("/fonts/soehne-web-strong.woff") format("woff");
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Sohne";
+    src: url("/fonts/soehne-web-strong-italic.woff") format("woff");
+    font-weight: 700;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Sohne";
+    src: url("/fonts/soehne-web-bold.woff") format("woff");
+    font-weight: 800;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Sohne";
+    src: url("/fonts/soehne-web-bold-italic.woff") format("woff");
+    font-weight: 800;
+    font-style: italic;
+}
+
+/**
+  * Monospace
+  */
+
+@font-face {
+    font-family: "Sohne Mono";
+    src: url("/fonts/soehne-mono-web-book.woff") format("woff");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Sohne Mono";
+    src: url("/fonts/soehne-mono-web-semi-bold.woff") format("woff");
+    font-weight: 600;
+    font-style: normal;
+}
+
+/* CSS Custom Properties for easy use */
+:root {
+    --font-sohne: "Sohne", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-sohne-mono: "Sohne Mono", "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New",
+        monospace;
+}
+
+/* Utility classes */
+.font-sohne {
+    font-family: var(--font-sohne);
+}
+
+.font-sohne-mono {
+    font-family: var(--font-sohne-mono);
+}

@@ -23,7 +23,7 @@
         "config": "^3.3.9",
         "cors": "^2.8.5",
         "dayjs": "^1.11.10",
-        "express": "^5.1.0",
+        "express": "^5.2.0",
         "geoip-lite": "^1.4.8",
         "humanize-duration": "^3.31.0",
         "json-stringify-pretty-compact": "^4.0.0",

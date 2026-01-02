@@ -37,9 +37,11 @@ await fastify.register(cors, {
     credentials: true,
 });
 
-// Simple API key auth middleware
+// Simple API key auth middleware (supports both header and query parameter for EventSource compatibility)
 fastify.addHook("onRequest", async (request, reply) => {
-    const apiKey = request.headers["x-api-key"];
+    const headerKey = request.headers["x-api-key"] as string;
+    const queryKey = (request.query as any)?.apiKey;
+    const apiKey = headerKey || queryKey;
     const validKey = process.env.API_KEY || "dev-key-change-in-production";
 
     if (apiKey !== validKey) {

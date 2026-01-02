@@ -1,0 +1,206 @@
+import type { FastifyInstance, FastifyReply } from "fastify";
+
+export default async function queriesRoutes(fastify: FastifyInstance) {
+    // GET /api/queries/:serverId - Get current queries (one-time fetch)
+    fastify.get<{
+        Params: { serverId: string };
+        Querystring: { minTime?: string; showAll?: string };
+    }>("/:serverId", async (request, reply) => {
+        const { serverId } = request.params;
+        const { minTime = "1", showAll = "false" } = request.query;
+
+        const client = request.services.mongoService.getConnection(serverId);
+        if (!client) {
+            return reply.code(404).send({ error: "Server not connected" });
+        }
+
+        try {
+            const db = client.db("admin");
+            const result = await db.command({
+                currentOp: 1,
+                secs_running: { $gte: Number(minTime) },
+            });
+
+            const queries = request.services.queryService.processQueries(result.inprog, showAll === "true");
+            const summary = request.services.queryService.generateSummary(queries);
+
+            return {
+                queries,
+                summary,
+                metadata: {
+                    serverId,
+                    timestamp: new Date().toISOString(),
+                },
+            };
+        } catch (err: any) {
+            return reply.code(500).send({
+                error: "Failed to fetch queries",
+                message: err.message,
+            });
+        }
+    });
+
+    // GET /api/queries/:serverId/stream - Real-time SSE stream
+    fastify.get<{
+        Params: { serverId: string };
+        Querystring: { minTime?: string; refreshInterval?: string; showAll?: string };
+    }>("/:serverId/stream", async (request, reply) => {
+        const { serverId } = request.params;
+        const { minTime = "1", refreshInterval = "2", showAll = "false" } = request.query;
+
+        const client = request.services.mongoService.getConnection(serverId);
+        if (!client) {
+            reply.raw.writeHead(404, { "Content-Type": "application/json" });
+            reply.raw.write(JSON.stringify({ error: "Server not connected" }));
+            return reply.raw.end();
+        }
+
+        // Setup SSE headers
+        reply.raw.writeHead(200, {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+            "X-Accel-Buffering": "no",
+        });
+
+        let intervalId: NodeJS.Timeout;
+        let isActive = true;
+
+        const sendQueryUpdate = async () => {
+            if (!isActive) {
+                return;
+            }
+
+            try {
+                const db = client.db("admin");
+                const result = await db.command({
+                    currentOp: 1,
+                    secs_running: { $gte: Number(minTime) },
+                });
+
+                const queries = request.services.queryService.processQueries(result.inprog, showAll === "true");
+                const summary = request.services.queryService.generateSummary(queries);
+
+                const data = {
+                    queries,
+                    summary,
+                    metadata: {
+                        serverId,
+                        timestamp: new Date().toISOString(),
+                    },
+                };
+
+                reply.raw.write(`event: queries\ndata: ${JSON.stringify(data)}\n\n`);
+            } catch (err: any) {
+                if (isActive) {
+                    reply.raw.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
+                }
+            }
+        };
+
+        // Send initial data immediately
+        await sendQueryUpdate();
+
+        // Setup interval for subsequent updates
+        intervalId = setInterval(sendQueryUpdate, Number(refreshInterval) * 1000);
+
+        // Cleanup on connection close
+        request.raw.on("close", () => {
+            isActive = false;
+            clearInterval(intervalId);
+            fastify.log.info(`SSE connection closed for server: ${serverId}`);
+        });
+
+        // Keep connection alive with heartbeat
+        const heartbeatId = setInterval(() => {
+            if (isActive) {
+                reply.raw.write(`:heartbeat\n\n`);
+            }
+        }, 30000); // Every 30 seconds
+
+        request.raw.on("close", () => {
+            clearInterval(heartbeatId);
+        });
+    });
+
+    // POST /api/queries/:serverId/snapshot - Save snapshot of current queries
+    fastify.post<{
+        Params: { serverId: string };
+        Querystring: { minTime?: string };
+    }>("/:serverId/snapshot", async (request, reply) => {
+        const { serverId } = request.params;
+        const { minTime = "1" } = request.query;
+
+        const client = request.services.mongoService.getConnection(serverId);
+        if (!client) {
+            return reply.code(404).send({ error: "Server not connected" });
+        }
+
+        try {
+            const db = client.db("admin");
+            const result = await db.command({
+                currentOp: 1,
+                secs_running: { $gte: Number(minTime) },
+            });
+
+            const queries = request.services.queryService.processQueries(result.inprog);
+            const files = await request.services.loggerService.saveSnapshot(serverId, queries);
+
+            return {
+                success: true,
+                savedFiles: files,
+                queryCount: queries.length,
+                timestamp: new Date().toISOString(),
+            };
+        } catch (err: any) {
+            return reply.code(500).send({
+                error: "Failed to save snapshot",
+                message: err.message,
+            });
+        }
+    });
+
+    // GET /api/queries/:serverId/logs - List saved log files
+    fastify.get<{
+        Params: { serverId: string };
+    }>("/:serverId/logs", async (request, reply) => {
+        const { serverId } = request.params;
+
+        try {
+            const logs = await request.services.loggerService.listLogs(serverId);
+
+            return {
+                serverId,
+                logs,
+                count: logs.length,
+            };
+        } catch (err: any) {
+            return reply.code(500).send({
+                error: "Failed to list logs",
+                message: err.message,
+            });
+        }
+    });
+
+    // GET /api/queries/:serverId/logs/:filename - Read a specific log file
+    fastify.get<{
+        Params: { serverId: string; filename: string };
+    }>("/:serverId/logs/:filename", async (request, reply) => {
+        const { serverId, filename } = request.params;
+
+        try {
+            const content = await request.services.loggerService.readLog(serverId, filename);
+
+            return {
+                serverId,
+                filename,
+                content,
+            };
+        } catch (err: any) {
+            return reply.code(404).send({
+                error: "Log file not found",
+                message: err.message,
+            });
+        }
+    });
+}

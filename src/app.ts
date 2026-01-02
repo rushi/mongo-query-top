@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
-import { MongoClient, Db } from "mongodb";
 import chalk from "chalk";
 import args from "./lib/usage.js";
-import Renderer from "./lib/renderer.js";
 import { sleep, clear, setupRawMode, cleanupAndExit } from "./lib/helpers.js";
+import ConsoleRenderer from "./lib/ConsoleRenderer.js";
+import { MongoConnectionService } from "./services/MongoConnectionService.js";
+import { QueryService } from "./services/QueryService.js";
+import { QueryLoggerService } from "./services/QueryLoggerService.js";
 import type { UserPreferences, ServerConfig } from "./types/index.js";
 
 // Import config files using JSON imports (replaces config package)
@@ -32,8 +34,10 @@ const prefs: UserPreferences = {
     finishedPausing: false,
 };
 
-let server: MongoClient | undefined;
-let db: Db | undefined;
+// Initialize services
+const mongoService = new MongoConnectionService();
+const queryService = new QueryService();
+const loggerService = new QueryLoggerService();
 
 async function run() {
     const serverConfig = servers[args.config];
@@ -47,8 +51,8 @@ async function run() {
     setupRawMode(prefs);
 
     try {
-        server = await MongoClient.connect(serverConfig.uri);
-        db = server.db("admin");
+        await mongoService.connect(args.config, serverConfig.uri);
+        console.log(chalk.green(`Connected to ${serverConfig.name}`));
     } catch (err) {
         console.log(chalk.red(`Error connecting to MongoDB URI: ${serverConfig.uri}`));
         console.log(chalk.white.bgRed(err as any));
@@ -56,14 +60,39 @@ async function run() {
     }
 
     try {
-        const renderer = new Renderer(prefs, args.config);
+        const renderer = new ConsoleRenderer(prefs, args.config);
         let body: string | undefined;
+        let processedQueries: any;
+
         while (true) {
             const header = renderer.renderHeader();
-            let queries: any;
+
             if (!prefs.paused) {
-                queries = await db!.command({ currentOp: 1, secs_running: { $gte: Number(prefs.minTime) } });
-                body = renderer.renderBody(queries.inprog);
+                const db = mongoService.getDb(args.config, "admin");
+                if (!db) {
+                    throw new Error("Database connection lost");
+                }
+
+                const result = await db.command({
+                    currentOp: 1,
+                    secs_running: { $gte: Number(prefs.minTime) },
+                });
+
+                // Process queries using QueryService
+                processedQueries = queryService.processQueries(result.inprog, prefs.all);
+                const summary = queryService.generateSummary(processedQueries);
+
+                // Auto-save long-running queries
+                for (const q of processedQueries) {
+                    if (q.secs_running >= prefs.log) {
+                        loggerService.saveQuery(args.config, q, "long-running").catch(err => {
+                            console.error(chalk.red(`Error saving query: ${err.message}`));
+                        });
+                    }
+                }
+
+                // Render using ConsoleRenderer
+                body = renderer.renderBody(processedQueries, summary);
             }
 
             if (!prefs.paused || !prefs.finishedPausing) {
@@ -79,10 +108,11 @@ async function run() {
             const interval = prefs.paused ? 0.5 : prefs.refreshInterval;
             await sleep(interval);
 
-            if (prefs.snapshot && queries) {
-                // User requested to save a snapshot of the current queries to disk for later analysis
-                // Await the async save operation
-                await renderer.save(queries.inprog);
+            if (prefs.snapshot && processedQueries) {
+                // User requested to save a snapshot of the current queries to disk
+                const files = await loggerService.saveSnapshot(args.config, processedQueries);
+                renderer.setFeedbackMessage(`Saved snapshot: ${files.raw}`);
+                prefs.snapshot = false;
             }
         }
     } catch (err) {
@@ -94,8 +124,8 @@ async function run() {
 }
 
 process.on("exit", () => {
-    console.log("Closing server connection");
-    server?.close();
+    console.log("Closing server connections");
+    mongoService.disconnectAll().catch(console.error);
 });
 
 run(); // Start

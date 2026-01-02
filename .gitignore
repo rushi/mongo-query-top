@@ -1,5 +1,7 @@
-node_modules
+.claude/settings.local.json
 config/local.json
-references/*
-mongodb-query-top-snapshot-*
+git_ignore
 logs/*
+mongodb-query-top-snapshot-*
+node_modules
+references/*

@@ -1,5 +1,6 @@
 .claude/settings.local.json
 config/local.json
+dist
 git_ignore
 logs/*
 mongodb-query-top-snapshot-*

@@ -1,0 +1,34 @@
+{
+    "microservices": {
+        "name": "Microservices",
+        "uri": "mongodb://rushi:6adyZgn3AfpQCJ0K@microservices-shard-00-00.sjpfz.mongodb.net:27017,microservices-shard-00-01.sjpfz.mongodb.net:27017,microservices-shard-00-02.sjpfz.mongodb.net:27017/admin?replicaSet=Microservices-shard-0&ssl=true"
+    },
+    "sandbox": {
+        "name": "Sandbox Primary",
+        "uri": "mongodb://rushi:6adyZgn3AfpQCJ0K@sandbox-shard-00-00-lc9aj.mongodb.net:27017,sandbox-shard-00-01-lc9aj.mongodb.net:27017,sandbox-shard-00-02-lc9aj.mongodb.net:27017/admin?authSource=admin&replicaSet=sandbox-shard-0&ssl=true&readPreference=primary"
+    },
+    "sandbox_secondary": {
+        "name": "Sandbox Secondary",
+        "uri": "mongodb://rushi:6adyZgn3AfpQCJ0K@sandbox-shard-00-02-lc9aj.mongodb.net:27017/admin?authSource=admin&ssl=true&readPreference=secondary"
+    },
+    "ci": {
+        "name": "CI - Pennyworth",
+        "uri": "mongodb://pennyworth.ci.xola.com"
+    },
+    "preprod": {
+        "name": "Preprod Primary",
+        "uri": "mongodb://rushi:6adyZgn3AfpQCJ0K@pre-prod-shard-00-00.lc9aj.mongodb.net:27017,pre-prod-shard-00-01.lc9aj.mongodb.net:27017,pre-prod-shard-00-02.lc9aj.mongodb.net:27017/admin?ssl=true&retryWrites=true&w=majority&replicaSet=atlas-e4llj3-shard-0&authSource=admin&readPreference=primary"
+    },
+    "preprod_secondary": {
+        "name": "Preprod Secondary",
+        "uri": "mongodb://rushi:6adyZgn3AfpQCJ0K@pre-prod-shard-00-00.lc9aj.mongodb.net:27017,pre-prod-shard-00-01.lc9aj.mongodb.net:27017,pre-prod-shard-00-02.lc9aj.mongodb.net:27017/admin?ssl=true&retryWrites=true&w=majority&replicaSet=atlas-e4llj3-shard-0&authSource=admin&readPreference=secondary"
+    },
+    "m01": {
+        "name": "M01 Primary",
+        "uri": "mongodb://rushi:6adyZgn3AfpQCJ0K@m01-shard-00-00.sjpfz.mongodb.net:27017,m01-shard-00-01.sjpfz.mongodb.net:27017,m01-shard-00-02.sjpfz.mongodb.net:27017/m01_xola?ssl=true&replicaSet=atlas-g5c6un-shard-0&authSource=admin&readPreference=primary"
+    },
+    "m01_secondary": {
+        "name": "M01 Secondary",
+        "uri": "mongodb://rushi:6adyZgn3AfpQCJ0K@m01-shard-00-00.sjpfz.mongodb.net:27017,m01-shard-00-01.sjpfz.mongodb.net:27017,m01-shard-00-02.sjpfz.mongodb.net:27017/m01_xola?ssl=true&replicaSet=atlas-g5c6un-shard-0&authSource=admin&readPreference=secondary"
+    }
+}

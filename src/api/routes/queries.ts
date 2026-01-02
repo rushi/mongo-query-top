@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyReply } from "fastify";
+import type { FastifyInstance } from "fastify";
 
 export default async function queriesRoutes(fastify: FastifyInstance) {
     // GET /api/queries/:serverId - Get current queries (one-time fetch)

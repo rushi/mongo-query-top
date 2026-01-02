@@ -84,13 +84,6 @@ export default class ConsoleRenderer {
                 query = chalk.yellow(query);
             }
 
-            // Show GeoIP location if available
-            let clientInfo = q.client.ip;
-            if (q.client.geo) {
-                const { city, region, country } = q.client.geo;
-                clientInfo += chalk.gray(` (${city}, ${region}, ${country})`);
-            }
-
             table.push([chalk.gray(q.idx.toString()), q.opid.toString(), q.runtime_formatted, opNs, query]);
         }
 

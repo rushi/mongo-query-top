@@ -160,7 +160,9 @@ export default class Renderer {
                 // highlight collection scans in yellow. they are bad queries
                 query = c.yellow(query);
                 // Fire and forget - don't block rendering
-                this.saveQuery(row.q, row.q.ns, "COLLSCAN").catch(err => console.error("Error saving COLLSCAN query:", err));
+                this.saveQuery(row.q, row.q.ns, "COLLSCAN").catch(err =>
+                    console.error("Error saving COLLSCAN query:", err),
+                );
             }
 
             if (row.q.msg) {
@@ -194,12 +196,10 @@ export default class Renderer {
 
         if (data.length > 0) {
             const terminalTitle = `${data.length}/${queries.length} queries`;
-            process.stdout.write(
-                String.fromCharCode(27) + "]0;" + terminalTitle + String.fromCharCode(7)
-            );
+            process.stdout.write(String.fromCharCode(27) + "]0;" + terminalTitle + String.fromCharCode(7));
         } else {
             process.stdout.write(
-                String.fromCharCode(27) + "]0;" + `Mongo Top on ${this.config}` + String.fromCharCode(7)
+                String.fromCharCode(27) + "]0;" + `Mongo Top on ${this.config}` + String.fromCharCode(7),
             );
         }
 

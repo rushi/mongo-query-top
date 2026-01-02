@@ -22,8 +22,8 @@ export class QueryLoggerService {
                 JSON.stringify(
                     queries.map(q => q.query),
                     null,
-                    2
-                )
+                    2,
+                ),
             ),
         ]);
 

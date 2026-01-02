@@ -33,11 +33,7 @@ const loggerService = new QueryLoggerService();
 
 // CORS for frontend
 await fastify.register(cors, {
-    origin: [
-        "http://localhost:9000",
-        "http://localhost:9173",
-        process.env.FRONTEND_URL || "http://localhost:9000",
-    ],
+    origin: ["http://localhost:9000", "http://localhost:9173", process.env.FRONTEND_URL || "http://localhost:9000"],
     credentials: true,
 });
 
@@ -46,7 +42,7 @@ fastify.addHook("onRequest", async (request, reply) => {
     const apiKey = request.headers["x-api-key"];
     const validKey = process.env.API_KEY || "dev-key-change-in-production";
 
-    if (apiKey !== validKey) {  
+    if (apiKey !== validKey) {
         reply.code(401).send({ error: "Unauthorized" });
     }
 });

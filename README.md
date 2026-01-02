@@ -44,9 +44,9 @@ This tool provides:
 
 ### Prerequisites
 
-- **Node.js >= 18**
+- **Node.js >= 20**
 - **pnpm** (recommended) or npm
-- **MongoDB >= 3.6**
+- **MongoDB >= 6**
 
 ### Setup
 

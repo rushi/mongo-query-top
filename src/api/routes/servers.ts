@@ -16,7 +16,7 @@ try {
 
 export default async function serversRoutes(fastify: FastifyInstance) {
     // GET /api/servers - List all configured servers
-    fastify.get("/", async (request, reply) => {
+    fastify.get("/", async (request) => {
         const servers: Record<string, ServerConfig> = { ...defaultConfig, ...localConfig };
 
         const serverList = Object.entries(servers).map(([id, config]) => ({

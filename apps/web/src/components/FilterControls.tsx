@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, Check, FloppyDisk } from "@phosphor-icons/react/dist/ssr";
+import { ArrowCounterClockwiseIcon, CheckIcon, FloppyDiskIcon } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
 import { apiClient } from "../utils/api";
@@ -96,7 +96,7 @@ export const FilterControls = () => {
 
                 <div className="ml-auto flex gap-2">
                     <Button onClick={resetFilters} variant="outline" className="h-9" title="Reset filters to default">
-                        <ArrowCounterClockwise weight="bold" className="mr-2 h-4 w-4" />
+                        <ArrowCounterClockwiseIcon weight="bold" className="mr-2 h-4 w-4" />
                         Reset
                     </Button>
 
@@ -108,12 +108,12 @@ export const FilterControls = () => {
                     >
                         {saved ? (
                             <>
-                                <Check weight="bold" className="mr-2 h-4 w-4" />
+                                <CheckIcon weight="bold" className="mr-2 h-4 w-4" />
                                 Saved
                             </>
                         ) : (
                             <>
-                                <FloppyDisk weight="bold" className="mr-2 h-4 w-4" />
+                                <FloppyDiskIcon weight="bold" className="mr-2 h-4 w-4" />
                                 Save All
                             </>
                         )}

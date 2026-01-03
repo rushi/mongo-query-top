@@ -1,5 +1,12 @@
 import type { ProcessedQuery } from "@mongo-query-top/types";
-import { CaretDown, CaretUp, Check, Eye, FloppyDisk, Funnel } from "@phosphor-icons/react/dist/ssr";
+import {
+    CaretDownIcon,
+    CaretUpIcon,
+    CheckIcon,
+    EyeIcon,
+    FloppyDiskIcon,
+    FunnelIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useMemo, useRef, useState } from "react";
 import type { SortColumn } from "../hooks/useUrlPreferences";
@@ -107,9 +114,9 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
             return null;
         }
         return sortDirection === "asc" ? (
-            <CaretUp weight="bold" className="inline h-3 w-3" />
+            <CaretUpIcon weight="bold" className="inline h-3 w-3" />
         ) : (
-            <CaretDown weight="bold" className="inline h-3 w-3" />
+            <CaretDownIcon weight="bold" className="inline h-3 w-3" />
         );
     };
 
@@ -217,7 +224,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         className="h-7 w-7 cursor-pointer p-0"
                                         title="Filter by IP"
                                     >
-                                        <Funnel weight="bold" className="h-3.5 w-3.5" />
+                                        <FunnelIcon weight="bold" className="h-3.5 w-3.5" />
                                     </Button>
                                     <Button
                                         onClick={(e) => handleViewDetails(e, query)}
@@ -226,7 +233,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         className="h-7 w-7 cursor-pointer p-0"
                                         title="View Details"
                                     >
-                                        <Eye weight="bold" className="h-3.5 w-3.5" />
+                                        <EyeIcon weight="bold" className="h-3.5 w-3.5" />
                                     </Button>
                                     <Button
                                         onClick={(e) => handleSave(e, query)}
@@ -237,9 +244,9 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         title="Save Query"
                                     >
                                         {isSaved ? (
-                                            <Check weight="bold" className="h-3.5 w-3.5 text-green-600" />
+                                            <CheckIcon weight="bold" className="h-3.5 w-3.5 text-green-600" />
                                         ) : (
-                                            <FloppyDisk weight="bold" className="h-3.5 w-3.5" />
+                                            <FloppyDiskIcon weight="bold" className="h-3.5 w-3.5" />
                                         )}
                                     </Button>
                                 </div>

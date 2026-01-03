@@ -118,7 +118,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
 
         setSavingIds((prev) => new Set(prev).add(query.opid));
         try {
-            await apiClient.post(`/api/queries/${serverId}/save`, { query });
+            await apiClient.post(`/queries/${serverId}/save`, { query });
             setSavedIds((prev) => new Set(prev).add(query.opid));
             setTimeout(() => {
                 setSavedIds((prev) => {

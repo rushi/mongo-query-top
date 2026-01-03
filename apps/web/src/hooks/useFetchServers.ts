@@ -15,7 +15,7 @@ export const useFetchServers = () => {
     useEffect(() => {
         const fetchServers = async () => {
             try {
-                const data = await apiClient.get("/api/servers");
+                const data = await apiClient.get("/servers");
                 setServers(data.servers);
                 setError(null);
             } catch (err: any) {

@@ -28,7 +28,7 @@ export const FilterControls = () => {
     const handleSaveAll = async () => {
         setIsSaving(true);
         try {
-            await apiClient.post(`/api/queries/${serverId}/snapshot?minTime=${minTime}`);
+            await apiClient.post(`/queries/${serverId}/snapshot?minTime=${minTime}`);
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         } catch (err) {

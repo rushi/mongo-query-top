@@ -10,17 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useFetchServers } from "../hooks/useFetchServers";
 import { useServerSentEvents } from "../hooks/useServerSentEvents";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
-import { apiClient } from "../utils/api";
-
-// Get the API base URL for display
-const getApiBaseUrl = (): string => {
-    if (import.meta.env.VITE_API_URL) {
-        return import.meta.env.VITE_API_URL;
-    }
-    const protocol = window.location.protocol;
-    const hostname = window.location.hostname;
-    return `${protocol}//${hostname}:9001`;
-};
+import { apiClient, getApiBaseUrl } from "../utils/api";
 
 // Generate summary from filtered queries
 const generateSummary = (queries: ProcessedQuery[]): QuerySummary => {
@@ -96,7 +86,7 @@ function Dashboard() {
             setIsConnecting(true);
             setConnectError(null);
             try {
-                await apiClient.post(`/api/servers/${serverId}/connect`);
+                await apiClient.post(`/servers/${serverId}/connect`);
                 setMongoConnected(true);
                 setConnectError(null);
             } catch (err: any) {

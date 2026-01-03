@@ -25,7 +25,7 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            await apiClient.post(`/api/queries/${serverId}/save`, { query });
+            await apiClient.post(`/queries/${serverId}/save`, { query });
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         } catch (err) {

@@ -73,7 +73,7 @@ function Dashboard() {
         }
 
         if (isConnected) {
-            return <Badge variant="default">● Connected</Badge>;
+            return <Badge variant="success">● Connected</Badge>;
         }
 
         if (isReconnecting) {
@@ -87,7 +87,7 @@ function Dashboard() {
         <div className="min-h-screen bg-background p-6 space-y-6">
             <header>
                 <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-bold">MongoDB Query Monitor</h1>
+                    <h1 className="text-xl font-semibold">MongoDB Query Monitor</h1>
                     <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center gap-2">
                             <span className="text-muted-foreground">Server:</span>
@@ -108,7 +108,7 @@ function Dashboard() {
                         </div>
                         {getConnectionBadge()}
                         {data?.metadata && (
-                            <span className="text-muted-foreground">
+                            <span className="text-xs font-mono text-muted-foreground">
                                 Last update: {new Date(data.metadata.timestamp).toLocaleTimeString()}
                             </span>
                         )}

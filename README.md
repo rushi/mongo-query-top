@@ -138,10 +138,20 @@ While the CLI is running, press:
 
 ```bash
 # Start API server (default: port 9001)
+pnpm run dev
+
+# Or explicitly
 pnpm run dev:api
 
-# Start both CLI and API server
-pnpm run dev
+# Start both CLI and API server (in separate terminals recommended)
+# Terminal 1:
+pnpm run dev:api
+
+# Terminal 2:
+pnpm run dev:cli
+
+# Or use dev:both (note: keyboard controls won't work in this mode)
+pnpm run dev:both
 ```
 
 The API server will be available at `http://localhost:9001`.

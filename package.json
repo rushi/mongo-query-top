@@ -6,10 +6,12 @@
     "main": "main.js",
     "type": "module",
     "scripts": {
+        "dev": "tsx watch src/server.ts",
         "dev:cli": "tsx watch src/app.ts",
         "dev:api": "tsx watch src/server.ts",
-        "dev": "concurrently \"pnpm run dev:cli\" \"pnpm run dev:api\"",
+        "dev:both": "concurrently \"pnpm run dev:cli\" \"pnpm run dev:api\"",
         "build": "tsc",
+        "start": "node dist/server.js",
         "start:cli": "node dist/app.js",
         "start:api": "node dist/server.js",
         "format": "prettier --write -l src",

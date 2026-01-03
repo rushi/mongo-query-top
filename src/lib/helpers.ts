@@ -26,6 +26,13 @@ export const clear = (): void => {
  * Setup the mode required to catch key presses
  */
 export const setupRawMode = (prefs: UserPreferences): void => {
+    // Check if stdin is a TTY (terminal) before setting raw mode
+    if (!process.stdin.isTTY) {
+        // Not running in a terminal (e.g., running through concurrently)
+        // Skip raw mode setup - keyboard controls won't work
+        return;
+    }
+
     process.stdin.setRawMode(true); // without this, we would only get streams once enter is pressed
     process.stdin.resume();
     process.stdin.setEncoding("utf8");

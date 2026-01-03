@@ -33,7 +33,12 @@ const loggerService = new QueryLoggerService();
 
 // CORS for frontend
 await fastify.register(cors, {
-    origin: ["http://localhost:9000", "http://localhost:9173", process.env.FRONTEND_URL || "http://localhost:9000"],
+    origin: [
+        "http://localhost:3000", // Vite dev server
+        "http://localhost:9000",
+        "http://localhost:9173",
+        process.env.FRONTEND_URL || "http://localhost:3000",
+    ],
     credentials: true,
 });
 

@@ -1,6 +1,6 @@
 import { ArrowCounterClockwise, Check, FloppyDisk } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
-import { usePreferences } from "../store/preferences";
+import { useUrlPreferences } from "../hooks/useUrlPreferences";
 import { apiClient } from "../utils/api";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -21,7 +21,7 @@ export const FilterControls = () => {
         toggleReversed,
         setIpFilter,
         resetFilters,
-    } = usePreferences();
+    } = useUrlPreferences();
 
     const [isSaving, setIsSaving] = useState(false);
     const [saved, setSaved] = useState(false);

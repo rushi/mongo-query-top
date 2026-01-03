@@ -1,4 +1,7 @@
-# MongoDB Query "Top"
+<div align="center">
+  <img src="docs/logo.png" alt="MongoDB Query Top Logo" width="100" />
+  <h1>MongoDB Query "Top"</h1>
+</div>
 
 A modern, full-stack MongoDB monitoring tool that presents `db.currentOp()` results in an intuitive interface. Built with TypeScript in a monorepo architecture, featuring a CLI, REST API with Server-Sent Events, and React web dashboard.
 
@@ -13,22 +16,34 @@ A modern, full-stack MongoDB monitoring tool that presents `db.currentOp()` resu
 - **Multi-server support** with connection management
 - **Web dashboard** with virtualized table and JSON viewer
 
+## Why?
+
+The built-in `db.currentOp()` has limitations:
+
+- ❌ JSON output not easily readable
+- ❌ Cluttered with system queries
+- ❌ No auto-refresh or persistence
+- ❌ No summary statistics
+
+This tool provides:
+
+- ✅ Human-readable tabular display
+- ✅ Automatic filtering of noise
+- ✅ Auto-refresh and real-time streaming
+- ✅ Instant identification of slow queries
+- ✅ Detection of unindexed scans
+- ✅ REST API and web dashboard
+
 ## Quick Start
 
 ```bash
-# Install dependencies
 pnpm install
-
-# Build all packages
-pnpm run build
 
 # Configure your MongoDB servers (see Configuration section)
 cp config/local.yaml.example config/local.yaml
-# Edit config/local.yaml with your MongoDB URIs
 
 # Start web dashboard (recommended)
 pnpm run dev:web
-# Opens http://localhost:9000
 
 # Or start CLI only
 pnpm run dev:cli
@@ -58,41 +73,22 @@ pnpm run dev:cli
 # Monitor specific server
 pnpm run dev:cli -- -c production
 
-# Show queries running longer than 5 seconds with 1s refresh
-pnpm run dev:cli -- --minTime=5 --refresh=1
-
-# Filter by IP and log slow queries
-pnpm run dev:cli -- --ip=192.168.1.100 --log=3
+# Show queries running longer than 5 seconds
+pnpm run dev:cli -- --minTime=5
 ```
 
-**CLI Options:**
+**Interactive Controls:** `p` (pause), `r` (reverse), `s` (snapshot), `a` (show all), `q` (quit)
 
-```
---config, -c    Server config name (default: "localhost")
---refresh       Refresh interval in seconds (default: 2)
---minTime       Min query runtime to show (default: 1)
---all           Show system queries (default: false)
---log           Auto-save queries longer than X seconds (default: 10)
---ip            Filter by client IP address
-```
-
-**Interactive Keys:**
-
-- `p` - Pause/unpause
-- `r` - Reverse sort order
-- `s` - Save snapshot to disk
-- `a` - Toggle show all queries
-- `q` or `Ctrl+C` - Quit
+See [docs/CLI.md](docs/CLI.md) for complete CLI documentation, options, and examples.
 
 ### API Server
 
 ```bash
-# Start API only
+# Start API only on http://localhost:9001
 pnpm run dev:api
-# Runs on http://localhost:9001
 ```
 
-See [API.md](API.md) for detailed API documentation.
+See [docs/API.md](docs/API.md) for detailed API documentation.
 
 ## Configuration
 
@@ -194,7 +190,8 @@ pnpm run start:api
 
 ## Documentation
 
-- **[API.md](API.md)** - Complete API endpoint documentation
+- **[docs/API.md](docs/API.md)** - Complete API endpoint documentation
+- **[docs/CLI.md](docs/CLI.md)** - CLI usage guide and interactive controls
 - **[CLAUDE.md](CLAUDE.md)** - Developer guide with code patterns, architecture details, and customization instructions
 
 ## Query Logging
@@ -204,24 +201,6 @@ Queries are auto-saved to `logs/<server-id>/` when:
 - Runtime exceeds `--log` threshold (default: 10s)
 - Query uses COLLSCAN (collection scan)
 - User presses `s` (snapshot)
-
-## Why?
-
-The built-in `db.currentOp()` has limitations:
-
-- ❌ JSON output not easily readable
-- ❌ Cluttered with system queries
-- ❌ No auto-refresh or persistence
-- ❌ No summary statistics
-
-This tool provides:
-
-- ✅ Human-readable tabular display
-- ✅ Automatic filtering of noise
-- ✅ Auto-refresh and real-time streaming
-- ✅ Instant identification of slow queries
-- ✅ Detection of unindexed scans
-- ✅ REST API and web dashboard
 
 ## License
 

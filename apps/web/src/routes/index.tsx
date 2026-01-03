@@ -9,13 +9,13 @@ import { Badge } from "../components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useFetchServers } from "../hooks/useFetchServers";
 import { useServerSentEvents } from "../hooks/useServerSentEvents";
-import { usePreferences } from "../store/preferences";
+import { useUrlPreferences } from "../hooks/useUrlPreferences";
 import { apiClient } from "../utils/api";
 
 export const Route = createFileRoute("/")({ component: Dashboard });
 
 function Dashboard() {
-    const { serverId, setServerId, minTime, refreshInterval } = usePreferences();
+    const { serverId, setServerId, minTime, refreshInterval } = useUrlPreferences();
     const { servers, loading: serversLoading } = useFetchServers();
     const [mongoConnected, setMongoConnected] = useState(false);
     const [isConnecting, setIsConnecting] = useState(false);

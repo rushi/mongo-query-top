@@ -21,14 +21,7 @@ body {
 
 code {
     font-family:
-        "JetBrains Mono",
-        ui-monospace,
-        SFMono-Regular,
-        Menlo,
-        Monaco,
-        Consolas,
-        "Liberation Mono",
-        "Courier New",
+        "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
         monospace;
 }
 

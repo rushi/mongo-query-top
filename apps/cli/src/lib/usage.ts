@@ -2,7 +2,6 @@
 // Usage instructions for this app
 //
 
-import "dotenv/config";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 

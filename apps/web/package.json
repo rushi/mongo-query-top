@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "vite dev --port 9000",
     "build": "vite build",
+    "start": "vite preview --port 9000",
     "preview": "vite preview",
     "test": "vitest run",
-    "format": "prettier --write -l src"
+    "format": "prettier --write -l src",
+    "lint": "eslint src --config ../../eslint.config.js"
   },
   "dependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",

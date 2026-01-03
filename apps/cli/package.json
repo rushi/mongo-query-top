@@ -9,7 +9,8 @@
     "scripts": {
         "build": "tsc",
         "dev": "NODE_CONFIG_DIR=../../config tsx src/cli.ts",
-        "start": "NODE_CONFIG_DIR=../../config node dist/cli.js"
+        "start": "NODE_CONFIG_DIR=../../config node dist/cli.js",
+        "lint": "eslint src --config ../../eslint.config.js"
     },
     "dependencies": {
         "@mongo-query-top/core": "workspace:*",

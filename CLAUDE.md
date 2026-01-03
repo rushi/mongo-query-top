@@ -173,7 +173,6 @@ mongo-query-top/
 
 - **fastify** (^5.6.2): Fast, low-overhead web framework for the API server
 - **@fastify/cors** (^11.2.0): CORS plugin for Fastify
-- **dotenv** (^17.2.3): Environment variable management
 
 **apps/cli:**
 

@@ -6,7 +6,8 @@
     "scripts": {
         "build": "tsc",
         "dev": "NODE_CONFIG_DIR=../../config tsx watch src/server.ts",
-        "start": "NODE_CONFIG_DIR=../../config node dist/server.js"
+        "start": "NODE_CONFIG_DIR=../../config node dist/server.js",
+        "lint": "eslint src --config ../../eslint.config.js"
     },
     "dependencies": {
         "@mongo-query-top/core": "workspace:*",

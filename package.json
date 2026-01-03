@@ -12,12 +12,13 @@
     ],
     "scripts": {
         "build": "turbo build",
-        "dev": "turbo dev",
+        "dev": "turbo dev --filter=@mongo-query-top/web --filter=@mongo-query-top/api",
         "dev:api": "turbo dev --filter=@mongo-query-top/api",
         "dev:cli": "turbo dev --filter=@mongo-query-top/cli",
-        "dev:web": "turbo dev --filter=@mongo-query-top/web --filter=@mongo-query-top/api",
+        "start": "concurrently \"pnpm start:api\" \"pnpm start:web\"",
         "start:api": "pnpm --filter=@mongo-query-top/api start",
         "start:cli": "pnpm --filter=@mongo-query-top/cli start",
+        "start:web": "pnpm --filter=@mongo-query-top/web start",
         "format": "prettier -l --write \"**/*.{ts,tsx,json,md}\"",
         "lint": "turbo lint",
         "clean": "turbo clean && rm -rf node_modules"
@@ -43,7 +44,6 @@
         "cli-table3": "^0.6.5",
         "concurrently": "^9.2.1",
         "dayjs": "^1.11.19",
-        "dotenv": "^17.2.3",
         "eslint": "^9.39.2",
         "eslint-config-prettier": "^10.1.8",
         "fastify": "^5.6.2",

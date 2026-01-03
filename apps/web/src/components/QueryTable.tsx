@@ -173,33 +173,33 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                 <div className="grid grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_140px_150px_110px] gap-4 font-mono text-tiny font-bold tracking-wide text-muted-foreground uppercase">
                     <div>#</div>
                     <button
-                        onClick={() => setSortColumn("opid")}
                         className="flex cursor-pointer items-center gap-1 text-left transition-colors hover:text-primary"
+                        onClick={() => setSortColumn("opid")}
                     >
                         OP_ID {renderSortIcon("opid")}
                     </button>
                     <button
-                        onClick={() => setSortColumn("runtime")}
                         className="flex cursor-pointer items-center justify-end gap-1 pr-2 transition-colors hover:text-primary"
+                        onClick={() => setSortColumn("runtime")}
                     >
                         RUNTIME {renderSortIcon("runtime")}
                     </button>
                     <button
-                        onClick={() => setSortColumn("operation")}
                         className="flex cursor-pointer items-center gap-1 text-left transition-colors hover:text-primary"
+                        onClick={() => setSortColumn("operation")}
                     >
                         OPERATION {renderSortIcon("operation")}
                     </button>
                     <button
-                        onClick={() => setSortColumn("namespace")}
                         className="flex cursor-pointer items-center gap-1 text-left transition-colors hover:text-primary"
+                        onClick={() => setSortColumn("namespace")}
                     >
                         NAMESPACE {renderSortIcon("namespace")}
                     </button>
                     <div>IP_ADDRESS</div>
                     <button
-                        onClick={() => setSortColumn("client")}
                         className="flex cursor-pointer items-center gap-1 text-left transition-colors hover:text-primary"
+                        onClick={() => setSortColumn("client")}
                     >
                         CLIENT {renderSortIcon("client")}
                     </button>
@@ -278,30 +278,30 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                 <div className="flex items-center truncate font-mono text-sm">{query.userAgent}</div>
                                 <div className="flex items-center justify-end gap-1">
                                     <Button
-                                        onClick={(e) => handleFilterByIp(e, query)}
-                                        size="sm"
                                         variant="ghost"
-                                        className="h-6 w-6 cursor-pointer border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
+                                        size="sm"
                                         title="Filter by IP"
+                                        className="h-6 w-6 cursor-pointer border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
+                                        onClick={(e) => handleFilterByIp(e, query)}
                                     >
                                         <FunnelIcon weight="bold" className="h-3 w-3" />
                                     </Button>
                                     <Button
-                                        onClick={(e) => handleViewDetails(e, query)}
-                                        size="sm"
                                         variant="ghost"
-                                        className="h-6 w-6 cursor-pointer border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
+                                        size="sm"
                                         title="View Details"
+                                        className="h-6 w-6 cursor-pointer border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
+                                        onClick={(e) => handleViewDetails(e, query)}
                                     >
                                         <EyeIcon weight="bold" className="h-3 w-3" />
                                     </Button>
                                     <Button
-                                        onClick={(e) => handleSave(e, query)}
-                                        size="sm"
                                         variant="ghost"
-                                        className="h-6 w-6 cursor-pointer border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
+                                        size="sm"
                                         disabled={isSaving || isSaved}
                                         title="Save Query"
+                                        className="h-6 w-6 cursor-pointer border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
+                                        onClick={(e) => handleSave(e, query)}
                                     >
                                         {isSaved ? (
                                             <CheckIcon weight="bold" className="h-3 w-3 text-primary" />

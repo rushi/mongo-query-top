@@ -1,4 +1,5 @@
 import type { QuerySummary } from "@mongo-query-top/types";
+import { cn } from "@mongo-query-top/utils";
 
 interface SummaryStatsProps {
     summary: QuerySummary;
@@ -32,7 +33,10 @@ export const SummaryStats = ({ summary }: SummaryStatsProps) => {
                         COLLSCAN_DETECT
                     </div>
                     <div
-                        className={`font-mono text-lg ${summary.unindexedCount > 0 ? "text-warning" : "text-muted-foreground"}`}
+                        className={cn(
+                            "font-mono text-lg",
+                            summary.unindexedCount > 0 ? "text-warning" : "text-muted-foreground",
+                        )}
                     >
                         {summary.unindexedCount}
                     </div>

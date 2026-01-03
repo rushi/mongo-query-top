@@ -196,7 +196,7 @@ function Dashboard() {
                         <div className="flex flex-col items-end gap-2 text-xs">
                             <div className="flex items-center gap-2">
                                 <span className="text-muted-foreground">SRV:</span>
-                                <Select value={serverId} onValueChange={handleServerChange} disabled={serversLoading}>
+                                <Select value={serverId} disabled={serversLoading} onValueChange={handleServerChange}>
                                     <SelectTrigger className="h-8 w-50 border-2 border-border bg-input font-mono text-xs">
                                         <SelectValue placeholder="Select a server">
                                             {currentServer?.name || serverId}

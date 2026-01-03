@@ -58,9 +58,9 @@ export const FilterControls = () => {
                         id="minTime"
                         type="number"
                         value={minTime}
-                        onChange={(e) => setMinTime(Number(e.target.value))}
-                        className="h-9 w-24 border-2 border-border bg-input font-mono text-sm"
                         min={0}
+                        className="h-9 w-24 border-2 border-border bg-input font-mono text-sm"
+                        onChange={(e) => setMinTime(Number(e.target.value))}
                     />
                 </div>
 
@@ -76,9 +76,9 @@ export const FilterControls = () => {
                         id="refresh"
                         type="number"
                         value={refreshInterval}
-                        onChange={(e) => setRefreshInterval(Number(e.target.value))}
-                        className="h-9 w-24 border-2 border-border bg-input font-mono text-sm"
                         min={1}
+                        className="h-9 w-24 border-2 border-border bg-input font-mono text-sm"
+                        onChange={(e) => setRefreshInterval(Number(e.target.value))}
                     />
                 </div>
 
@@ -101,8 +101,8 @@ export const FilterControls = () => {
                         />
                         {ipFilter && (
                             <Button
-                                size="icon"
                                 variant="ghost"
+                                size="icon"
                                 title="Clear IP filter"
                                 className="h-9 w-9 cursor-pointer border-2 border-border hover:border-destructive hover:bg-destructive/10 hover:text-foreground"
                                 onClick={() => setIpFilter(undefined)}
@@ -122,9 +122,9 @@ export const FilterControls = () => {
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
-                                    onClick={toggleShowAll}
                                     variant={showAll ? "default" : "outline"}
                                     className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                                    onClick={toggleShowAll}
                                 >
                                     {showAll ? "● " : "○ "}SHOW_ALL
                                 </Button>
@@ -145,20 +145,20 @@ export const FilterControls = () => {
                 {/* Action Buttons */}
                 <div className="ml-auto flex gap-2">
                     <Button
-                        onClick={resetFilters}
                         variant="outline"
-                        className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
                         title="Reset filters to default"
+                        className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                        onClick={resetFilters}
                     >
                         <ArrowCounterClockwiseIcon weight="bold" className="mr-2 h-3.5 w-3.5" />
                         RESET
                     </Button>
 
                     <Button
-                        onClick={handleSaveAll}
-                        disabled={isSaving || saved}
                         variant={saved ? "default" : "outline"}
+                        disabled={isSaving || saved}
                         className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                        onClick={handleSaveAll}
                     >
                         {saved ? (
                             <>

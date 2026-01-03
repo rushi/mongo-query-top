@@ -48,11 +48,11 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                         </SheetDescription>
                     </div>
                     <Button
-                        onClick={handleSave}
-                        disabled={isSaving || saved}
-                        size="sm"
                         variant={saved ? "default" : "outline"}
+                        size="sm"
+                        disabled={isSaving || saved}
                         className="border-2 font-mono text-xs uppercase"
+                        onClick={handleSave}
                     >
                         {saved ? (
                             <>

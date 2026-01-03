@@ -957,6 +957,55 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
     - Use `cn()` utility for conditional classes
     - No inline styles or CSS modules
     - Component variants with `cva()` from class-variance-authority
+- **Component Prop Ordering**:
+    - **Standard order**: callbacks last, className second-to-last
+    - **Button components**: `variant/size → disabled → title → className → onClick`
+    - **Native button elements**: `className → onClick`
+    - **Input components**: `id/type/value → min/max → placeholder → className → onChange`
+    - **Select components**: `value → disabled → onValueChange`
+    - **className Usage**: Always use `cn()` utility for conditional or variable-based className expressions
+    - **Examples**:
+        ```typescript
+        // Button - correct order
+        <Button
+            variant="outline"
+            size="sm"
+            disabled={isLoading}
+            title="Save Query"
+            className="h-6 w-6 border-2"
+            onClick={handleSave}
+        >
+            Save
+        </Button>
+
+        // Native button - correct order
+        <button
+            className="flex items-center gap-1"
+            onClick={() => setSortColumn("opid")}
+        >
+            OP_ID
+        </button>
+
+        // Input - correct order
+        <Input
+            type="number"
+            id="minTime"
+            value={minTime}
+            min={0}
+            className="h-9 w-24 border-2"
+            onChange={(e) => setMinTime(Number(e.target.value))}
+        />
+
+        // className with cn() - conditional styling
+        <div
+            className={cn(
+                "font-mono text-sm",
+                isInternal ? "text-muted-foreground/80" : "text-foreground",
+            )}
+        >
+            {value}
+        </div>
+        ```
 - **Type Safety**:
     - Always type component props
     - Type custom hooks return values

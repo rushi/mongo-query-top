@@ -1,61 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=JetBrains+Mono:wght@400;600;700&display=swap");
 
 @custom-variant dark (&:is(.dark *));
-
-@font-face {
-    font-family: "Soehne";
-    src: url("/fonts/soehne/soehne-web-book.woff") format("woff");
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Soehne";
-    src: url("/fonts/soehne/soehne-web-book-italic.woff") format("woff");
-    font-weight: 400;
-    font-style: italic;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Soehne";
-    src: url("/fonts/soehne/soehne-web-semi-bold.woff") format("woff");
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Soehne";
-    src: url("/fonts/soehne/soehne-web-semi-bold-italic.woff") format("woff");
-    font-weight: 600;
-    font-style: italic;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Soehne";
-    src: url("/fonts/soehne/soehne-web-bold.woff") format("woff");
-    font-weight: 700;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Soehne";
-    src: url("/fonts/soehne/soehne-web-bold-italic.woff") format("woff");
-    font-weight: 700;
-    font-style: italic;
-    font-display: swap;
-}
 
 body {
     @apply m-0;
     font-family:
-        "Soehne",
+        "Open Sans",
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
@@ -68,7 +21,14 @@ body {
 
 code {
     font-family:
-        "Jetbrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+        "JetBrains Mono",
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        "Liberation Mono",
+        "Courier New",
         monospace;
 }
 
@@ -154,7 +114,7 @@ code {
 }
 
 @theme inline {
-    --font-mono: "Jetbrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-card: var(--card);

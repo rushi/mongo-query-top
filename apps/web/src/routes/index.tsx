@@ -1,6 +1,6 @@
-import type { ProcessedQuery } from "@mongo-query-top/types";
+import type { ProcessedQuery, QuerySummary } from "@mongo-query-top/types";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FilterControls } from "../components/FilterControls";
 import { QueryDetails } from "../components/QueryDetails";
 import { QueryTable } from "../components/QueryTable";
@@ -22,10 +22,42 @@ const getApiBaseUrl = (): string => {
     return `${protocol}//${hostname}:9001`;
 };
 
+// Generate summary from filtered queries
+const generateSummary = (queries: ProcessedQuery[]): QuerySummary => {
+    const operations: Record<string, number> = {};
+    const collections: Record<string, number> = {};
+    const clients: Record<string, number> = {};
+    let unindexedCount = 0;
+
+    queries.forEach((query) => {
+        const op = query.operation;
+        operations[op] = (operations[op] || 0) + 1;
+
+        const collection = query.collection;
+        collections[collection] = (collections[collection] || 0) + 1;
+
+        const clientIp = query.client.ip;
+        clients[clientIp] = (clients[clientIp] || 0) + 1;
+
+        if (query.isCollscan) {
+            unindexedCount++;
+        }
+    });
+
+    return {
+        totalQueries: queries.length,
+        shownQueries: queries.length,
+        operations,
+        collections,
+        clients,
+        unindexedCount,
+    };
+};
+
 export const Route = createFileRoute("/")({ component: Dashboard });
 
 function Dashboard() {
-    const { serverId, setServerId, minTime, refreshInterval, showAll } = useUrlPreferences();
+    const { serverId, setServerId, minTime, refreshInterval, showAll, ipFilter } = useUrlPreferences();
     const { servers, loading: serversLoading } = useFetchServers();
     const [mongoConnected, setMongoConnected] = useState(false);
     const [isConnecting, setIsConnecting] = useState(false);
@@ -39,6 +71,24 @@ function Dashboard() {
     );
     const [selectedQuery, setSelectedQuery] = useState<ProcessedQuery | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    // Filter queries by IP if ipFilter is set
+    const filteredQueries = data?.queries.filter((query) => (ipFilter ? query.client.ip === ipFilter : true)) ?? [];
+
+    // Generate summary from filtered queries
+    const filteredSummary = useMemo(() => {
+        if (!data) {
+            return undefined;
+        }
+
+        // If IP filter is active, always regenerate summary from filtered queries
+        if (ipFilter) {
+            return generateSummary(filteredQueries);
+        }
+
+        // If no filter is active, use the original summary from the backend
+        return data.summary;
+    }, [filteredQueries, data, ipFilter]);
 
     // Auto-connect to MongoDB on mount
     useEffect(() => {
@@ -62,7 +112,7 @@ function Dashboard() {
 
     // Update browser tab title with query count
     useEffect(() => {
-        const queryCount = data?.queries.length || 0;
+        const queryCount = filteredQueries.length;
         const defaultTitle = "MongoDB Query Monitor";
 
         if (queryCount >= 2) {
@@ -75,7 +125,7 @@ function Dashboard() {
         return () => {
             document.title = defaultTitle;
         };
-    }, [data?.queries.length]);
+    }, [filteredQueries.length]);
 
     const handleQueryClick = (query: ProcessedQuery) => {
         setSelectedQuery(query);
@@ -224,13 +274,13 @@ function Dashboard() {
                 )}
             </div>
 
-            {data && (
+            {data && filteredSummary && (
                 <>
                     <div className="animate-reveal opacity-0 delay-200">
-                        <SummaryStats summary={data.summary} />
+                        <SummaryStats summary={filteredSummary} />
                     </div>
                     <div className="animate-reveal opacity-0 delay-300">
-                        <QueryTable queries={data.queries} onQueryClick={handleQueryClick} />
+                        <QueryTable queries={filteredQueries} onQueryClick={handleQueryClick} />
                     </div>
                 </>
             )}

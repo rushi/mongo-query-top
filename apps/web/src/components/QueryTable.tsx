@@ -1,4 +1,5 @@
 import type { ProcessedQuery } from "@mongo-query-top/types";
+import { cn } from "@mongo-query-top/utils";
 import {
     CaretDownIcon,
     CaretUpIcon,
@@ -19,6 +20,34 @@ interface QueryTableProps {
     queries: ProcessedQuery[];
     onQueryClick: (query: ProcessedQuery) => void;
 }
+
+const isInternalIp = (ip: string): boolean => {
+    const parts = ip.split(".");
+    if (parts.length !== 4) {
+        return false;
+    }
+
+    const firstOctet = parseInt(parts[0], 10);
+    const secondOctet = parseInt(parts[1], 10);
+
+    if (firstOctet === 10) {
+        return true;
+    }
+
+    if (firstOctet === 172 && secondOctet >= 16 && secondOctet <= 31) {
+        return true;
+    }
+
+    if (firstOctet === 192 && secondOctet === 168) {
+        return true;
+    }
+
+    if (firstOctet === 127) {
+        return true;
+    }
+
+    return false;
+};
 
 export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
     const parentRef = useRef<HTMLDivElement>(null);
@@ -141,7 +170,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
 
             {/* Column Headers */}
             <div className="border-b-2 bg-card px-4 py-3">
-                <div className="grid grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 font-mono text-tiny font-bold tracking-wide text-muted-foreground uppercase">
+                <div className="grid grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_140px_150px_110px] gap-4 font-mono text-tiny font-bold tracking-wide text-muted-foreground uppercase">
                     <div>#</div>
                     <button
                         onClick={() => setSortColumn("opid")}
@@ -167,14 +196,14 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                     >
                         NAMESPACE {renderSortIcon("namespace")}
                     </button>
+                    <div>IP_ADDRESS</div>
                     <button
                         onClick={() => setSortColumn("client")}
                         className="flex cursor-pointer items-center gap-1 text-left transition-colors hover:text-primary"
                     >
                         CLIENT {renderSortIcon("client")}
                     </button>
-                    <div>STATUS</div>
-                    <div>ACTIONS</div>
+                    <div className="flex justify-end">ACTIONS</div>
                 </div>
             </div>
 
@@ -199,7 +228,10 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                     width: "100%",
                                     transform: `translateY(${virtualRow.start}px)`,
                                 }}
-                                className={`grid cursor-pointer grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 border-b border-border px-4 py-3 transition-colors hover:bg-muted/90 ${isCollscan ? "border-l-4 border-l-warning bg-warning/5" : ""} `}
+                                className={cn(
+                                    "grid cursor-pointer grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_140px_150px_110px] gap-4 border-b border-border px-4 py-3 transition-colors hover:bg-muted/90",
+                                    isCollscan && "border-l-4 border-l-warning bg-warning/5",
+                                )}
                             >
                                 <div className="flex items-center font-mono text-sm text-muted-foreground tabular-nums">
                                     {query.idx}
@@ -211,30 +243,40 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                 <div className="flex items-center truncate font-mono text-sm text-muted-foreground uppercase">
                                     {query.operation}
                                 </div>
-                                <div className="flex items-center truncate font-mono text-sm text-foreground">
-                                    <span className="text-muted-foreground">{query.database}.</span>
-                                    <span className="font-medium">{query.collection}</span>
+                                <div className="flex items-center gap-2 truncate font-mono text-sm text-foreground">
+                                    <div className="flex items-center truncate">
+                                        <span className="text-muted-foreground">{query.database}.</span>
+                                        <span className="font-medium">{query.collection}</span>
+                                    </div>
+                                    <div className="flex shrink-0 items-center gap-1">
+                                        {isCollscan && (
+                                            <Badge
+                                                variant="destructive"
+                                                className="border border-warning bg-warning/20 font-mono text-tiny text-warning uppercase"
+                                            >
+                                                ⚠ COLLSCAN
+                                            </Badge>
+                                        )}
+                                        {query.waitingForLock && (
+                                            <Badge
+                                                variant="outline"
+                                                className="border border-destructive font-mono text-tiny uppercase"
+                                            >
+                                                🔒 LOCK
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </div>
+                                <div
+                                    className={cn(
+                                        "flex items-center truncate font-mono text-sm",
+                                        isInternalIp(query.client.ip) ? "text-muted-foreground/80" : "text-foreground",
+                                    )}
+                                >
+                                    {query.client.ip}
                                 </div>
                                 <div className="flex items-center truncate font-mono text-sm">{query.userAgent}</div>
-                                <div className="flex items-center gap-1">
-                                    {isCollscan && (
-                                        <Badge
-                                            variant="destructive"
-                                            className="border border-warning bg-warning/20 font-mono text-tiny text-warning uppercase"
-                                        >
-                                            ⚠ COLLSCAN
-                                        </Badge>
-                                    )}
-                                    {query.waitingForLock && (
-                                        <Badge
-                                            variant="outline"
-                                            className="border border-destructive font-mono text-tiny uppercase"
-                                        >
-                                            🔒 LOCK
-                                        </Badge>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center justify-end gap-1">
                                     <Button
                                         onClick={(e) => handleFilterByIp(e, query)}
                                         size="sm"

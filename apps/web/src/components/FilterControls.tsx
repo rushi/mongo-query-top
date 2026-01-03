@@ -1,4 +1,4 @@
-import { ArrowCounterClockwiseIcon, CheckIcon, FloppyDiskIcon } from "@phosphor-icons/react/dist/ssr";
+import { ArrowCounterClockwiseIcon, CheckIcon, FloppyDiskIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
 import { apiClient } from "../utils/api";
@@ -90,14 +90,27 @@ export const FilterControls = () => {
                     >
                         IP_FILTER
                     </Label>
-                    <Input
-                        id="ipFilter"
-                        type="text"
-                        value={ipFilter || ""}
-                        onChange={(e) => setIpFilter(e.target.value || undefined)}
-                        placeholder="0.0.0.0"
-                        className="h-9 w-40 border-2 border-border bg-input font-mono text-sm placeholder:text-muted-foreground/40"
-                    />
+                    <div className="flex gap-1">
+                        <Input
+                            type="text"
+                            id="ipFilter"
+                            value={ipFilter || ""}
+                            placeholder="0.0.0.0"
+                            className="h-9 w-40 border-2 border-border bg-input font-mono text-sm placeholder:text-muted-foreground/40"
+                            onChange={(e) => setIpFilter(e.target.value || undefined)}
+                        />
+                        {ipFilter && (
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                title="Clear IP filter"
+                                className="h-9 w-9 cursor-pointer border-2 border-border hover:border-destructive hover:bg-destructive/10 hover:text-foreground"
+                                onClick={() => setIpFilter(undefined)}
+                            >
+                                <XIcon weight="bold" className="h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Show All Toggle */}

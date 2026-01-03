@@ -7,17 +7,16 @@
     "type": "module",
     "scripts": {
         "dev": "tsx watch src/server.ts",
-        "dev:web": "concurrently -n \"API,Frontend\" -c \"blue,magenta\" \"pnpm run dev:api\" \"cd frontend && pnpm run dev\"",
-        "dev:cli": "tsx watch src/app.ts",
+        "dev:cli": "tsx watch src/cli.ts",
         "dev:api": "tsx watch src/server.ts",
         "dev:both": "concurrently \"pnpm run dev:cli\" \"pnpm run dev:api\"",
+        "dev:web": "concurrently -n \"API,Frontend\" -c \"blue,magenta\" \"pnpm run dev:api\" \"cd frontend && pnpm run dev\"",
         "build": "tsc",
         "start": "node dist/server.js",
-        "start:cli": "node dist/app.js",
+        "start:cli": "node dist/cli.js",
         "start:api": "node dist/server.js",
         "format": "prettier --write -l src",
-        "lint": "eslint src --ext .ts",
-        "lint:fix": "eslint src --ext .ts --fix"
+        "lint": "eslint src --ext .ts --fix"
     },
     "keywords": [
         "mongodb",
@@ -27,6 +26,7 @@
     "license": "MIT",
     "dependencies": {
         "@fastify/cors": "^11.2.0",
+        "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
         "chalk": "^5.6.2",
         "cli-table3": "^0.6.5",
         "dayjs": "^1.11.19",
@@ -54,5 +54,22 @@
         "eslint-config-prettier": "^10.1.8",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3"
-    }
+    },
+    "prettier": {
+        "semi": true,
+        "printWidth": 120,
+        "trailingComma": "all",
+        "singleQuote": false,
+        "bracketSpacing": true,
+        "useTabs": false,
+        "arrowParens": "always",
+        "tabWidth": 4,
+        "plugins": [
+            "@ianvs/prettier-plugin-sort-imports"
+        ]
+    },
+    "importOrder": [
+        "^[./]",
+        "^@/(.*)$"
+    ]
 }

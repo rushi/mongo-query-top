@@ -1,14 +1,14 @@
+import { promises as fs } from "fs";
 import c from "chalk";
 import Table from "cli-table3";
 import dayjs from "dayjs";
-import { promises as fs } from "fs";
 import geoip from "geoip-lite";
 import stringify from "json-stringify-pretty-compact";
 import { sortBy, sum } from "lodash-es";
 import values from "window-size";
+import type { GeoLocation, MongoQuery, UserPreferences } from "../types/index.js";
 import shortHumanizeTime, { beautifyJson } from "./helpers.js";
 import { formatUserAgent, sanitizeQuery, shouldSkipQuery, summarizeArray } from "./queryProcessor.js";
-import type { MongoQuery, UserPreferences, GeoLocation } from "../types/index.js";
 
 const { height, width } = values;
 
@@ -65,7 +65,7 @@ export default class Renderer {
         colWidths.push(maxQueryLength);
 
         // Sort queries in ascending order of run time. Longest running at the bottom for easy diagnosis
-        let filteredQueries = sortBy(queries, q => q.microsecs_running);
+        let filteredQueries = sortBy(queries, (q) => q.microsecs_running);
         // Use native reverse
         filteredQueries = this.prefs.reversed ? filteredQueries.reverse() : filteredQueries;
         filteredQueries = this.getFilteredQueries(filteredQueries);
@@ -87,7 +87,7 @@ export default class Renderer {
 
             if (q.secs_running >= this.prefs.log) {
                 // Fire and forget - don't block rendering
-                this.saveQuery(q, q.ns).catch(err => console.error("Error saving query:", err));
+                this.saveQuery(q, q.ns).catch((err) => console.error("Error saving query:", err));
             }
 
             // Use native endsWith
@@ -153,14 +153,14 @@ export default class Renderer {
             style: { head: ["green"] },
         });
 
-        data.forEach(row => {
+        data.forEach((row) => {
             let query = row.selectedQuery;
 
             if (row.q.planSummary && row.q.planSummary === "COLLSCAN") {
                 // highlight collection scans in yellow. they are bad queries
                 query = c.yellow(query);
                 // Fire and forget - don't block rendering
-                this.saveQuery(row.q, row.q.ns, "COLLSCAN").catch(err =>
+                this.saveQuery(row.q, row.q.ns, "COLLSCAN").catch((err) =>
                     console.error("Error saving COLLSCAN query:", err),
                 );
             }
@@ -211,7 +211,7 @@ export default class Renderer {
             return queries;
         }
 
-        return queries.filter(q => {
+        return queries.filter((q) => {
             if (shouldSkipQuery(q)) {
                 this.skipped++;
                 return false;
@@ -246,7 +246,7 @@ export default class Renderer {
             await fs.writeFile(`${folderPath}/${fileNameRaw}`, JSON.stringify(filteredQueries, null, 2));
 
             const fileNameSanitized = `queries-sanitized-${now}.json`;
-            const sanitizedQueries = filteredQueries.map(q => sanitizeQuery(q, false));
+            const sanitizedQueries = filteredQueries.map((q) => sanitizeQuery(q, false));
             await fs.writeFile(`${folderPath}/${fileNameSanitized}`, JSON.stringify(sanitizedQueries, null, 2));
             this.headerText = `Wrote ${filteredQueries.length} queries to ${folderPath}`;
         }

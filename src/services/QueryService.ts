@@ -1,7 +1,7 @@
 import geoip from "geoip-lite";
-import { shouldSkipQuery, sanitizeQuery, formatUserAgent } from "../lib/queryProcessor.js";
 import shortHumanizeTime from "../lib/helpers.js";
-import type { MongoQuery, GeoLocation } from "../types/index.js";
+import { formatUserAgent, sanitizeQuery, shouldSkipQuery } from "../lib/queryProcessor.js";
+import type { GeoLocation, MongoQuery } from "../types/index.js";
 
 export interface ProcessedQuery {
     idx: number;
@@ -38,7 +38,7 @@ export class QueryService {
     private geoCache: Map<string, GeoLocation | null> = new Map();
 
     processQueries(queries: MongoQuery[], showAll: boolean = false): ProcessedQuery[] {
-        const filtered = showAll ? queries : queries.filter(q => !shouldSkipQuery(q));
+        const filtered = showAll ? queries : queries.filter((q) => !shouldSkipQuery(q));
 
         return filtered
             .sort((a, b) => a.microsecs_running - b.microsecs_running)

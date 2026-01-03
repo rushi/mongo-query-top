@@ -1,7 +1,6 @@
-import { omit, countBy } from "lodash-es";
-import { beautifyJson } from "./helpers.js";
-import chalk from "chalk";
+import { countBy, omit } from "lodash-es";
 import type { MongoQuery } from "../types/index.js";
+import { beautifyJson } from "./helpers.js";
 
 export const shouldSkipQuery = (q: MongoQuery): boolean => {
     const { command, clientMetadata, appName } = q;
@@ -99,7 +98,7 @@ export const formatUserAgent = (q: MongoQuery): string => {
     const { appName, clientMetadata } = q;
     if (appName) {
         if (appName.match(/NoSQLBooster/i)) {
-            return chalk.bold("NoSQLBooster");
+            return "NoSQLBooster";
         }
         if (appName.match(/MongoDB Monitoring Module/i)) {
             return "Monitoring Module";
@@ -111,7 +110,7 @@ export const formatUserAgent = (q: MongoQuery): string => {
 
     if (clientMetadata) {
         if (clientMetadata.driver?.name?.match(/nodejs\|Mongoose/i)) {
-            return chalk.bold("Mongoose");
+            return "Mongoose";
         }
 
         if (clientMetadata.driver?.name?.match(/NetworkInterfaceTL/i)) {
@@ -141,7 +140,7 @@ export const formatUserAgent = (q: MongoQuery): string => {
         const NODE_RE = /Node(.js)?\sv\d+/i;
         const matches = clientMetadata.platform?.match(NODE_RE);
         if (matches?.[0]) {
-            return chalk.bold(matches?.[0]);
+            return matches[0];
         }
     }
 

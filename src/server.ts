@@ -1,13 +1,12 @@
 #!/usr/bin/env node
-
-import Fastify from "fastify";
 import cors from "@fastify/cors";
+import Fastify from "fastify";
 import "dotenv/config";
-import { MongoConnectionService } from "./services/MongoConnectionService.js";
-import { QueryService } from "./services/QueryService.js";
-import { QueryLoggerService } from "./services/QueryLoggerService.js";
-import serversRoutes from "./api/routes/servers.js";
 import queriesRoutes from "./api/routes/queries.js";
+import serversRoutes from "./api/routes/servers.js";
+import { MongoConnectionService } from "./services/MongoConnectionService.js";
+import { QueryLoggerService } from "./services/QueryLoggerService.js";
+import { QueryService } from "./services/QueryService.js";
 
 // Extend Fastify types to include services
 declare module "fastify" {
@@ -65,7 +64,7 @@ fastify.addHook("onRequest", async (request, reply) => {
 });
 
 // Attach services to request context
-fastify.addHook("onRequest", async request => {
+fastify.addHook("onRequest", async (request) => {
     request.services = { mongoService, queryService, loggerService };
 });
 

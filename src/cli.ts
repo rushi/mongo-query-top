@@ -1,21 +1,19 @@
 #!/usr/bin/env node
-
 import chalk from "chalk";
-import args from "./lib/usage.js";
-import { sleep, clear, setupRawMode, cleanupAndExit } from "./lib/helpers.js";
-import ConsoleRenderer from "./lib/ConsoleRenderer.js";
-import { MongoConnectionService } from "./services/MongoConnectionService.js";
-import { QueryService } from "./services/QueryService.js";
-import { QueryLoggerService } from "./services/QueryLoggerService.js";
-import type { UserPreferences, ServerConfig } from "./types/index.js";
-
 // Import config files using JSON imports (replaces config package)
 import defaultConfig from "./config/default.json" with { type: "json" };
+import ConsoleRenderer from "./lib/ConsoleRenderer.js";
+import { cleanupAndExit, clear, setupRawMode, sleep } from "./lib/helpers.js";
+import args from "./lib/usage.js";
+import { MongoConnectionService } from "./services/MongoConnectionService.js";
+import { QueryLoggerService } from "./services/QueryLoggerService.js";
+import { QueryService } from "./services/QueryService.js";
+import type { ServerConfig, UserPreferences } from "./types/index.js";
 
 // Try to import local config, fall back to empty object if it doesn't exist
 let localConfig: Record<string, ServerConfig> = {};
 try {
-    localConfig = await import("./config/local.json", { with: { type: "json" } }).then(m => m.default);
+    localConfig = await import("./config/local.json", { with: { type: "json" } }).then((m) => m.default);
 } catch {
     // local.json doesn't exist, that's okay
 }
@@ -85,7 +83,7 @@ async function run() {
                 // Auto-save long-running queries
                 for (const q of processedQueries) {
                     if (q.secs_running >= prefs.log) {
-                        loggerService.saveQuery(args.config, q, "long-running").catch(err => {
+                        loggerService.saveQuery(args.config, q, "long-running").catch((err) => {
                             console.error(chalk.red(`Error saving query: ${err.message}`));
                         });
                     }

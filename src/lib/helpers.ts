@@ -1,5 +1,5 @@
-import humanizeDuration from "humanize-duration";
 import util from "util";
+import humanizeDuration from "humanize-duration";
 import type { UserPreferences } from "../types/index.js";
 
 // Helper to format run time
@@ -14,7 +14,7 @@ export default shortHumanizeTime;
 
 export const sleep = (seconds: number): Promise<void> => {
     const milliseconds = seconds * 1000 - 100; // 100 to allow for a refresh
-    return new Promise(resolve => setTimeout(resolve, milliseconds));
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
 };
 
 export const clear = (): void => {
@@ -36,7 +36,7 @@ export const setupRawMode = (prefs: UserPreferences): void => {
     process.stdin.setRawMode(true); // without this, we would only get streams once enter is pressed
     process.stdin.resume();
     process.stdin.setEncoding("utf8");
-    process.stdin.on("data", keyInput => {
+    process.stdin.on("data", (keyInput) => {
         let key = keyInput.toString();
         if (key === "q" || key === "\u0003") {
             // q or Ctrl-C pressed. Close db connection and exit

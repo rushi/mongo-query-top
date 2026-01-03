@@ -15,6 +15,7 @@ interface PreferencesState {
     toggleShowAll: () => void;
     toggleReversed: () => void;
     setIpFilter: (ip?: string) => void;
+    resetFilters: () => void;
 }
 
 export const usePreferences = create<PreferencesState>()(
@@ -33,9 +34,17 @@ export const usePreferences = create<PreferencesState>()(
             toggleShowAll: () => set((state) => ({ showAll: !state.showAll })),
             toggleReversed: () => set((state) => ({ reversed: !state.reversed })),
             setIpFilter: (ip) => set({ ipFilter: ip }),
+            resetFilters: () =>
+                set({
+                    minTime: 1,
+                    refreshInterval: 2,
+                    showAll: false,
+                    reversed: false,
+                    ipFilter: undefined,
+                }),
         }),
         {
             name: "mongo-query-top-preferences",
-        }
-    )
+        },
+    ),
 );

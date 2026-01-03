@@ -1,4 +1,4 @@
-import { MongoClient, Db } from "mongodb";
+import { Db, MongoClient } from "mongodb";
 
 export class MongoConnectionService {
     private connections: Map<string, MongoClient> = new Map();
@@ -23,7 +23,7 @@ export class MongoConnectionService {
     }
 
     async disconnectAll(): Promise<void> {
-        const closePromises = Array.from(this.connections.values()).map(client => client.close());
+        const closePromises = Array.from(this.connections.values()).map((client) => client.close());
         await Promise.all(closePromises);
         this.connections.clear();
     }

@@ -50,17 +50,23 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
 
         const client = request.services.mongoService.getConnection(serverId);
         if (!client) {
-            reply.raw.writeHead(404, { "Content-Type": "application/json" });
+            reply.raw.writeHead(404, {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": request.headers.origin || "*",
+                "Access-Control-Allow-Credentials": "true",
+            });
             reply.raw.write(JSON.stringify({ error: "Server not connected" }));
             return reply.raw.end();
         }
 
-        // Setup SSE headers
+        // Setup SSE headers with CORS
         reply.raw.writeHead(200, {
             "Content-Type": "text/event-stream",
             "Cache-Control": "no-cache",
             Connection: "keep-alive",
             "X-Accel-Buffering": "no",
+            "Access-Control-Allow-Origin": request.headers.origin || "*",
+            "Access-Control-Allow-Credentials": "true",
         });
 
         let intervalId: NodeJS.Timeout;
@@ -155,6 +161,30 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
         } catch (err: any) {
             return reply.code(500).send({
                 error: "Failed to save snapshot",
+                message: err.message,
+            });
+        }
+    });
+
+    // POST /api/queries/:serverId/save - Save a single query
+    fastify.post<{
+        Params: { serverId: string };
+        Body: { query: any; type?: string };
+    }>("/:serverId/save", async (request, reply) => {
+        const { serverId } = request.params;
+        const { query, type = "manual-save" } = request.body;
+
+        try {
+            await request.services.loggerService.saveQuery(serverId, query, type);
+
+            return {
+                success: true,
+                message: "Query saved successfully",
+                timestamp: new Date().toISOString(),
+            };
+        } catch (err: any) {
+            return reply.code(500).send({
+                error: "Failed to save query",
                 message: err.message,
             });
         }

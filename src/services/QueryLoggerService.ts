@@ -20,7 +20,7 @@ export class QueryLoggerService {
             fs.writeFile(
                 sanitizedFile,
                 JSON.stringify(
-                    queries.map(q => q.query),
+                    queries.map((q) => q.query),
                     null,
                     2,
                 ),
@@ -49,7 +49,7 @@ export class QueryLoggerService {
     async listLogs(serverId: string): Promise<string[]> {
         try {
             const files = await fs.readdir(`logs/${serverId}`);
-            return files.filter(f => f.endsWith(".json"));
+            return files.filter((f) => f.endsWith(".json"));
         } catch {
             return [];
         }

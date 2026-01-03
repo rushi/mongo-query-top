@@ -1,10 +1,10 @@
-import Table from "cli-table3";
 import chalk from "chalk";
-import windowSize from "window-size";
+import Table from "cli-table3";
 import dayjs from "dayjs";
-import { beautifyJson } from "./helpers.js";
-import type { UserPreferences } from "../types/index.js";
+import windowSize from "window-size";
 import type { ProcessedQuery, QuerySummary } from "../services/QueryService.js";
+import type { UserPreferences } from "../types/index.js";
+import { beautifyJson } from "./helpers.js";
 
 export default class ConsoleRenderer {
     private prefs: UserPreferences;

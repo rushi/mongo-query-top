@@ -1,26 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FilterControls } from "../components/FilterControls";
-import { SummaryStats } from "../components/SummaryStats";
-import { QueryTable } from "../components/QueryTable";
 import { QueryDetails } from "../components/QueryDetails";
+import { QueryTable } from "../components/QueryTable";
+import { SummaryStats } from "../components/SummaryStats";
+import { Badge } from "../components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { useFetchServers } from "../hooks/useFetchServers";
 import { useServerSentEvents } from "../hooks/useServerSentEvents";
 import { usePreferences } from "../store/preferences";
-import { Badge } from "../components/ui/badge";
-import { apiClient } from "../utils/api";
 import type { ProcessedQuery } from "../types";
+import { apiClient } from "../utils/api";
 
 export const Route = createFileRoute("/")({ component: Dashboard });
 
 function Dashboard() {
-    const { serverId, minTime, refreshInterval } = usePreferences();
+    const { serverId, setServerId, minTime, refreshInterval } = usePreferences();
+    const { servers, loading: serversLoading } = useFetchServers();
     const [mongoConnected, setMongoConnected] = useState(false);
     const [connectError, setConnectError] = useState<string | null>(null);
-    const { data, error, isConnected } = useServerSentEvents(
+    const { data, error, isConnected, isReconnecting } = useServerSentEvents(
         serverId,
         minTime,
         refreshInterval,
-        mongoConnected
+        mongoConnected,
     );
     const [selectedQuery, setSelectedQuery] = useState<ProcessedQuery | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -46,15 +49,39 @@ function Dashboard() {
         setIsDialogOpen(true);
     };
 
+    const handleServerChange = (newServerId: string) => {
+        setServerId(newServerId);
+        setMongoConnected(false);
+        setConnectError(null);
+    };
+
+    const currentServer = servers.find((s) => s.id === serverId);
+
     return (
         <div className="min-h-screen bg-background p-6 space-y-6">
-            <header className="space-y-2">
+            <header>
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">MongoDB Query Monitor</h1>
+                    <h1 className="text-xl font-bold">MongoDB Query Monitor</h1>
                     <div className="flex items-center gap-4 text-sm">
-                        <span className="text-muted-foreground">Server: {serverId}</span>
-                        <Badge variant={isConnected ? "default" : "destructive"}>
-                            {isConnected ? "● Connected" : "○ Disconnected"}
+                        <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Server:</span>
+                            <Select value={serverId} onValueChange={handleServerChange} disabled={serversLoading}>
+                                <SelectTrigger className="w-[200px] h-8">
+                                    <SelectValue placeholder="Select a server">
+                                        {currentServer?.name || serverId}
+                                    </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {servers.map((server) => (
+                                        <SelectItem key={server.id} value={server.id}>
+                                            {server.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <Badge variant={isConnected ? "default" : isReconnecting ? "secondary" : "destructive"}>
+                            {isConnected ? "● Connected" : isReconnecting ? "⟳ Reconnecting..." : "○ Disconnected"}
                         </Badge>
                         {data?.metadata && (
                             <span className="text-muted-foreground">
@@ -71,14 +98,14 @@ function Dashboard() {
             <FilterControls />
 
             {connectError && (
-                <div className="p-4 bg-destructive/10 border border-destructive rounded-lg">
+                <div className="p-4 bg-destructive/10 border border-destructive rounded-md">
                     <p className="font-semibold text-destructive">MongoDB Connection Error</p>
                     <p className="text-sm text-muted-foreground">{connectError}</p>
                 </div>
             )}
 
             {error && (
-                <div className="p-4 bg-destructive/10 border border-destructive rounded-lg">
+                <div className="p-4 bg-destructive/10 border border-destructive rounded-md">
                     <p className="font-semibold text-destructive">Stream Error</p>
                     <p className="text-sm text-muted-foreground">{error}</p>
                     <p className="text-sm text-muted-foreground mt-2">

@@ -1,11 +1,15 @@
+import { Check, RotateCcw, Save } from "lucide-react";
+import { useState } from "react";
 import { usePreferences } from "../store/preferences";
+import { apiClient } from "../utils/api";
 import { Button } from "./ui/button";
+import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Card } from "./ui/card";
 
 export const FilterControls = () => {
     const {
+        serverId,
         minTime,
         refreshInterval,
         showAll,
@@ -16,7 +20,24 @@ export const FilterControls = () => {
         toggleShowAll,
         toggleReversed,
         setIpFilter,
+        resetFilters,
     } = usePreferences();
+
+    const [isSaving, setIsSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
+
+    const handleSaveAll = async () => {
+        setIsSaving(true);
+        try {
+            await apiClient.post(`/api/queries/${serverId}/snapshot?minTime=${minTime}`);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+        } catch (err) {
+            console.error("Failed to save snapshot:", err);
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     return (
         <Card className="p-4">
@@ -57,21 +78,39 @@ export const FilterControls = () => {
                     />
                 </div>
 
-                <Button
-                    onClick={toggleShowAll}
-                    variant={showAll ? "default" : "outline"}
-                    className="h-9"
-                >
+                <Button onClick={toggleShowAll} variant={showAll ? "default" : "outline"} className="h-9">
                     Show All
                 </Button>
 
-                <Button
-                    onClick={toggleReversed}
-                    variant={reversed ? "default" : "outline"}
-                    className="h-9"
-                >
+                <Button onClick={toggleReversed} variant={reversed ? "default" : "outline"} className="h-9">
                     Reversed
                 </Button>
+
+                <div className="ml-auto flex gap-2">
+                    <Button onClick={resetFilters} variant="outline" className="h-9" title="Reset filters to default">
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Reset
+                    </Button>
+
+                    <Button
+                        onClick={handleSaveAll}
+                        disabled={isSaving || saved}
+                        variant={saved ? "default" : "outline"}
+                        className="h-9"
+                    >
+                        {saved ? (
+                            <>
+                                <Check className="h-4 w-4 mr-2" />
+                                Saved
+                            </>
+                        ) : (
+                            <>
+                                <Save className="h-4 w-4 mr-2" />
+                                Save All
+                            </>
+                        )}
+                    </Button>
+                </div>
             </div>
         </Card>
     );

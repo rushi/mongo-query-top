@@ -34,6 +34,10 @@ This tool provides:
 - ✅ Detection of unindexed scans
 - ✅ REST API and web dashboard
 
+## Screenshot
+
+![MongoDB Query Top Dashboard](docs/screenshot.png)
+
 ## Quick Start
 
 ```bash

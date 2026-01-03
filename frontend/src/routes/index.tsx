@@ -49,6 +49,23 @@ function Dashboard() {
         connectToMongo();
     }, [serverId]);
 
+    // Update browser tab title with query count
+    useEffect(() => {
+        const queryCount = data?.queries.length || 0;
+        const defaultTitle = "MongoDB Query Monitor";
+
+        if (queryCount > 2) {
+            document.title = `(${queryCount}) ${defaultTitle}`;
+        } else {
+            document.title = defaultTitle;
+        }
+
+        // Cleanup: reset title on unmount
+        return () => {
+            document.title = defaultTitle;
+        };
+    }, [data?.queries.length]);
+
     const handleQueryClick = (query: ProcessedQuery) => {
         setSelectedQuery(query);
         setIsDialogOpen(true);

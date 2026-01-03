@@ -8,7 +8,12 @@ export class MongoConnectionService {
             return this.connections.get(serverId)!;
         }
 
-        const client = new MongoClient(uri);
+        const client = new MongoClient(uri, {
+            // Prevent BSON Long from auto-converting to Number to avoid overflow
+            promoteLongs: false,
+            promoteValues: true,
+            promoteBuffers: false,
+        });
         await client.connect();
         this.connections.set(serverId, client);
         return client;

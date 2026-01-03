@@ -1,6 +1,6 @@
 export interface ProcessedQuery {
     idx: number;
-    opid: number;
+    opid: string;
     secs_running: number;
     runtime_formatted: string;
     operation: string;

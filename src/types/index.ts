@@ -1,5 +1,7 @@
+import type { Long } from "bson";
+
 export interface MongoQuery {
-    opid: number;
+    opid: number | Long | bigint;
     active: boolean;
     secs_running: number;
     microsecs_running: number;

@@ -1,0 +1,23 @@
+# Local configuration overrides
+# Copy this file to local.yaml and customize for your environment
+# local.yaml is gitignored and will override default.yaml settings
+
+# Add your MongoDB servers here
+servers:
+  # production:
+  #   name: Production MongoDB Cluster
+  #   uri: mongodb+srv://user:password@cluster.mongodb.net/dbname?retryWrites=true&w=majority
+  #
+  # staging:
+  #   name: Staging Environment
+  #   uri: mongodb://user:password@staging.example.com:27017/dbname?authSource=admin
+
+# Override API settings for local development
+# api:
+#   port: 9002
+#   apiKey: your-secure-api-key-here
+#   logLevel: debug
+
+# Override frontend URL if needed
+# frontend:
+#   url: http://localhost:9000

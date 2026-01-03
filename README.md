@@ -268,23 +268,69 @@ curl -X POST -H "X-API-Key: $API_KEY" \
   http://localhost:9001/api/queries/localhost/snapshot
 ```
 
-## Environment Variables
+## Configuration
 
-Configure the API server via `.env`:
+This application uses YAML configuration files located in the `config/` directory. The Node.js [`config`](https://github.com/node-config/node-config) module automatically loads and merges:
 
-```bash
+1. `config/default.yaml` - Default configuration (checked into git)
+2. `config/local.yaml` - Local overrides (gitignored)
+
+### Default Configuration
+
+The `config/default.yaml` includes:
+
+```yaml
+# MongoDB Server Configurations
+servers:
+    localhost:
+        name: Local MongoDB
+        uri: mongodb://localhost:27017
+
 # API Server Configuration
-PORT=9001
-HOST=0.0.0.0
-NODE_ENV=development
-LOG_LEVEL=info
+api:
+    port: 9001
+    host: 0.0.0.0
+    logLevel: info
+    apiKey: dev-key-change-in-production
+    cors:
+        origins:
+            - http://localhost:9000 # Vite dev server (preferred)
+            - http://localhost:3000 # Vite dev server (legacy/fallback)
+            - http://localhost:9173 # Vite preview server
+        credentials: true
 
-# API Authentication
-API_KEY=your-secret-api-key-here
-
-# Frontend URLs (CORS)
-FRONTEND_URL=http://localhost:9000
+# Frontend Configuration
+frontend:
+    url: http://localhost:9000
 ```
+
+### Local Configuration
+
+Create `config/local.yaml` to add your MongoDB servers and override settings:
+
+```yaml
+# Add your MongoDB servers
+servers:
+    production:
+        name: Production MongoDB Cluster
+        uri: mongodb+srv://user:password@cluster.mongodb.net/dbname?retryWrites=true&w=majority
+
+    staging:
+        name: Staging Environment
+        uri: mongodb://user:password@staging.example.com:27017/dbname?authSource=admin
+
+# Override API settings for local development
+api:
+    port: 9002
+    apiKey: your-secure-api-key-here
+    logLevel: debug
+
+# Override frontend URL if needed
+frontend:
+    url: http://localhost:9000
+```
+
+**Note:** `config/local.yaml` is gitignored. Use `config/local.yaml.example` as a template.
 
 ## Architecture
 

@@ -15,8 +15,8 @@ import ConsoleRenderer from "./ConsoleRenderer.js";
 import args from "./lib/usage.js";
 
 // Load server configs using the config module
-// Looks for config/default.json and config/local.json in project root
-const servers = config.util.toObject() as Record<string, ServerConfig>;
+// Looks for config/default.yaml and config/local.yaml in project root
+const servers = config.get<Record<string, ServerConfig>>("servers");
 
 const prefs: UserPreferences = {
     paused: false,

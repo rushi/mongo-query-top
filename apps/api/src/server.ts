@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import cors from "@fastify/cors";
-import Fastify from "fastify";
-import "dotenv/config";
 import { MongoConnectionService, QueryLoggerService, QueryService } from "@mongo-query-top/core";
+import config from "config";
+import Fastify from "fastify";
 import queriesRoutes from "./routes/queries.js";
 import serversRoutes from "./routes/servers.js";
 
@@ -19,7 +19,7 @@ declare module "fastify" {
 
 const fastify = Fastify({
     logger: {
-        level: process.env.LOG_LEVEL || "info",
+        level: config.get<string>("api.logLevel"),
     },
 });
 
@@ -30,13 +30,8 @@ const loggerService = new QueryLoggerService();
 
 // CORS for frontend
 await fastify.register(cors, {
-    origin: [
-        "http://localhost:9000", // Vite dev server (preferred)
-        "http://localhost:3000", // Vite dev server (legacy/fallback)
-        "http://localhost:9173",
-        process.env.FRONTEND_URL || "http://localhost:9000",
-    ],
-    credentials: true,
+    origin: config.get<string[]>("api.cors.origins"),
+    credentials: config.get<boolean>("api.cors.credentials"),
 });
 
 // Simple API key auth middleware (supports both header and query parameter for EventSource compatibility)
@@ -54,7 +49,7 @@ fastify.addHook("onRequest", async (request, reply) => {
     const headerKey = request.headers["x-api-key"] as string;
     const queryKey = (request.query as any)?.apiKey;
     const apiKey = headerKey || queryKey;
-    const validKey = process.env.API_KEY || "dev-key-change-in-production";
+    const validKey = config.get<string>("api.apiKey");
 
     if (apiKey !== validKey) {
         reply.code(401).send({ error: "Unauthorized" });
@@ -97,8 +92,8 @@ process.on("SIGTERM", async () => {
 // Start server
 const start = async () => {
     try {
-        const port = parseInt(process.env.PORT || "9001", 10);
-        const host = process.env.HOST || "0.0.0.0";
+        const port = config.get<number>("api.port");
+        const host = config.get<string>("api.host");
 
         await fastify.listen({ port, host });
         fastify.log.info(`API server running on http://${host}:${port}`);

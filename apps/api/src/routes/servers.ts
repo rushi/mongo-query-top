@@ -3,8 +3,8 @@ import config from "config";
 import type { FastifyInstance } from "fastify";
 
 // Load server configs using the config module
-// Looks for config/default.json and config/local.json in project root
-const serverConfigs = config.util.toObject() as Record<string, ServerConfig>;
+// Looks for config/default.yaml and config/local.yaml in project root
+const serverConfigs = config.get<Record<string, ServerConfig>>("servers");
 
 export default async function serversRoutes(fastify: FastifyInstance) {
     // GET /api/servers - List all configured servers

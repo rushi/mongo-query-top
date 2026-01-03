@@ -6,11 +6,19 @@
 
 ### Architecture
 
-The application consists of three components:
+This is a **Turborepo monorepo** with three applications and three shared packages:
 
-1. **CLI Tool** (`src/cli.ts`) - Terminal-based monitoring interface with keyboard controls
-2. **API Server** (`src/server.ts`) - Fastify REST API with Server-Sent Events for real-time streaming
-3. **Web Frontend** (`frontend/`) - React dashboard with real-time query visualization
+**Applications:**
+
+1. **CLI Tool** (`apps/cli/`) - Terminal-based monitoring interface with keyboard controls
+2. **API Server** (`apps/api/`) - Fastify REST API with Server-Sent Events for real-time streaming
+3. **Web Frontend** (`apps/web/`) - React dashboard with real-time query visualization
+
+**Shared Packages:**
+
+1. **types** (`packages/types/`) - Shared TypeScript type definitions for API contracts
+2. **utils** (`packages/utils/`) - Shared utility functions (cn, etc.)
+3. **core** (`packages/core/`) - Shared business logic, services, and MongoDB operations
 
 ### Key Features
 
@@ -38,83 +46,143 @@ The application consists of three components:
 
 ## Architecture
 
-### File Structure
+### Monorepo Structure (Turborepo + pnpm workspaces)
 
 ```
 mongo-query-top/
-├── src/                                 # Backend TypeScript source
-│   ├── cli.ts                           # CLI entry point - terminal monitoring interface
-│   ├── server.ts                        # API server entry point - Fastify REST API
-│   ├── lib/
-│   │   ├── helpers.ts                   # Utilities: sleep, clear, raw mode, JSON formatting
-│   │   ├── queryProcessor.ts            # Query filtering, sanitization, user agent detection
-│   │   ├── renderer.ts                  # Table rendering with cli-table3, GeoIP, logging
-│   │   ├── ConsoleRenderer.ts           # Console-specific rendering logic
-│   │   └── usage.ts                     # CLI argument parsing with yargs
-│   ├── services/
-│   │   ├── MongoConnectionService.ts    # MongoDB connection pool management
-│   │   ├── QueryService.ts              # Query processing and summary generation
-│   │   └── QueryLoggerService.ts        # Query logging to disk
-│   ├── api/
-│   │   └── routes/
-│   │       ├── queries.ts               # Query endpoints + SSE streaming
-│   │       └── servers.ts               # Server connection management endpoints
-│   └── types/
-│       └── index.ts                     # Shared TypeScript type definitions
+├── apps/
+│   ├── api/                             # Fastify REST API + SSE server
+│   │   ├── src/
+│   │   │   ├── server.ts                # API entry point
+│   │   │   └── routes/
+│   │   │       ├── queries.ts           # Query endpoints + SSE streaming
+│   │   │       └── servers.ts           # Server connection management
+│   │   ├── package.json                 # Depends: @mongo-query-top/core, types
+│   │   └── tsconfig.json
+│   │
+│   ├── cli/                             # Terminal monitoring tool
+│   │   ├── src/
+│   │   │   ├── cli.ts                   # CLI entry point
+│   │   │   ├── ConsoleRenderer.ts       # Terminal rendering logic
+│   │   │   └── lib/
+│   │   │       ├── renderer.ts          # Table rendering with cli-table3
+│   │   │       └── usage.ts             # CLI argument parsing with yargs
+│   │   ├── package.json                 # Depends: @mongo-query-top/core, types
+│   │   └── tsconfig.json
+│   │
+│   └── web/                             # React dashboard (Vite + TanStack Router)
+│       ├── src/
+│       │   ├── routes/
+│       │   │   ├── __root.tsx           # Root layout component
+│       │   │   └── index.tsx            # Dashboard page component
+│       │   ├── components/
+│       │   │   ├── QueryTable.tsx       # Virtualized query list table
+│       │   │   ├── QueryDetails.tsx     # Query detail dialog
+│       │   │   ├── FilterControls.tsx   # Filter UI controls
+│       │   │   ├── SummaryStats.tsx     # Summary statistics cards
+│       │   │   └── ui/                  # shadcn/ui components
+│       │   ├── hooks/
+│       │   │   ├── useServerSentEvents.ts  # SSE hook with auto-reconnect
+│       │   │   └── useFetchServers.ts   # Fetch servers hook
+│       │   ├── store/
+│       │   │   └── preferences.ts       # Zustand store for user prefs
+│       │   └── utils/
+│       │       └── api.ts               # API client helper
+│       ├── package.json                 # Depends: @mongo-query-top/types, utils
+│       ├── tsconfig.json
+│       └── vite.config.ts               # Vite config (port 9000)
 │
-├── frontend/                            # React web frontend
-│   ├── src/
-│   │   ├── routes/
-│   │   │   ├── __root.tsx               # Root layout component
-│   │   │   └── index.tsx                # Dashboard page component
-│   │   ├── components/
-│   │   │   ├── QueryTable.tsx           # Query list table with virtualization
-│   │   │   ├── QueryDetails.tsx         # Query detail dialog
-│   │   │   ├── FilterControls.tsx       # Filter UI controls
-│   │   │   ├── SummaryStats.tsx         # Summary statistics cards
-│   │   │   └── ui/                      # shadcn/ui components
-│   │   ├── hooks/
-│   │   │   ├── useServerSentEvents.ts   # SSE connection hook with reconnection logic
-│   │   │   └── useFetchServers.ts       # Fetch available servers hook
-│   │   ├── store/
-│   │   │   └── preferences.ts           # Zustand store for user preferences
-│   │   ├── utils/
-│   │   │   └── api.ts                   # API client helper
-│   │   ├── types/
-│   │   │   └── index.ts                 # Frontend TypeScript types
-│   │   ├── router.tsx                   # TanStack Router configuration
-│   │   └── styles.css                   # Global Tailwind CSS styles
-│   ├── package.json
-│   └── vite.config.ts                   # Vite build configuration
+├── packages/
+│   ├── types/                           # Shared TypeScript type definitions
+│   │   ├── src/
+│   │   │   ├── api.ts                   # API contract types (ProcessedQuery, etc.)
+│   │   │   ├── mongo.ts                 # MongoDB types (MongoQuery, ServerConfig)
+│   │   │   ├── shared.ts                # Shared types (GeoLocation)
+│   │   │   └── index.ts                 # Barrel exports
+│   │   ├── package.json                 # No dependencies (private package)
+│   │   └── tsconfig.json
+│   │
+│   ├── utils/                           # Shared utility functions
+│   │   ├── src/
+│   │   │   ├── cn.ts                    # Tailwind class name merger
+│   │   │   └── index.ts                 # Barrel exports
+│   │   ├── package.json                 # Depends: clsx, tailwind-merge
+│   │   └── tsconfig.json
+│   │
+│   └── core/                            # Shared business logic & services
+│       ├── src/
+│       │   ├── services/
+│       │   │   ├── MongoConnectionService.ts  # MongoDB connection pool
+│       │   │   ├── QueryService.ts      # Query processing & filtering
+│       │   │   └── QueryLoggerService.ts # Query logging to disk
+│       │   ├── lib/
+│       │   │   ├── queryProcessor.ts    # Query filtering, sanitization
+│       │   │   └── helpers.ts           # Utilities: sleep, clear, etc.
+│       │   └── index.ts                 # Barrel exports
+│       ├── package.json                 # Depends: @mongo-query-top/types, mongodb
+│       └── tsconfig.json
 │
 ├── config/
 │   ├── default.json                     # Default MongoDB server configurations
 │   └── local.json                       # User-specific MongoDB URIs (gitignored)
+│
 ├── logs/                                # Auto-saved query snapshots (gitignored)
 │   └── <server-id>/
 │       ├── raw/                         # Full raw query objects
 │       └── *.json                       # Sanitized query snapshots
-├── dist/                                # Compiled JavaScript output (gitignored)
-├── tsconfig.json                        # Backend TypeScript configuration
-└── package.json                         # Backend dependencies and scripts
+│
+├── turbo.json                           # Turborepo pipeline configuration
+├── pnpm-workspace.yaml                  # pnpm workspace definition
+├── tsconfig.base.json                   # Shared TypeScript base config
+├── prettier.config.js                   # Shared Prettier configuration
+├── .env                                 # API environment variables (gitignored)
+└── package.json                         # Root workspace package.json
 ```
 
 ### Key Dependencies
 
-#### Backend
+#### Monorepo Infrastructure
 
-- **fastify** (^5.6.2): Fast, low-overhead web framework for the API server
+- **turbo** (^2.4.0): Monorepo build system with intelligent caching
+- **pnpm** (^10.8.0): Fast, disk space-efficient package manager with workspace support
+
+#### Shared Packages
+
+**packages/types:**
+
+- **bson** (^6.10.4): MongoDB BSON library for type definitions
+
+**packages/utils:**
+
+- **clsx** (^2.1.1): Conditional className utility
+- **tailwind-merge** (^3.4.0): Tailwind CSS class merging utility
+
+**packages/core:**
+
 - **mongodb** (^7.0.0): MongoDB Node.js driver for connecting and running currentOp
-- **cli-table3** (^0.6.5): Beautiful terminal tables for CLI rendering
-- **chalk** (^5.6.2): Terminal colors and styling
 - **lodash-es** (^4.17.22): Utility functions for data manipulation
-- **yargs** (^18.0.0): CLI argument parsing
 - **dayjs** (^1.11.19): Date formatting and manipulation
+- **chalk** (^5.6.2): Terminal colors and styling
 - **geoip-lite** (^1.4.10): IP geolocation lookup
 - **humanize-duration** (^3.33.2): Human-readable time formatting
+- **config** (^4.1.1): Configuration management
+
+#### Backend Apps
+
+**apps/api:**
+
+- **fastify** (^5.6.2): Fast, low-overhead web framework for the API server
+- **@fastify/cors** (^11.2.0): CORS plugin for Fastify
+- **dotenv** (^17.2.3): Environment variable management
+
+**apps/cli:**
+
+- **cli-table3** (^0.6.5): Beautiful terminal tables for CLI rendering
+- **yargs** (^18.0.0): CLI argument parsing
+- **window-size** (^1.1.1): Terminal window size detection
 - **tsx** (^4.21.0): TypeScript execution for development
 
-#### Frontend
+#### Frontend (apps/web)
 
 - **react** (^19.2.0): UI library
 - **@tanstack/react-router** (^1.132.0): Type-safe routing with file-based routing
@@ -122,13 +190,13 @@ mongo-query-top/
 - **zustand** (^5.0.9): Lightweight state management for user preferences
 - **tailwindcss** (^4.0.6): Utility-first CSS framework
 - **shadcn/ui**: Radix UI components styled with Tailwind (Dialog, Select, Table, etc.)
-- **lucide-react** (^0.561.0): Icon library
+- **@phosphor-icons/react** (^2.1.10): Icon library
 - **date-fns** (^4.1.0): Date utilities
 - **vite** (^7.1.7): Build tool and dev server
 
 ## Code Patterns
 
-### API Server Architecture (src/server.ts)
+### API Server Architecture (apps/api/src/server.ts)
 
 The application includes a Fastify REST API server with the following features:
 
@@ -167,7 +235,7 @@ The application includes a Fastify REST API server with the following features:
 - Respects `minTime`, `refreshInterval`, and `showAll` query parameters
 - Automatic cleanup on client disconnect
 
-### Frontend Architecture (frontend/src/)
+### Frontend Architecture (apps/web/src/)
 
 The web frontend is built with React and follows modern best practices:
 
@@ -233,34 +301,67 @@ The web frontend is built with React and follows modern best practices:
 
 **API Client:**
 
-- Centralized API client in `utils/api.ts`
+- Centralized API client in [apps/web/src/utils/api.ts](apps/web/src/utils/api.ts)
 - Axios-based with base URL from `VITE_API_URL` env var (defaults to `http://localhost:9001`)
 - API key in headers from `VITE_API_KEY` env var
 
 ### Configuration System
 
-Uses the `config` package that automatically loads from `config/default.json` and `config/local.json`.
+Uses the Node.js `config` package that automatically loads and merges YAML files from the `config/` directory:
 
-**Config Entry Format:**
+1. `config/default.yaml` - Default configuration (checked into git)
+2. `config/local.yaml` - Local overrides (gitignored)
 
-```json
-{
-    "server-name": {
-        "name": "Display Name",
-        "uri": "mongodb://user:pass@host:port/db?options"
-    }
-}
+**Configuration Structure:**
+
+```yaml
+# MongoDB Server Configurations
+servers:
+    server-name:
+        name: Display Name
+        uri: mongodb://user:pass@host:port/db?options
+
+# API Server Configuration
+api:
+    port: 9001
+    host: 0.0.0.0
+    logLevel: info
+    apiKey: dev-key-change-in-production
+    cors:
+        origins:
+            - http://localhost:9000
+            - http://localhost:3000
+        credentials: true
+
+# Frontend Configuration
+frontend:
+    url: http://localhost:9000
 ```
 
 **Usage:**
 
 ```bash
+# CLI with server config
 pnpm run dev:cli -- -c server-name
-# or after building:
+
+# After building
 node dist/cli.js -c server-name
 ```
 
-### Main Loop (src/cli.ts)
+**In Code:**
+
+```typescript
+import config from "config";
+
+// Get MongoDB servers
+const servers = config.get<Record<string, ServerConfig>>("servers");
+
+// Get API settings
+const port = config.get<number>("api.port");
+const apiKey = config.get<string>("api.apiKey");
+```
+
+### Main Loop (apps/cli/src/cli.ts)
 
 1. Connect to MongoDB using configured URI
 2. Setup raw mode for keyboard input handling
@@ -271,7 +372,7 @@ node dist/cli.js -c server-name
     - Handle keyboard inputs
 4. Exit on `q` or `Ctrl+C`
 
-### Query Processing (src/lib/queryProcessor.ts)
+### Query Processing (packages/core/src/lib/queryProcessor.ts)
 
 **`shouldSkipQuery(q)`**
 
@@ -296,7 +397,7 @@ node dist/cli.js -c server-name
 - Groups and counts similar items
 - Returns formatted string like "5 x command, 3 x query, 1 x update"
 
-### Rendering (src/lib/renderer.ts)
+### Rendering (apps/cli/src/lib/renderer.ts)
 
 **`renderHeader()`**
 
@@ -325,7 +426,7 @@ node dist/cli.js -c server-name
 - Saves snapshot of all current queries (triggered by `s` key)
 - Creates timestamped files in `logs/<config>/`
 
-### Helper Functions (src/lib/helpers.ts)
+### Helper Functions (packages/core/src/lib/helpers.ts)
 
 **`sleep(seconds)`**
 
@@ -367,7 +468,7 @@ pnpm run dev:cli -- [options]
 node dist/cli.js [options]
 
 Options:
-  --config, -c    Server config name from config/local.json (default: "localhost")
+  --config, -c    Server config name from config/default.yaml or config/local.yaml (default: "localhost")
   --refresh       Refresh interval in seconds (default: 2)
   --minTime       Only show queries running longer than X seconds (default: 1)
   --all           Show all queries without filtering (default: false)
@@ -411,21 +512,21 @@ node dist/cli.js -c prod --minTime=2
 
 ```bash
 # Add a new component from shadcn/ui
-cd frontend
+cd apps/web
 npx shadcn@latest add <component-name>
 
 # Example: Add a dropdown menu component
 npx shadcn@latest add dropdown-menu
 ```
 
-Components will be added to `frontend/src/components/ui/` and can be imported and used immediately.
+Components will be added to `apps/web/src/components/ui/` and can be imported and used immediately.
 
 **Creating Custom Components:**
 
-Follow the existing patterns in `frontend/src/components/`:
+Follow the existing patterns in `apps/web/src/components/`:
 
 ```typescript
-// frontend/src/components/MyComponent.tsx
+// apps/web/src/components/MyComponent.tsx
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -467,10 +568,10 @@ export const MyComponent = ({ title, onAction }: MyComponentProps) => {
 
 #### Adding New API Endpoints
 
-**Backend (src/api/routes/):**
+**Backend (apps/api/src/routes/):**
 
 ```typescript
-// src/api/routes/myroute.ts
+// apps/api/src/routes/myroute.ts
 import type { FastifyInstance } from "fastify";
 
 export default async function myRoutes(fastify: FastifyInstance) {
@@ -497,11 +598,11 @@ export default async function myRoutes(fastify: FastifyInstance) {
     });
 }
 
-// Register in src/server.ts
+// Register in apps/api/src/server.ts
 await fastify.register(myRoutes, { prefix: "/api/myroute" });
 ```
 
-**Frontend (utils/api.ts):**
+**Frontend (apps/web/src/utils/api.ts):**
 
 ```typescript
 // Add new API function
@@ -534,11 +635,9 @@ const MyComponent = () => {
 #### Adding New Zustand Store
 
 ```typescript
-// frontend/src/store/mystore.ts
+// apps/web/src/store/mystore.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-// Usage in component
-import { useMyStore } from "../store/mystore";
 
 interface MyState {
     count: number;
@@ -572,7 +671,7 @@ const MyComponent = () => {
 
 ### Adding New Query Filters
 
-**File:** `src/lib/queryProcessor.ts`
+**File:** [packages/core/src/lib/queryProcessor.ts](packages/core/src/lib/queryProcessor.ts)
 
 Modify the `shouldSkipQuery()` function:
 
@@ -599,7 +698,7 @@ export const shouldSkipQuery = (q: MongoQuery): boolean => {
 
 ### Customizing Table Display
 
-**File:** `src/lib/renderer.ts`
+**File:** [apps/cli/src/lib/renderer.ts](apps/cli/src/lib/renderer.ts)
 
 **Adjust Column Widths:**
 
@@ -624,15 +723,13 @@ if (row.q.planSummary && row.q.planSummary === "COLLSCAN") {
 
 ### Adding New Server Configuration
 
-**File:** `config/local.json`
+**File:** `config/local.yaml`
 
-```json
-{
-    "my-server": {
-        "name": "My Production Server",
-        "uri": "mongodb://user:pass@host:27017/dbname?authSource=admin&ssl=true"
-    }
-}
+```yaml
+servers:
+    my-server:
+        name: My Production Server
+        uri: mongodb://user:pass@host:27017/dbname?authSource=admin&ssl=true
 ```
 
 **Then run:**
@@ -690,7 +787,7 @@ export const formatUserAgent = (q: MongoQuery): string => {
 
 ### Modifying Query Sanitization
 
-**File:** `src/lib/queryProcessor.ts`, function `sanitizeQuery()`
+**File:** [packages/core/src/lib/queryProcessor.ts](packages/core/src/lib/queryProcessor.ts), function `sanitizeQuery()`
 
 **Hide Additional Fields:**
 
@@ -710,7 +807,7 @@ Remove items from the omit arrays to include them in the output.
 
 ### Change Default Refresh Interval
 
-**File:** `src/lib/usage.ts`
+**File:** [apps/cli/src/lib/usage.ts](apps/cli/src/lib/usage.ts)
 
 ```typescript
 .option("refresh", {
@@ -722,7 +819,7 @@ Remove items from the omit arrays to include them in the output.
 
 ### Change Default Minimum Query Time
 
-**File:** `src/lib/usage.ts`
+**File:** [apps/cli/src/lib/usage.ts](apps/cli/src/lib/usage.ts)
 
 ```typescript
 .option("minTime", {
@@ -734,7 +831,7 @@ Remove items from the omit arrays to include them in the output.
 
 ### Disable Auto-Logging
 
-**File:** `src/lib/usage.ts`
+**File:** [apps/cli/src/lib/usage.ts](apps/cli/src/lib/usage.ts)
 
 ```typescript
 .option("log", {
@@ -748,7 +845,7 @@ Or pass `--log=999999` when running.
 
 ### Change Sort Order Default
 
-**File:** `src/cli.ts`
+**File:** [apps/cli/src/cli.ts](apps/cli/src/cli.ts)
 
 ```typescript
 const prefs = {
@@ -802,7 +899,7 @@ pnpm run start:api
 pnpm run format
 ```
 
-Runs Prettier on all TypeScript files in `src/`.
+Runs Prettier on all TypeScript files across all packages in the monorepo.
 
 ### Production Usage
 
@@ -835,8 +932,8 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 - **Lodash-ES**: Extensively used for data manipulation (`sortBy`, `omit`, `isEmpty`, etc.)
 - **Chalk**: Terminal colors throughout CLI code
-- **Type Definitions**: Interfaces and types defined in `src/types/index.ts`
-- **Service Pattern**: Business logic encapsulated in service classes
+- **Type Definitions**: Interfaces and types defined in [packages/types/src/](packages/types/src/)
+- **Service Pattern**: Business logic encapsulated in service classes in [packages/core/src/services/](packages/core/src/services/)
 - **Fastify Plugins**: Routes as async functions registered with `fastify.register()`
 
 ### Frontend Specific

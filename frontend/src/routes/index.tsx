@@ -18,6 +18,7 @@ function Dashboard() {
     const { serverId, setServerId, minTime, refreshInterval } = usePreferences();
     const { servers, loading: serversLoading } = useFetchServers();
     const [mongoConnected, setMongoConnected] = useState(false);
+    const [isConnecting, setIsConnecting] = useState(false);
     const [connectError, setConnectError] = useState<string | null>(null);
     const { data, error, isConnected, isReconnecting } = useServerSentEvents(
         serverId,
@@ -31,6 +32,8 @@ function Dashboard() {
     // Auto-connect to MongoDB on mount
     useEffect(() => {
         const connectToMongo = async () => {
+            setIsConnecting(true);
+            setConnectError(null);
             try {
                 await apiClient.post(`/api/servers/${serverId}/connect`);
                 setMongoConnected(true);
@@ -38,6 +41,8 @@ function Dashboard() {
             } catch (err: any) {
                 setConnectError(err.message || "Failed to connect to MongoDB");
                 setMongoConnected(false);
+            } finally {
+                setIsConnecting(false);
             }
         };
 
@@ -57,6 +62,27 @@ function Dashboard() {
 
     const currentServer = servers.find((s) => s.id === serverId);
 
+    const getConnectionBadge = () => {
+        if (isConnecting) {
+            return (
+                <Badge variant="secondary" className="gap-1.5">
+                    <div className="h-3 w-3 rounded-full border-2 border-muted-foreground/20 border-t-muted-foreground animate-spin" />
+                    Connecting...
+                </Badge>
+            );
+        }
+
+        if (isConnected) {
+            return <Badge variant="default">● Connected</Badge>;
+        }
+
+        if (isReconnecting) {
+            return <Badge variant="secondary">⟳ Reconnecting...</Badge>;
+        }
+
+        return <Badge variant="destructive">○ Disconnected</Badge>;
+    };
+
     return (
         <div className="min-h-screen bg-background p-6 space-y-6">
             <header>
@@ -66,7 +92,7 @@ function Dashboard() {
                         <div className="flex items-center gap-2">
                             <span className="text-muted-foreground">Server:</span>
                             <Select value={serverId} onValueChange={handleServerChange} disabled={serversLoading}>
-                                <SelectTrigger className="w-[200px] h-8">
+                                <SelectTrigger className="w-50 h-8">
                                     <SelectValue placeholder="Select a server">
                                         {currentServer?.name || serverId}
                                     </SelectValue>
@@ -80,9 +106,7 @@ function Dashboard() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <Badge variant={isConnected ? "default" : isReconnecting ? "secondary" : "destructive"}>
-                            {isConnected ? "● Connected" : isReconnecting ? "⟳ Reconnecting..." : "○ Disconnected"}
-                        </Badge>
+                        {getConnectionBadge()}
                         {data?.metadata && (
                             <span className="text-muted-foreground">
                                 Last update: {new Date(data.metadata.timestamp).toLocaleTimeString()}
@@ -104,12 +128,24 @@ function Dashboard() {
                 </div>
             )}
 
-            {error && (
+            {error && !isReconnecting && (
                 <div className="p-4 bg-destructive/10 border border-destructive rounded-md">
                     <p className="font-semibold text-destructive">Stream Error</p>
                     <p className="text-sm text-muted-foreground">{error}</p>
                     <p className="text-sm text-muted-foreground mt-2">
                         Make sure the API server is running on {import.meta.env.VITE_API_URL || "http://localhost:9001"}
+                    </p>
+                </div>
+            )}
+
+            {isReconnecting && (
+                <div className="p-4 bg-muted border border-border rounded-md">
+                    <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/20 border-t-muted-foreground animate-spin" />
+                        <p className="font-medium">Reconnecting to server...</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Connection was interrupted. Attempting to reconnect automatically.
                     </p>
                 </div>
             )}

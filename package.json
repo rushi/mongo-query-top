@@ -18,7 +18,7 @@
         "dev:web": "turbo dev --filter=@mongo-query-top/web --filter=@mongo-query-top/api",
         "start:api": "pnpm --filter=@mongo-query-top/api start",
         "start:cli": "pnpm --filter=@mongo-query-top/cli start",
-        "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+        "format": "prettier -l --write \"**/*.{ts,tsx,json,md}\"",
         "lint": "turbo lint",
         "clean": "turbo clean && rm -rf node_modules"
     },

@@ -11,6 +11,7 @@ export const useServerSentEvents = (
     serverId: string,
     minTime: number,
     refreshInterval: number,
+    showAll: boolean,
     enabled: boolean = true,
 ) => {
     const [data, setData] = useState<QueryData | null>(null);
@@ -34,7 +35,7 @@ export const useServerSentEvents = (
             if (!isActive) return;
 
             // EventSource doesn't support custom headers, so pass API key as query parameter
-            const url = `${API_BASE}/api/queries/${serverId}/stream?minTime=${minTime}&refreshInterval=${refreshInterval}&apiKey=${API_KEY}`;
+            const url = `${API_BASE}/api/queries/${serverId}/stream?minTime=${minTime}&refreshInterval=${refreshInterval}&showAll=${showAll}&apiKey=${API_KEY}`;
             const eventSource = new EventSource(url);
             eventSourceRef.current = eventSource;
 
@@ -100,7 +101,7 @@ export const useServerSentEvents = (
             setIsConnected(false);
             setIsReconnecting(false);
         };
-    }, [serverId, minTime, refreshInterval, enabled]);
+    }, [serverId, minTime, refreshInterval, showAll, enabled]);
 
     return { data, error, isConnected, isReconnecting };
 };

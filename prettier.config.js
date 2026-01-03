@@ -7,6 +7,15 @@ export default {
     useTabs: false,
     arrowParens: "always",
     tabWidth: 4,
-    plugins: ["@ianvs/prettier-plugin-sort-imports"],
     importOrder: ["^[./]", "^@/(.*)$"],
+    "tailwindStylesheet": "apps/web/src/styles.css",
+    "tailwindFunctions": [
+        "cn",
+        "clsx",
+        "cva"
+    ],
+    "plugins": [
+        "@ianvs/prettier-plugin-sort-imports",
+        "prettier-plugin-tailwindcss"
+    ]
 };

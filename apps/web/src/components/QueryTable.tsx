@@ -70,7 +70,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
 
     return (
         <div className="rounded-md border">
-            <div className="bg-muted/50 px-4 py-3 border-b">
+            <div className="border-b bg-muted/50 px-4 py-3">
                 <div className="grid grid-cols-[40px_80px_80px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 text-sm font-medium">
                     <div>#</div>
                     <div>Op ID</div>
@@ -104,24 +104,22 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                     width: "100%",
                                     transform: `translateY(${virtualRow.start}px)`,
                                 }}
-                                className={`
-                                    grid grid-cols-[40px_80px_80px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 px-4 py-3 border-b
-                                    hover:bg-muted/50 transition-colors cursor-pointer
-                                    ${isCollscan ? "bg-yellow-50 dark:bg-yellow-950/20" : ""}
-                                `}
+                                className={`grid cursor-pointer grid-cols-[40px_80px_80px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 border-b px-4 py-3 transition-colors hover:bg-muted/50 ${isCollscan ? "bg-yellow-50 dark:bg-yellow-950/20" : ""} `}
                             >
-                                <div className="flex items-center text-muted-foreground text-sm">#{query.idx}</div>
+                                <div className="flex items-center text-sm tabular-nums text-muted-foreground">
+                                    #{query.idx}
+                                </div>
                                 <div className="flex items-center font-mono text-sm">{query.opid}</div>
-                                <div className="flex items-center text-sm">{query.runtime_formatted}</div>
-                                <div className="flex items-center truncate text-sm font-medium">{query.operation}</div>
+                                <div className="flex items-center font-mono text-sm">{query.runtime_formatted}</div>
+                                <div className="flex items-center truncate text-sm">{query.operation}</div>
                                 <div className="flex items-center truncate text-sm">
                                     <span className="text-muted-foreground">{query.database}.</span>
                                     {query.collection}
                                 </div>
-                                <div className="flex items-center text-sm text-muted-foreground truncate">
+                                <div className="flex items-center truncate text-sm text-muted-foreground">
                                     {query.userAgent}
                                 </div>
-                                <div className="flex gap-2 items-center">
+                                <div className="flex items-center gap-2">
                                     {isCollscan && (
                                         <Badge variant="destructive" className="text-xs">
                                             COLLSCAN
@@ -133,12 +131,12 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         </Badge>
                                     )}
                                 </div>
-                                <div className="flex gap-1 items-center">
+                                <div className="flex items-center gap-1">
                                     <Button
                                         onClick={(e) => handleFilterByIp(e, query)}
                                         size="sm"
                                         variant="ghost"
-                                        className="h-7 w-7 p-0 cursor-pointer"
+                                        className="h-7 w-7 cursor-pointer p-0"
                                         title="Filter by IP"
                                     >
                                         <Funnel weight="bold" className="h-3.5 w-3.5" />
@@ -147,7 +145,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         onClick={(e) => handleViewDetails(e, query)}
                                         size="sm"
                                         variant="ghost"
-                                        className="h-7 w-7 p-0 cursor-pointer"
+                                        className="h-7 w-7 cursor-pointer p-0"
                                         title="View Details"
                                     >
                                         <Eye weight="bold" className="h-3.5 w-3.5" />
@@ -156,7 +154,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         onClick={(e) => handleSave(e, query)}
                                         size="sm"
                                         variant="ghost"
-                                        className="h-7 w-7 p-0 cursor-pointer"
+                                        className="h-7 w-7 cursor-pointer p-0"
                                         disabled={isSaving || isSaved}
                                         title="Save Query"
                                     >
@@ -173,7 +171,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                 </div>
             </div>
 
-            <div className="bg-muted/50 px-4 py-2 border-t text-sm text-muted-foreground">
+            <div className="border-t bg-muted/50 px-4 py-2 text-sm text-muted-foreground">
                 Showing {queries.length} {queries.length === 1 ? "query" : "queries"}
             </div>
         </div>

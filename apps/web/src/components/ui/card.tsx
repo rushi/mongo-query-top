@@ -6,7 +6,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
         <div
             data-slot="card"
             className={cn(
-                "bg-card text-card-foreground rounded-md border transition-shadow hover:shadow-[oklab(0_0_0/0.08)_0px_8px_16px_0px]",
+                "rounded-md border bg-card text-card-foreground transition-shadow hover:shadow-[oklab(0_0_0/0.08)_0px_8px_16px_0px]",
                 "shadow-[oklab(0_0_0/0.04)_0px_8px_16px_0px]",
                 className,
             )}
@@ -20,11 +20,11 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
-    return <div data-slot="card-title" className={cn("font-semibold leading-tight text-base", className)} {...props} />;
+    return <div data-slot="card-title" className={cn("text-base leading-tight font-semibold", className)} {...props} />;
 }
 
 function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
-    return <div data-slot="card-description" className={cn("text-muted-foreground text-sm", className)} {...props} />;
+    return <div data-slot="card-description" className={cn("text-sm text-muted-foreground", className)} {...props} />;
 }
 
 function CardAction({ className, ...props }: React.ComponentProps<"div">) {

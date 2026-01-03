@@ -15,7 +15,7 @@ import { apiClient } from "../utils/api";
 export const Route = createFileRoute("/")({ component: Dashboard });
 
 function Dashboard() {
-    const { serverId, setServerId, minTime, refreshInterval } = useUrlPreferences();
+    const { serverId, setServerId, minTime, refreshInterval, showAll } = useUrlPreferences();
     const { servers, loading: serversLoading } = useFetchServers();
     const [mongoConnected, setMongoConnected] = useState(false);
     const [isConnecting, setIsConnecting] = useState(false);
@@ -24,6 +24,7 @@ function Dashboard() {
         serverId,
         minTime,
         refreshInterval,
+        showAll,
         mongoConnected,
     );
     const [selectedQuery, setSelectedQuery] = useState<ProcessedQuery | null>(null);
@@ -83,7 +84,7 @@ function Dashboard() {
         if (isConnecting) {
             return (
                 <Badge variant="secondary" className="gap-1.5">
-                    <div className="h-3 w-3 rounded-full border-2 border-muted-foreground/20 border-t-muted-foreground animate-spin" />
+                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-muted-foreground" />
                     Connecting...
                 </Badge>
             );
@@ -101,7 +102,7 @@ function Dashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-background p-6 space-y-6">
+        <div className="min-h-screen space-y-6 bg-background p-6">
             <header>
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-semibold">MongoDB Query Monitor</h1>
@@ -109,7 +110,7 @@ function Dashboard() {
                         <div className="flex items-center gap-2">
                             <span className="text-muted-foreground">Server:</span>
                             <Select value={serverId} onValueChange={handleServerChange} disabled={serversLoading}>
-                                <SelectTrigger className="w-50 h-8">
+                                <SelectTrigger className="h-8 w-50">
                                     <SelectValue placeholder="Select a server">
                                         {currentServer?.name || serverId}
                                     </SelectValue>
@@ -124,8 +125,14 @@ function Dashboard() {
                             </Select>
                         </div>
                         {getConnectionBadge()}
+                        {data?.metadata?.isMockData && (
+                            <Badge variant="outline" className="gap-1">
+                                <span className="text-amber-600">⚠</span>
+                                Mock Data
+                            </Badge>
+                        )}
                         {data?.metadata && (
-                            <span className="text-xs font-mono text-muted-foreground">
+                            <span className="font-mono text-xs text-muted-foreground">
                                 Last update: {new Date(data.metadata.timestamp).toLocaleTimeString()}
                             </span>
                         )}
@@ -139,29 +146,29 @@ function Dashboard() {
             <FilterControls />
 
             {connectError && (
-                <div className="p-4 bg-destructive/10 border border-destructive rounded-md">
+                <div className="rounded-md border border-destructive bg-destructive/10 p-4">
                     <p className="font-semibold text-destructive">MongoDB Connection Error</p>
                     <p className="text-sm text-muted-foreground">{connectError}</p>
                 </div>
             )}
 
             {error && !isReconnecting && (
-                <div className="p-4 bg-destructive/10 border border-destructive rounded-md">
+                <div className="rounded-md border border-destructive bg-destructive/10 p-4">
                     <p className="font-semibold text-destructive">Stream Error</p>
                     <p className="text-sm text-muted-foreground">{error}</p>
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <p className="mt-2 text-sm text-muted-foreground">
                         Make sure the API server is running on {import.meta.env.VITE_API_URL || "http://localhost:9001"}
                     </p>
                 </div>
             )}
 
             {isReconnecting && (
-                <div className="p-4 bg-muted border border-border rounded-md">
+                <div className="rounded-md border border-border bg-muted p-4">
                     <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/20 border-t-muted-foreground animate-spin" />
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-muted-foreground" />
                         <p className="font-medium">Reconnecting to server...</p>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="mt-1 text-sm text-muted-foreground">
                         Connection was interrupted. Attempting to reconnect automatically.
                     </p>
                 </div>
@@ -175,8 +182,8 @@ function Dashboard() {
             )}
 
             {!data && !error && (
-                <div className="text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                <div className="py-12 text-center">
+                    <div className="inline-block h-12 w-12 animate-spin rounded-full border-b-2 border-primary"></div>
                     <p className="mt-4 text-muted-foreground">Connecting to MongoDB and loading queries...</p>
                 </div>
             )}

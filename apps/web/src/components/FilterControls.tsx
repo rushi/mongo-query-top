@@ -41,7 +41,7 @@ export const FilterControls = () => {
 
     return (
         <Card className="p-4">
-            <div className="flex gap-4 items-end flex-wrap">
+            <div className="flex flex-wrap items-end gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="minTime">Min Time (s)</Label>
                     <Input
@@ -88,7 +88,7 @@ export const FilterControls = () => {
 
                 <div className="ml-auto flex gap-2">
                     <Button onClick={resetFilters} variant="outline" className="h-9" title="Reset filters to default">
-                        <ArrowCounterClockwise weight="bold" className="h-4 w-4 mr-2" />
+                        <ArrowCounterClockwise weight="bold" className="mr-2 h-4 w-4" />
                         Reset
                     </Button>
 
@@ -100,12 +100,12 @@ export const FilterControls = () => {
                     >
                         {saved ? (
                             <>
-                                <Check weight="bold" className="h-4 w-4 mr-2" />
+                                <Check weight="bold" className="mr-2 h-4 w-4" />
                                 Saved
                             </>
                         ) : (
                             <>
-                                <FloppyDisk weight="bold" className="h-4 w-4 mr-2" />
+                                <FloppyDisk weight="bold" className="mr-2 h-4 w-4" />
                                 Save All
                             </>
                         )}

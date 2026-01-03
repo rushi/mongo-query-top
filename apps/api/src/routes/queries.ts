@@ -1,6 +1,122 @@
+import type { MongoQuery } from "@mongo-query-top/types";
 import type { FastifyInstance } from "fastify";
+import { mockQueries } from "../data/mockQueries.js";
 
 export default async function queriesRoutes(fastify: FastifyInstance) {
+    // GET /api/queries/mock - Get mock queries (for UI testing)
+    fastify.get<{
+        Querystring: { minTime?: string; showAll?: string };
+    }>("/mock", async (request) => {
+        const { minTime = "1", showAll = "false" } = request.query;
+
+        const minTimeNum = Number(minTime);
+        const shouldShowAll = showAll === "true";
+
+        // Filter queries based on minTime
+        const filteredQueries = shouldShowAll
+            ? mockQueries
+            : mockQueries.filter((q: MongoQuery) => q.secs_running >= minTimeNum);
+
+        // Process queries using the query service
+        const queries = request.services.queryService.processQueries(filteredQueries, shouldShowAll);
+        const summary = request.services.queryService.generateSummary(queries);
+
+        return {
+            queries,
+            summary,
+            metadata: {
+                serverId: "mock",
+                timestamp: new Date().toISOString(),
+                isMockData: true,
+            },
+        };
+    });
+
+    // GET /api/queries/mock/stream - Real-time SSE stream with mock data
+    fastify.get<{
+        Querystring: { minTime?: string; refreshInterval?: string; showAll?: string };
+    }>("/mock/stream", async (request, reply) => {
+        const { minTime = "1", refreshInterval = "2", showAll = "false" } = request.query;
+
+        // Setup SSE headers with CORS
+        reply.raw.writeHead(200, {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+            "X-Accel-Buffering": "no",
+            "Access-Control-Allow-Origin": request.headers.origin || "*",
+            "Access-Control-Allow-Credentials": "true",
+        });
+
+        let intervalId: NodeJS.Timeout;
+        let isActive = true;
+
+        const sendQueryUpdate = async () => {
+            if (!isActive) {
+                return;
+            }
+
+            try {
+                const minTimeNum = Number(minTime);
+                const shouldShowAll = showAll === "true";
+
+                // Filter queries based on minTime
+                const filteredQueries = shouldShowAll
+                    ? mockQueries
+                    : mockQueries.filter((q: MongoQuery) => q.secs_running >= minTimeNum);
+
+                // Slightly vary the runtime to simulate real-time changes
+                const queriesWithVariation = filteredQueries.map((q: MongoQuery) => ({
+                    ...q,
+                    secs_running: q.secs_running + Math.floor(Math.random() * 3),
+                }));
+
+                const queries = request.services.queryService.processQueries(queriesWithVariation, shouldShowAll);
+                const summary = request.services.queryService.generateSummary(queries);
+
+                const data = {
+                    queries,
+                    summary,
+                    metadata: {
+                        serverId: "mock",
+                        timestamp: new Date().toISOString(),
+                        isMockData: true,
+                    },
+                };
+
+                reply.raw.write(`event: queries\ndata: ${JSON.stringify(data)}\n\n`);
+            } catch (err: any) {
+                if (isActive) {
+                    reply.raw.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
+                }
+            }
+        };
+
+        // Send initial data immediately
+        await sendQueryUpdate();
+
+        // Setup interval for subsequent updates
+        intervalId = setInterval(sendQueryUpdate, Number(refreshInterval) * 1000);
+
+        // Cleanup on connection close
+        request.raw.on("close", () => {
+            isActive = false;
+            clearInterval(intervalId);
+            fastify.log.info(`Mock SSE connection closed`);
+        });
+
+        // Keep connection alive with heartbeat
+        const heartbeatId = setInterval(() => {
+            if (isActive) {
+                reply.raw.write(`:heartbeat\n\n`);
+            }
+        }, 30000); // Every 30 seconds
+
+        request.raw.on("close", () => {
+            clearInterval(heartbeatId);
+        });
+    });
+
     // GET /api/queries/:serverId - Get current queries (one-time fetch)
     fastify.get<{
         Params: { serverId: string };

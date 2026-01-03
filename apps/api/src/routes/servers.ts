@@ -15,6 +15,13 @@ export default async function serversRoutes(fastify: FastifyInstance) {
             connected: request.services.mongoService.isConnected(id),
         }));
 
+        // Add mock server for UI testing
+        serverList.unshift({
+            id: "mock",
+            name: "Mock Data (UI Testing)",
+            connected: true,
+        });
+
         return { servers: serverList };
     });
 
@@ -23,6 +30,16 @@ export default async function serversRoutes(fastify: FastifyInstance) {
         Params: { id: string };
     }>("/:id/connect", async (request, reply) => {
         const { id } = request.params;
+
+        // Mock server is always connected
+        if (id === "mock") {
+            return {
+                success: true,
+                serverId: "mock",
+                serverName: "Mock Data (UI Testing)",
+            };
+        }
+
         const serverConfig = serverConfigs[id];
 
         if (!serverConfig) {
@@ -50,6 +67,14 @@ export default async function serversRoutes(fastify: FastifyInstance) {
     }>("/:id/disconnect", async (request, reply) => {
         const { id } = request.params;
 
+        // Mock server cannot be disconnected
+        if (id === "mock") {
+            return {
+                success: true,
+                serverId: "mock",
+            };
+        }
+
         if (!request.services.mongoService.isConnected(id)) {
             return reply.code(404).send({ error: "Server not connected" });
         }
@@ -73,6 +98,16 @@ export default async function serversRoutes(fastify: FastifyInstance) {
         Params: { id: string };
     }>("/:id/status", async (request, reply) => {
         const { id } = request.params;
+
+        // Mock server is always connected
+        if (id === "mock") {
+            return {
+                serverId: "mock",
+                serverName: "Mock Data (UI Testing)",
+                connected: true,
+            };
+        }
+
         const serverConfig = serverConfigs[id];
 
         if (!serverConfig) {

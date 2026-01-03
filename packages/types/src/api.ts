@@ -37,6 +37,7 @@ export interface QueryData {
     metadata: {
         serverId: string;
         timestamp: string;
+        isMockData?: boolean;
     };
 }
 

@@ -37,7 +37,7 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="w-[800px] sm:max-w-[800px] overflow-auto">
+            <SheetContent className="w-[800px] overflow-auto sm:max-w-[800px]">
                 <SheetHeader className="flex-row items-start justify-between pr-12">
                     <div className="flex flex-col gap-1.5">
                         <SheetTitle>Query Details</SheetTitle>
@@ -51,19 +51,19 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                     >
                         {saved ? (
                             <>
-                                <Check weight="bold" className="h-4 w-4 mr-2" />
+                                <Check weight="bold" className="mr-2 h-4 w-4" />
                                 Saved
                             </>
                         ) : (
                             <>
-                                <FloppyDisk weight="bold" className="h-4 w-4 mr-2" />
+                                <FloppyDisk weight="bold" className="mr-2 h-4 w-4" />
                                 Save
                             </>
                         )}
                     </Button>
                 </SheetHeader>
 
-                <div className="px-6 space-y-4">
+                <div className="space-y-4 px-6">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <div className="text-sm text-muted-foreground">Operation ID</div>
@@ -101,8 +101,8 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                     </div>
 
                     {query.client.geo && (
-                        <div className="p-3 bg-muted rounded-md">
-                            <div className="text-sm font-medium mb-1">Location</div>
+                        <div className="rounded-md bg-muted p-3">
+                            <div className="mb-1 text-sm font-medium">Location</div>
                             <div className="text-sm text-muted-foreground">
                                 {query.client.geo.city && `${query.client.geo.city}, `}
                                 {query.client.geo.region && `${query.client.geo.region}, `}
@@ -118,11 +118,11 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                     </div>
 
                     {query.isCollscan && (
-                        <div className="p-4 bg-destructive/10 border border-destructive rounded-md">
+                        <div className="rounded-md border border-destructive bg-destructive/10 p-4">
                             <div className="flex items-start gap-2">
                                 <span className="text-2xl">⚠️</span>
                                 <div>
-                                    <h4 className="font-semibold mb-1">Collection Scan Detected</h4>
+                                    <h4 className="mb-1 font-semibold">Collection Scan Detected</h4>
                                     <p className="text-sm text-muted-foreground">
                                         This query is performing a collection scan without using an index. Consider
                                         adding an appropriate index to improve performance.
@@ -133,13 +133,13 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                     )}
 
                     {query.message && (
-                        <div className="p-3 bg-muted rounded-md">
-                            <div className="text-sm font-medium mb-1">Message</div>
-                            <div className="text-sm text-muted-foreground font-mono">{query.message}</div>
+                        <div className="rounded-md bg-muted p-3">
+                            <div className="mb-1 text-sm font-medium">Message</div>
+                            <div className="font-mono text-sm text-muted-foreground">{query.message}</div>
                         </div>
                     )}
 
-                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-md overflow-auto max-h-[600px] border border-border">
+                    <div className="max-h-[600px] overflow-auto rounded-md border border-border bg-slate-50 p-4 dark:bg-slate-900">
                         <JsonView
                             src={query.query}
                             name={false}

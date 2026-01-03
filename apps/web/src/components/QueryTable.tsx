@@ -1,8 +1,9 @@
 import type { ProcessedQuery } from "@mongo-query-top/types";
-import { Check, Eye, FloppyDisk, Funnel } from "@phosphor-icons/react/dist/ssr";
+import { CaretDown, CaretUp, Check, Eye, FloppyDisk, Funnel } from "@phosphor-icons/react/dist/ssr";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef, useState } from "react";
-import { usePreferences } from "../store/preferences";
+import { useMemo, useRef, useState } from "react";
+import type { SortColumn } from "../hooks/useUrlPreferences";
+import { useUrlPreferences } from "../hooks/useUrlPreferences";
 import { apiClient } from "../utils/api";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -14,12 +15,53 @@ interface QueryTableProps {
 
 export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
     const parentRef = useRef<HTMLDivElement>(null);
-    const { serverId, setIpFilter } = usePreferences();
+    const { serverId, sortBy: sortColumn, sortDirection, setSortColumn, setIpFilter } = useUrlPreferences();
     const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
     const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
+    const sortedQueries = useMemo(() => {
+        const sorted = [...queries].sort((a, b) => {
+            let aValue: string | number;
+            let bValue: string | number;
+
+            switch (sortColumn) {
+                case "runtime":
+                    aValue = a.secs_running;
+                    bValue = b.secs_running;
+                    break;
+                case "opid":
+                    aValue = a.opid;
+                    bValue = b.opid;
+                    break;
+                case "operation":
+                    aValue = a.operation;
+                    bValue = b.operation;
+                    break;
+                case "namespace":
+                    aValue = a.namespace;
+                    bValue = b.namespace;
+                    break;
+                case "client":
+                    aValue = a.client.ip;
+                    bValue = b.client.ip;
+                    break;
+                default:
+                    aValue = a.secs_running;
+                    bValue = b.secs_running;
+            }
+
+            if (typeof aValue === "string" && typeof bValue === "string") {
+                return sortDirection === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+            }
+
+            return sortDirection === "asc" ? Number(aValue) - Number(bValue) : Number(bValue) - Number(aValue);
+        });
+
+        return sorted;
+    }, [queries, sortColumn, sortDirection]);
+
     const virtualizer = useVirtualizer({
-        count: queries.length,
+        count: sortedQueries.length,
         getScrollElement: () => parentRef.current,
         estimateSize: () => 60,
         overscan: 5,
@@ -60,6 +102,17 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
         }
     };
 
+    const renderSortIcon = (column: SortColumn) => {
+        if (sortColumn !== column) {
+            return null;
+        }
+        return sortDirection === "asc" ? (
+            <CaretUp weight="bold" className="inline h-3 w-3" />
+        ) : (
+            <CaretDown weight="bold" className="inline h-3 w-3" />
+        );
+    };
+
     if (queries.length === 0) {
         return (
             <div className="rounded-md border p-8 text-center text-muted-foreground">
@@ -73,11 +126,36 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
             <div className="border-b bg-muted/50 px-4 py-3">
                 <div className="grid grid-cols-[40px_80px_80px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 text-sm font-medium">
                     <div>#</div>
-                    <div>Op ID</div>
-                    <div>Runtime</div>
-                    <div>Operation</div>
-                    <div>Namespace</div>
-                    <div>Client</div>
+                    <button
+                        onClick={() => setSortColumn("opid")}
+                        className="flex cursor-pointer items-center gap-1 text-left hover:text-foreground"
+                    >
+                        Op ID {renderSortIcon("opid")}
+                    </button>
+                    <button
+                        onClick={() => setSortColumn("runtime")}
+                        className="flex cursor-pointer items-center gap-1 text-left hover:text-foreground"
+                    >
+                        Runtime {renderSortIcon("runtime")}
+                    </button>
+                    <button
+                        onClick={() => setSortColumn("operation")}
+                        className="flex cursor-pointer items-center gap-1 text-left hover:text-foreground"
+                    >
+                        Operation {renderSortIcon("operation")}
+                    </button>
+                    <button
+                        onClick={() => setSortColumn("namespace")}
+                        className="flex cursor-pointer items-center gap-1 text-left hover:text-foreground"
+                    >
+                        Namespace {renderSortIcon("namespace")}
+                    </button>
+                    <button
+                        onClick={() => setSortColumn("client")}
+                        className="flex cursor-pointer items-center gap-1 text-left hover:text-foreground"
+                    >
+                        Client {renderSortIcon("client")}
+                    </button>
                     <div>Status</div>
                     <div>Actions</div>
                 </div>
@@ -86,7 +164,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
             <div ref={parentRef} className="h-[600px] overflow-auto">
                 <div style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}>
                     {virtualizer.getVirtualItems().map((virtualRow) => {
-                        const query = queries[virtualRow.index];
+                        const query = sortedQueries[virtualRow.index];
                         const isCollscan = query.isCollscan;
                         const isSaving = savingIds.has(query.opid);
                         const isSaved = savedIds.has(query.opid);
@@ -106,7 +184,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                 }}
                                 className={`grid cursor-pointer grid-cols-[40px_80px_80px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 border-b px-4 py-3 transition-colors hover:bg-muted/50 ${isCollscan ? "bg-yellow-50 dark:bg-yellow-950/20" : ""} `}
                             >
-                                <div className="flex items-center text-sm tabular-nums text-muted-foreground">
+                                <div className="flex items-center text-sm text-muted-foreground tabular-nums">
                                     #{query.idx}
                                 </div>
                                 <div className="flex items-center font-mono text-sm">{query.opid}</div>
@@ -172,7 +250,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
             </div>
 
             <div className="border-t bg-muted/50 px-4 py-2 text-sm text-muted-foreground">
-                Showing {queries.length} {queries.length === 1 ? "query" : "queries"}
+                Showing {sortedQueries.length} {sortedQueries.length === 1 ? "query" : "queries"}
             </div>
         </div>
     );

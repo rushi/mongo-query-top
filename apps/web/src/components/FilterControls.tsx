@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 export const FilterControls = () => {
     const {
@@ -13,12 +14,10 @@ export const FilterControls = () => {
         minTime,
         refreshInterval,
         showAll,
-        reversed,
         ipFilter,
         setMinTime,
         setRefreshInterval,
         toggleShowAll,
-        toggleReversed,
         setIpFilter,
         resetFilters,
     } = useUrlPreferences();
@@ -78,13 +77,22 @@ export const FilterControls = () => {
                     />
                 </div>
 
-                <Button onClick={toggleShowAll} variant={showAll ? "default" : "outline"} className="h-9">
-                    Show All
-                </Button>
-
-                <Button onClick={toggleReversed} variant={reversed ? "default" : "outline"} className="h-9">
-                    Reversed
-                </Button>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button onClick={toggleShowAll} variant={showAll ? "default" : "outline"} className="h-9">
+                                Show All
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-md">
+                            <p className="font-semibold">Show All Queries</p>
+                            <p className="mt-1 text-xs">
+                                When disabled, filters out system queries, private IPs (192.*), MongoDB internal
+                                operations, monitoring tools, and health checks.
+                            </p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
 
                 <div className="ml-auto flex gap-2">
                     <Button onClick={resetFilters} variant="outline" className="h-9" title="Reset filters to default">

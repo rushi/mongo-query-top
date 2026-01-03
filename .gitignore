@@ -8,6 +8,7 @@ dist
 apps/*/dist
 apps/*/.output
 packages/*/dist
+*.tsbuildinfo
 
 # Turborepo
 .turbo

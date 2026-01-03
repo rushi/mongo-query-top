@@ -134,10 +134,23 @@ While the CLI is running, press:
 | `a` | Toggle showing all queries (including system) |
 | `q` or `Ctrl+C` | Quit |
 
+### Web Dashboard Mode (Recommended)
+
+```bash
+# Start both API and frontend with one command
+pnpm run dev:web
+```
+
+This starts:
+- **API server** on http://localhost:9001
+- **Frontend** on http://localhost:3000
+
+Then open **http://localhost:3000** in your browser! 🌐
+
 ### API Server Mode
 
 ```bash
-# Start API server (default: port 9001)
+# Start API server only (default: port 9001)
 pnpm run dev
 
 # Or explicitly

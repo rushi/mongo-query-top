@@ -7,6 +7,7 @@
     "type": "module",
     "scripts": {
         "dev": "tsx watch src/server.ts",
+        "dev:web": "concurrently -n \"API,Frontend\" -c \"blue,magenta\" \"pnpm run dev:api\" \"cd frontend && pnpm run dev\"",
         "dev:cli": "tsx watch src/app.ts",
         "dev:api": "tsx watch src/server.ts",
         "dev:both": "concurrently \"pnpm run dev:cli\" \"pnpm run dev:api\"",

@@ -1,4 +1,11 @@
-import { ArrowCounterClockwiseIcon, CheckIcon, FloppyDiskIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+    ArrowCounterClockwiseIcon,
+    CheckIcon,
+    FloppyDiskIcon,
+    PauseIcon,
+    PlayIcon,
+    XIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
 import { apiClient } from "../utils/api";
@@ -14,10 +21,12 @@ export const FilterControls = () => {
         minTime,
         refreshInterval,
         showAll,
+        isPaused,
         ipFilter,
         setMinTime,
         setRefreshInterval,
         toggleShowAll,
+        togglePause,
         setIpFilter,
         resetFilters,
     } = useUrlPreferences();
@@ -113,33 +122,70 @@ export const FilterControls = () => {
                     </div>
                 </div>
 
-                {/* Show All Toggle */}
+                {/* Show All Toggle & Pause */}
                 <div className="space-y-1">
                     <Label className="font-mono text-tiny! tracking-wide text-muted-foreground uppercase">
                         OPTIONS
                     </Label>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant={showAll ? "default" : "outline"}
-                                    className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
-                                    onClick={toggleShowAll}
-                                >
-                                    {showAll ? "● " : "○ "}SHOW_ALL
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-md border-2 border-border bg-popover p-3">
-                                <p className="font-mono text-xs font-bold text-muted-foreground uppercase">
-                                    SHOW_ALL_QUERIES
-                                </p>
-                                <p className="mt-2 font-mono text-tiny leading-relaxed text-foreground">
-                                    When disabled, filters system queries, private IPs (192.*), MongoDB internal ops,
-                                    monitoring tools, and health checks.
-                                </p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <div className="flex gap-2">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant={isPaused ? "default" : "outline"}
+                                        title={isPaused ? "Resume updates" : "Pause updates"}
+                                        className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                                        onClick={togglePause}
+                                    >
+                                        {isPaused ? (
+                                            <>
+                                                <PlayIcon weight="fill" className="mr-1.5 h-3.5 w-3.5" />
+                                                PAUSED
+                                            </>
+                                        ) : (
+                                            <>
+                                                <PauseIcon weight="fill" className="mr-1.5 h-3.5 w-3.5" />
+                                                LIVE
+                                            </>
+                                        )}
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-md border-2 border-border bg-popover p-3">
+                                    <p className="font-mono text-xs font-bold text-muted-foreground uppercase">
+                                        {isPaused ? "RESUME_UPDATES" : "PAUSE_UPDATES"}
+                                    </p>
+                                    <p className="mt-2 font-mono text-tiny leading-relaxed text-foreground">
+                                        {isPaused
+                                            ? "Click to resume real-time query updates from the server."
+                                            : "Click to pause real-time updates and freeze the current view."}
+                                    </p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant={showAll ? "default" : "outline"}
+                                        className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                                        onClick={toggleShowAll}
+                                    >
+                                        {showAll ? "● " : "○ "}SHOW_ALL
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-md border-2 border-border bg-popover p-3">
+                                    <p className="font-mono text-xs font-bold text-muted-foreground uppercase">
+                                        SHOW_ALL_QUERIES
+                                    </p>
+                                    <p className="mt-2 font-mono text-tiny leading-relaxed text-foreground">
+                                        When disabled, filters system queries, private IPs (192.*), MongoDB internal
+                                        ops, monitoring tools, and health checks.
+                                    </p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
                 </div>
 
                 {/* Action Buttons */}

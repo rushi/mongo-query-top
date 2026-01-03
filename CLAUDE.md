@@ -965,6 +965,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
     - **Select components**: `value → disabled → onValueChange`
     - **className Usage**: Always use `cn()` utility for conditional or variable-based className expressions
     - **Examples**:
+
         ```typescript
         // Button - correct order
         <Button
@@ -1006,6 +1007,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
             {value}
         </div>
         ```
+
 - **Type Safety**:
     - Always type component props
     - Type custom hooks return values

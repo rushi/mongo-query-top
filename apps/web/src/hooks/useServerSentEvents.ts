@@ -12,6 +12,7 @@ export const useServerSentEvents = (
     refreshInterval: number,
     showAll: boolean,
     enabled: boolean = true,
+    isPaused: boolean = false,
 ) => {
     const [data, setData] = useState<QueryData | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -23,7 +24,17 @@ export const useServerSentEvents = (
     const reconnectAttemptsRef = useRef(0);
 
     useEffect(() => {
-        if (!enabled) {
+        if (!enabled || isPaused) {
+            // Cleanup connection if paused
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+                abortControllerRef.current = null;
+            }
+            setIsConnected(false);
+            setIsReconnecting(false);
+            if (isPaused) {
+                setError(null); // Clear error when paused
+            }
             return;
         }
 
@@ -107,7 +118,7 @@ export const useServerSentEvents = (
             setIsConnected(false);
             setIsReconnecting(false);
         };
-    }, [serverId, minTime, refreshInterval, showAll, enabled]);
+    }, [serverId, minTime, refreshInterval, showAll, enabled, isPaused]);
 
     return { data, error, isConnected, isReconnecting };
 };

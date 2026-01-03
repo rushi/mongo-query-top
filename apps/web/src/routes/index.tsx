@@ -47,7 +47,7 @@ const generateSummary = (queries: ProcessedQuery[]): QuerySummary => {
 export const Route = createFileRoute("/")({ component: Dashboard });
 
 function Dashboard() {
-    const { serverId, setServerId, minTime, refreshInterval, showAll, ipFilter } = useUrlPreferences();
+    const { serverId, setServerId, minTime, refreshInterval, showAll, isPaused, ipFilter } = useUrlPreferences();
     const { servers, loading: serversLoading } = useFetchServers();
     const [mongoConnected, setMongoConnected] = useState(false);
     const [isConnecting, setIsConnecting] = useState(false);
@@ -58,6 +58,7 @@ function Dashboard() {
         refreshInterval,
         showAll,
         mongoConnected,
+        isPaused,
     );
     const [selectedQuery, setSelectedQuery] = useState<ProcessedQuery | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);

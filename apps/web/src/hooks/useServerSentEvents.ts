@@ -1,3 +1,4 @@
+import { fetchEventSource } from "@microsoft/fetch-event-source";
 import type { QueryData } from "@mongo-query-top/types";
 import { useEffect, useRef, useState } from "react";
 
@@ -19,8 +20,7 @@ export const useServerSentEvents = (
     const [isConnected, setIsConnected] = useState(false);
     const [isReconnecting, setIsReconnecting] = useState(false);
 
-    const eventSourceRef = useRef<EventSource | null>(null);
-    const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
     const retryDelayRef = useRef(INITIAL_RETRY_DELAY);
     const reconnectAttemptsRef = useRef(0);
 
@@ -31,56 +31,71 @@ export const useServerSentEvents = (
 
         let isActive = true;
 
-        const connect = () => {
+        const connect = async () => {
             if (!isActive) return;
 
-            // EventSource doesn't support custom headers, so pass API key as query parameter
-            const url = `${API_BASE}/api/queries/${serverId}/stream?minTime=${minTime}&refreshInterval=${refreshInterval}&showAll=${showAll}&apiKey=${API_KEY}`;
-            const eventSource = new EventSource(url);
-            eventSourceRef.current = eventSource;
+            const abortController = new AbortController();
+            abortControllerRef.current = abortController;
 
-            eventSource.addEventListener("queries", (e) => {
-                try {
-                    setData(JSON.parse(e.data));
-                    setIsConnected(true);
-                    setIsReconnecting(false);
-                    setError(null);
+            const url = `${API_BASE}/api/queries/${serverId}/stream?minTime=${minTime}&refreshInterval=${refreshInterval}&showAll=${showAll}`;
 
-                    // Reset retry delay on successful connection
-                    retryDelayRef.current = INITIAL_RETRY_DELAY;
-                    reconnectAttemptsRef.current = 0;
-                } catch (err) {
-                    setError("Failed to parse query data");
+            try {
+                await fetchEventSource(url, {
+                    signal: abortController.signal,
+                    headers: {
+                        "X-API-Key": API_KEY,
+                    },
+                    async onopen(response) {
+                        if (response.ok) {
+                            setIsConnected(true);
+                            setIsReconnecting(false);
+                            setError(null);
+                            retryDelayRef.current = INITIAL_RETRY_DELAY;
+                            reconnectAttemptsRef.current = 0;
+                        } else {
+                            throw new Error(`Failed to connect: ${response.statusText}`);
+                        }
+                    },
+                    onmessage(event) {
+                        if (event.event === "queries") {
+                            try {
+                                const parsedData = JSON.parse(event.data);
+                                setData(parsedData);
+                                setError(null);
+                            } catch (err) {
+                                setError("Failed to parse query data");
+                            }
+                        }
+                    },
+                    onerror(err) {
+                        setError("Connection lost");
+                        setIsConnected(false);
+
+                        if (!isActive) {
+                            throw err; // Stop reconnection
+                        }
+
+                        // Attempt to reconnect with exponential backoff
+                        setIsReconnecting(true);
+                        reconnectAttemptsRef.current++;
+
+                        // Exponential backoff: double the delay, up to MAX_RETRY_DELAY
+                        retryDelayRef.current = Math.min(retryDelayRef.current * 2, MAX_RETRY_DELAY);
+
+                        // Return the retry delay to trigger reconnection
+                        return retryDelayRef.current;
+                    },
+                    onclose() {
+                        setIsConnected(false);
+                        // Connection closed by server, will attempt to reconnect
+                    },
+                });
+            } catch (err: any) {
+                if (err.name !== "AbortError" && isActive) {
+                    setError(err.message || "Connection failed");
+                    setIsConnected(false);
                 }
-            });
-
-            eventSource.addEventListener("error", () => {
-                setError("Connection lost");
-                setIsConnected(false);
-
-                // Close the current connection
-                eventSource.close();
-
-                if (!isActive) return;
-
-                // Attempt to reconnect with exponential backoff
-                setIsReconnecting(true);
-                reconnectAttemptsRef.current++;
-
-                retryTimeoutRef.current = setTimeout(() => {
-                    if (isActive) {
-                        connect();
-                    }
-                }, retryDelayRef.current);
-
-                // Exponential backoff: double the delay, up to MAX_RETRY_DELAY
-                retryDelayRef.current = Math.min(retryDelayRef.current * 2, MAX_RETRY_DELAY);
-            });
-
-            eventSource.onerror = () => {
-                setError("Connection lost");
-                setIsConnected(false);
-            };
+            }
         };
 
         connect();
@@ -88,14 +103,9 @@ export const useServerSentEvents = (
         return () => {
             isActive = false;
 
-            if (eventSourceRef.current) {
-                eventSourceRef.current.close();
-                eventSourceRef.current = null;
-            }
-
-            if (retryTimeoutRef.current) {
-                clearTimeout(retryTimeoutRef.current);
-                retryTimeoutRef.current = null;
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+                abortControllerRef.current = null;
             }
 
             setIsConnected(false);

@@ -12,6 +12,7 @@
   "dependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "@microlink/react-json-view": "^1.27.0",
+    "@microsoft/fetch-event-source": "^2.0.1",
     "@mongo-query-top/types": "workspace:*",
     "@mongo-query-top/utils": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",

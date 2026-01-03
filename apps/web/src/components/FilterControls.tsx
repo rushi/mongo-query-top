@@ -61,13 +61,14 @@ export const FilterControls = () => {
                         htmlFor="minTime"
                         className="font-mono text-tiny! tracking-wide text-muted-foreground uppercase"
                     >
-                        MIN_TIME_SEC
+                        MIN_TIME_MS
                     </Label>
                     <Input
                         id="minTime"
                         type="number"
                         value={minTime}
                         min={0}
+                        step={100}
                         className="h-9 w-24 border-2 border-border bg-input font-mono text-sm"
                         onChange={(e) => setMinTime(Number(e.target.value))}
                     />

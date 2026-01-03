@@ -7,15 +7,16 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
     fastify.get<{
         Querystring: { minTime?: string; showAll?: string };
     }>("/mock", async (request) => {
-        const { minTime = "1", showAll = "false" } = request.query;
+        const { minTime = "1000", showAll = "false" } = request.query;
 
-        const minTimeNum = Number(minTime);
+        // Convert milliseconds to seconds for comparison with secs_running
+        const minTimeSeconds = Number(minTime) / 1000;
         const shouldShowAll = showAll === "true";
 
         // Filter queries based on minTime
         const filteredQueries = shouldShowAll
             ? mockQueries
-            : mockQueries.filter((q: MongoQuery) => q.secs_running >= minTimeNum);
+            : mockQueries.filter((q: MongoQuery) => q.secs_running >= minTimeSeconds);
 
         // Process queries using the query service
         const queries = request.services.queryService.processQueries(filteredQueries, shouldShowAll);
@@ -36,7 +37,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
     fastify.get<{
         Querystring: { minTime?: string; refreshInterval?: string; showAll?: string };
     }>("/mock/stream", async (request, reply) => {
-        const { minTime = "1", refreshInterval = "2", showAll = "false" } = request.query;
+        const { minTime = "1000", refreshInterval = "2", showAll = "false" } = request.query;
 
         // Setup SSE headers with CORS
         reply.raw.writeHead(200, {
@@ -57,13 +58,14 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             }
 
             try {
-                const minTimeNum = Number(minTime);
+                // Convert milliseconds to seconds for comparison with secs_running
+                const minTimeSeconds = Number(minTime) / 1000;
                 const shouldShowAll = showAll === "true";
 
                 // Filter queries based on minTime
                 const filteredQueries = shouldShowAll
                     ? mockQueries
-                    : mockQueries.filter((q: MongoQuery) => q.secs_running >= minTimeNum);
+                    : mockQueries.filter((q: MongoQuery) => q.secs_running >= minTimeSeconds);
 
                 // Slightly vary the runtime to simulate real-time changes
                 const queriesWithVariation = filteredQueries.map((q: MongoQuery) => ({
@@ -123,7 +125,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
         Querystring: { minTime?: string; showAll?: string };
     }>("/:serverId", async (request, reply) => {
         const { serverId } = request.params;
-        const { minTime = "1", showAll = "false" } = request.query;
+        const { minTime = "1000", showAll = "false" } = request.query;
 
         const client = request.services.mongoService.getConnection(serverId);
         if (!client) {
@@ -131,10 +133,12 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
         }
 
         try {
+            // Convert milliseconds to seconds for MongoDB query
+            const minTimeSeconds = Number(minTime) / 1000;
             const db = client.db("admin");
             const result = await db.command({
                 currentOp: 1,
-                secs_running: { $gte: Number(minTime) },
+                secs_running: { $gte: minTimeSeconds },
             });
 
             const queries = request.services.queryService.processQueries(result.inprog, showAll === "true");
@@ -162,7 +166,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
         Querystring: { minTime?: string; refreshInterval?: string; showAll?: string };
     }>("/:serverId/stream", async (request, reply) => {
         const { serverId } = request.params;
-        const { minTime = "1", refreshInterval = "2", showAll = "false" } = request.query;
+        const { minTime = "1000", refreshInterval = "2", showAll = "false" } = request.query;
 
         const client = request.services.mongoService.getConnection(serverId);
         if (!client) {
@@ -194,10 +198,12 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             }
 
             try {
+                // Convert milliseconds to seconds for MongoDB query
+                const minTimeSeconds = Number(minTime) / 1000;
                 const db = client.db("admin");
                 const result = await db.command({
                     currentOp: 1,
-                    secs_running: { $gte: Number(minTime) },
+                    secs_running: { $gte: minTimeSeconds },
                 });
 
                 const queries = request.services.queryService.processQueries(result.inprog, showAll === "true");
@@ -251,7 +257,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
         Querystring: { minTime?: string };
     }>("/:serverId/snapshot", async (request, reply) => {
         const { serverId } = request.params;
-        const { minTime = "1" } = request.query;
+        const { minTime = "1000" } = request.query;
 
         const client = request.services.mongoService.getConnection(serverId);
         if (!client) {
@@ -259,10 +265,12 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
         }
 
         try {
+            // Convert milliseconds to seconds for MongoDB query
+            const minTimeSeconds = Number(minTime) / 1000;
             const db = client.db("admin");
             const result = await db.command({
                 currentOp: 1,
-                secs_running: { $gte: Number(minTime) },
+                secs_running: { $gte: minTimeSeconds },
             });
 
             const queries = request.services.queryService.processQueries(result.inprog);

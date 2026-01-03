@@ -7,7 +7,7 @@ export type SortDirection = "asc" | "desc";
 // Define default values
 const DEFAULTS = {
     serverId: "localhost",
-    minTime: 1,
+    minTime: 1000, // milliseconds (1 second)
     refreshInterval: 2,
     showAll: false,
     isPaused: false,
@@ -96,7 +96,7 @@ export const useUrlPreferences = () => {
 
     const resetFilters = useCallback(() => {
         setPreferences({
-            minTime: DEFAULTS.minTime,
+            minTime: DEFAULTS.minTime, // 1000ms
             refreshInterval: DEFAULTS.refreshInterval,
             showAll: DEFAULTS.showAll,
             isPaused: DEFAULTS.isPaused,

@@ -1,5 +1,5 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Check, Eye, Filter, Save } from "lucide-react";
+import { Check, Eye, Funnel, FloppyDisk } from "@phosphor-icons/react/dist/ssr";
 import { useRef, useState } from "react";
 import { usePreferences } from "../store/preferences";
 import type { ProcessedQuery } from "../types";
@@ -15,8 +15,8 @@ interface QueryTableProps {
 export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
     const parentRef = useRef<HTMLDivElement>(null);
     const { serverId, setIpFilter } = usePreferences();
-    const [savingIds, setSavingIds] = useState<Set<number>>(new Set());
-    const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+    const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
+    const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
     const virtualizer = useVirtualizer({
         count: queries.length,
@@ -96,6 +96,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                 key={virtualRow.key}
                                 data-index={virtualRow.index}
                                 ref={virtualizer.measureElement}
+                                onClick={() => onQueryClick(query)}
                                 style={{
                                     position: "absolute",
                                     top: 0,
@@ -105,7 +106,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                 }}
                                 className={`
                                     grid grid-cols-[40px_80px_80px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 px-4 py-3 border-b
-                                    hover:bg-muted/50 transition-colors
+                                    hover:bg-muted/50 transition-colors cursor-pointer
                                     ${isCollscan ? "bg-yellow-50 dark:bg-yellow-950/20" : ""}
                                 `}
                             >
@@ -140,7 +141,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         className="h-7 w-7 p-0 cursor-pointer"
                                         title="Filter by IP"
                                     >
-                                        <Filter className="h-3.5 w-3.5" />
+                                        <Funnel weight="bold" className="h-3.5 w-3.5" />
                                     </Button>
                                     <Button
                                         onClick={(e) => handleViewDetails(e, query)}
@@ -149,7 +150,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         className="h-7 w-7 p-0 cursor-pointer"
                                         title="View Details"
                                     >
-                                        <Eye className="h-3.5 w-3.5" />
+                                        <Eye weight="bold" className="h-3.5 w-3.5" />
                                     </Button>
                                     <Button
                                         onClick={(e) => handleSave(e, query)}
@@ -160,9 +161,9 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         title="Save Query"
                                     >
                                         {isSaved ? (
-                                            <Check className="h-3.5 w-3.5 text-green-600" />
+                                            <Check weight="bold" className="h-3.5 w-3.5 text-green-600" />
                                         ) : (
-                                            <Save className="h-3.5 w-3.5" />
+                                            <FloppyDisk weight="bold" className="h-3.5 w-3.5" />
                                         )}
                                     </Button>
                                 </div>

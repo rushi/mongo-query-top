@@ -44,6 +44,16 @@ await fastify.register(cors, {
 
 // Simple API key auth middleware (supports both header and query parameter for EventSource compatibility)
 fastify.addHook("onRequest", async (request, reply) => {
+    // Skip auth for OPTIONS requests (CORS preflight)
+    if (request.method === "OPTIONS") {
+        return;
+    }
+
+    // Skip auth for health check
+    if (request.url === "/health") {
+        return;
+    }
+
     const headerKey = request.headers["x-api-key"] as string;
     const queryKey = (request.query as any)?.apiKey;
     const apiKey = headerKey || queryKey;

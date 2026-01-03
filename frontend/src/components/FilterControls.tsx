@@ -1,4 +1,4 @@
-import { Check, RotateCcw, Save } from "lucide-react";
+import { Check, ArrowCounterClockwise, FloppyDisk } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { usePreferences } from "../store/preferences";
 import { apiClient } from "../utils/api";
@@ -88,7 +88,7 @@ export const FilterControls = () => {
 
                 <div className="ml-auto flex gap-2">
                     <Button onClick={resetFilters} variant="outline" className="h-9" title="Reset filters to default">
-                        <RotateCcw className="h-4 w-4 mr-2" />
+                        <ArrowCounterClockwise weight="bold" className="h-4 w-4 mr-2" />
                         Reset
                     </Button>
 
@@ -100,12 +100,12 @@ export const FilterControls = () => {
                     >
                         {saved ? (
                             <>
-                                <Check className="h-4 w-4 mr-2" />
+                                <Check weight="bold" className="h-4 w-4 mr-2" />
                                 Saved
                             </>
                         ) : (
                             <>
-                                <Save className="h-4 w-4 mr-2" />
+                                <FloppyDisk weight="bold" className="h-4 w-4 mr-2" />
                                 Save All
                             </>
                         )}

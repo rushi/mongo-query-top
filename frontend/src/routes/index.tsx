@@ -54,7 +54,7 @@ function Dashboard() {
         const queryCount = data?.queries.length || 0;
         const defaultTitle = "MongoDB Query Monitor";
 
-        if (queryCount > 2) {
+        if (queryCount >= 2) {
             document.title = `(${queryCount}) ${defaultTitle}`;
         } else {
             document.title = defaultTitle;

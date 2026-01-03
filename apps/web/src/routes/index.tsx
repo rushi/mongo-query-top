@@ -12,6 +12,16 @@ import { useServerSentEvents } from "../hooks/useServerSentEvents";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
 import { apiClient } from "../utils/api";
 
+// Get the API base URL for display
+const getApiBaseUrl = (): string => {
+    if (import.meta.env.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL;
+    }
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    return `${protocol}//${hostname}:9001`;
+};
+
 export const Route = createFileRoute("/")({ component: Dashboard });
 
 function Dashboard() {
@@ -198,7 +208,7 @@ function Dashboard() {
                         </div>
                         <p className="font-mono text-xs text-muted-foreground">└─ {error}</p>
                         <p className="mt-2 font-mono text-xs text-muted-foreground">
-                            └─ API_SERVER: {import.meta.env.VITE_API_URL || "http://localhost:9001"}
+                            └─ API_SERVER: {getApiBaseUrl()}
                         </p>
                     </div>
                 )}

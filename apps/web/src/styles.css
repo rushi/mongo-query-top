@@ -47,7 +47,15 @@ body {
 }
 
 code {
-    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family:
+        "IBM Plex Mono",
+        Times New Roman,
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        monospace;
 }
 
 /* Brutalist heading font */

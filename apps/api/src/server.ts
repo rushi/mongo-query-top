@@ -28,9 +28,34 @@ const mongoService = new MongoConnectionService();
 const queryService = new QueryService();
 const loggerService = new QueryLoggerService();
 
-// CORS for frontend
+// CORS for frontend - allow configured origins + 192.x.x.x IP range
 await fastify.register(cors, {
-    origin: config.get<string[]>("api.cors.origins"),
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) {
+            callback(null, true);
+            return;
+        }
+
+        const configuredOrigins = config.get<string[]>("api.cors.origins");
+
+        // Check if origin matches configured origins
+        const isConfiguredOrigin = configuredOrigins.includes(origin);
+        if (isConfiguredOrigin) {
+            callback(null, true);
+            return;
+        }
+
+        // Check if origin is from 192.x.x.x IP range (private network)
+        const is192Range = /^https?:\/\/192\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin);
+        if (is192Range) {
+            callback(null, true);
+            return;
+        }
+
+        // Reject all other origins
+        callback(new Error("Not allowed by CORS"), false);
+    },
     credentials: config.get<boolean>("api.cors.credentials"),
 });
 

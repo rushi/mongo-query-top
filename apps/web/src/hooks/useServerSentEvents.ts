@@ -2,7 +2,20 @@ import { fetchEventSource } from "@microsoft/fetch-event-source";
 import type { QueryData } from "@mongo-query-top/types";
 import { useEffect, useRef, useState } from "react";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:9001";
+// Dynamically determine API URL based on current host
+// If VITE_API_URL is set, use it. Otherwise, use same hostname as web app with port 9001
+const getApiBaseUrl = (): string => {
+    if (import.meta.env.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL;
+    }
+
+    // Use current hostname but with API port 9001
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    return `${protocol}//${hostname}:9001`;
+};
+
+const API_BASE = getApiBaseUrl();
 const API_KEY = import.meta.env.VITE_API_KEY || "dev-key-change-in-production";
 
 const MAX_RETRY_DELAY = 30000; // 30 seconds max

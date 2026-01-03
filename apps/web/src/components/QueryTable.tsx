@@ -131,7 +131,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
     return (
         <div className="rounded-md border">
             <div className="border-b bg-muted/50 px-4 py-3">
-                <div className="grid grid-cols-[40px_80px_80px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 text-sm font-medium">
+                <div className="grid grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 text-sm font-medium">
                     <div>#</div>
                     <button
                         onClick={() => setSortColumn("opid")}
@@ -141,7 +141,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                     </button>
                     <button
                         onClick={() => setSortColumn("runtime")}
-                        className="flex cursor-pointer items-center gap-1 text-left hover:text-foreground"
+                        className="flex cursor-pointer items-center gap-1 justify-end pr-2 hover:text-foreground"
                     >
                         Runtime {renderSortIcon("runtime")}
                     </button>
@@ -189,13 +189,15 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                     width: "100%",
                                     transform: `translateY(${virtualRow.start}px)`,
                                 }}
-                                className={`grid cursor-pointer grid-cols-[40px_80px_80px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 border-b px-4 py-3 transition-colors hover:bg-muted/50 ${isCollscan ? "bg-yellow-50 dark:bg-yellow-950/20" : ""} `}
+                                className={`grid cursor-pointer grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 border-b px-4 py-3 transition-colors hover:bg-muted/50 ${isCollscan ? "bg-yellow-50 dark:bg-yellow-950/20" : ""} `}
                             >
                                 <div className="flex items-center text-sm text-muted-foreground tabular-nums">
                                     #{query.idx}
                                 </div>
                                 <div className="flex items-center font-mono text-sm">{query.opid}</div>
-                                <div className="flex items-center font-mono text-sm">{query.runtime_formatted}</div>
+                                <div className="flex items-center font-mono text-sm justify-end pr-2">
+                                    {query.runtime_formatted}
+                                </div>
                                 <div className="flex items-center truncate text-sm">{query.operation}</div>
                                 <div className="flex items-center truncate text-sm">
                                     <span className="text-muted-foreground">{query.database}.</span>

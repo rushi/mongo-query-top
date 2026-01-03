@@ -1,7 +1,16 @@
 .claude/settings.local.json
 .env
 config/local.json
+
+# Build outputs
 dist
+apps/*/dist
+apps/*/.output
+packages/*/dist
+
+# Turborepo
+.turbo
+
 git_ignore
 logs/*
 mongodb-query-top-snapshot-*

@@ -1,22 +1,23 @@
 {
     "name": "mongo-query-top",
     "version": "1.0.0",
+    "private": true,
     "repository": "https://github.com/rushi/mongo-query-top",
     "description": "Show the current operations on a MongoDB instance in an easy to read table",
-    "main": "main.js",
     "type": "module",
+    "packageManager": "pnpm@10.8.0",
+    "workspaces": ["apps/*", "packages/*"],
     "scripts": {
-        "dev": "tsx watch src/server.ts",
-        "dev:cli": "tsx watch src/cli.ts",
-        "dev:api": "tsx watch src/server.ts",
-        "dev:both": "concurrently \"pnpm run dev:cli\" \"pnpm run dev:api\"",
-        "dev:web": "concurrently -n \"API,Frontend\" -c \"blue,magenta\" \"pnpm run dev:api\" \"cd frontend && pnpm run dev\"",
-        "build": "tsc",
-        "start": "node dist/server.js",
-        "start:cli": "node dist/cli.js",
-        "start:api": "node dist/server.js",
-        "format": "prettier --write -l src",
-        "lint": "eslint src --ext .ts --fix"
+        "build": "turbo build",
+        "dev": "turbo dev",
+        "dev:api": "turbo dev --filter=@mongo-query-top/api",
+        "dev:cli": "turbo dev --filter=@mongo-query-top/cli",
+        "dev:web": "turbo dev --filter=@mongo-query-top/web --filter=@mongo-query-top/api",
+        "start:api": "pnpm --filter=@mongo-query-top/api start",
+        "start:cli": "pnpm --filter=@mongo-query-top/cli start",
+        "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+        "lint": "turbo lint",
+        "clean": "turbo clean && rm -rf node_modules"
     },
     "keywords": [
         "mongodb",
@@ -24,24 +25,9 @@
     ],
     "author": "Rushi Vishavadia <rushi@hey.com>",
     "license": "MIT",
-    "dependencies": {
+    "devDependencies": {
         "@fastify/cors": "^11.2.0",
         "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
-        "chalk": "^5.6.2",
-        "cli-table3": "^0.6.5",
-        "dayjs": "^1.11.19",
-        "dotenv": "^17.2.3",
-        "fastify": "^5.6.2",
-        "geoip-lite": "^1.4.10",
-        "humanize-duration": "^3.33.2",
-        "json-stringify-pretty-compact": "^4.0.0",
-        "lodash-es": "^4.17.22",
-        "mongodb": "^7.0.0",
-        "prettier": "^3.7.4",
-        "window-size": "^1.1.1",
-        "yargs": "^18.0.0"
-    },
-    "devDependencies": {
         "@types/geoip-lite": "^1.4.4",
         "@types/humanize-duration": "^3.27.4",
         "@types/lodash-es": "^4.17.12",
@@ -49,27 +35,24 @@
         "@types/yargs": "^17.0.35",
         "@typescript-eslint/eslint-plugin": "^8.51.0",
         "@typescript-eslint/parser": "^8.51.0",
+        "chalk": "^5.6.2",
+        "cli-table3": "^0.6.5",
         "concurrently": "^9.2.1",
+        "dayjs": "^1.11.19",
+        "dotenv": "^17.2.3",
         "eslint": "^9.39.2",
         "eslint-config-prettier": "^10.1.8",
+        "fastify": "^5.6.2",
+        "geoip-lite": "^1.4.10",
+        "humanize-duration": "^3.33.2",
+        "json-stringify-pretty-compact": "^4.0.0",
+        "lodash-es": "^4.17.22",
+        "mongodb": "^7.0.0",
+        "prettier": "^3.7.4",
         "tsx": "^4.21.0",
-        "typescript": "^5.9.3"
-    },
-    "prettier": {
-        "semi": true,
-        "printWidth": 120,
-        "trailingComma": "all",
-        "singleQuote": false,
-        "bracketSpacing": true,
-        "useTabs": false,
-        "arrowParens": "always",
-        "tabWidth": 4,
-        "plugins": [
-            "@ianvs/prettier-plugin-sort-imports"
-        ]
-    },
-    "importOrder": [
-        "^[./]",
-        "^@/(.*)$"
-    ]
+        "turbo": "^2.7.2",
+        "typescript": "^5.9.3",
+        "window-size": "^1.1.1",
+        "yargs": "^18.0.0"
+    }
 }

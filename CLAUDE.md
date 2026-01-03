@@ -5,6 +5,7 @@
 **mongo-query-top** is a full-stack MongoDB monitoring tool that displays MongoDB's current operations in real-time, similar to the Unix `top` command. It provides visibility into database query activity with color-coded highlighting, filtering, and automatic logging of problematic queries.
 
 ### Architecture
+
 The application consists of three components:
 
 1. **CLI Tool** (`src/cli.ts`) - Terminal-based monitoring interface with keyboard controls
@@ -12,6 +13,7 @@ The application consists of three components:
 3. **Web Frontend** (`frontend/`) - React dashboard with real-time query visualization
 
 ### Key Features
+
 - **Real-time Monitoring**: Auto-refresh with configurable intervals (CLI + Web UI)
 - **Intelligent Filtering**: Automatically filters system/internal queries to reduce noise
 - **Performance Insights**: Highlights unindexed queries (COLLSCAN) in yellow/red
@@ -19,13 +21,14 @@ The application consists of three components:
 - **Auto-Logging**: Saves long-running and problematic queries to disk
 - **Client Detection**: Detects and formats various MongoDB clients (Mongoose, PHP, NoSQLBooster, etc.)
 - **Interactive Controls**:
-  - CLI: Keyboard controls (pause, reverse, snapshot, show all)
-  - Web: Filter controls, query details dialog, server switching
+    - CLI: Keyboard controls (pause, reverse, snapshot, show all)
+    - Web: Filter controls, query details dialog, server switching
 - **Summary Statistics**: Operations, collections, clients, unindexed queries
 - **Multi-Server Support**: Connect to multiple MongoDB servers via configuration
 - **Server-Sent Events**: Real-time streaming of query data to web frontend
 
 ### Use Cases
+
 - Find long-running queries consuming resources
 - Detect unindexed collection scans that hurt performance
 - Monitor query sources (which clients/IPs are hitting the database)
@@ -36,6 +39,7 @@ The application consists of three components:
 ## Architecture
 
 ### File Structure
+
 ```
 mongo-query-top/
 ├── src/                                 # Backend TypeScript source
@@ -98,6 +102,7 @@ mongo-query-top/
 ### Key Dependencies
 
 #### Backend
+
 - **fastify** (^5.6.2): Fast, low-overhead web framework for the API server
 - **mongodb** (^7.0.0): MongoDB Node.js driver for connecting and running currentOp
 - **cli-table3** (^0.6.5): Beautiful terminal tables for CLI rendering
@@ -110,6 +115,7 @@ mongo-query-top/
 - **tsx** (^4.21.0): TypeScript execution for development
 
 #### Frontend
+
 - **react** (^19.2.0): UI library
 - **@tanstack/react-router** (^1.132.0): Type-safe routing with file-based routing
 - **@tanstack/react-virtual** (^3.13.14): Virtualization for large query lists
@@ -127,20 +133,23 @@ mongo-query-top/
 The application includes a Fastify REST API server with the following features:
 
 **Authentication:**
+
 - Simple API key authentication via `X-API-Key` header or `apiKey` query parameter
 - Query parameter support needed for EventSource (SSE) which doesn't support custom headers
 - Set via `API_KEY` environment variable (defaults to `dev-key-change-in-production`)
 
 **CORS Configuration:**
+
 - Configured for `localhost:3000` (Vite dev server), `localhost:9000`, and `localhost:9173`
 - Customizable via `FRONTEND_URL` environment variable
 - Credentials enabled for cross-origin requests
 
 **Service Layer Pattern:**
+
 - Three singleton services injected into request context:
-  - `MongoConnectionService`: Manages MongoDB connection pool
-  - `QueryService`: Processes queries and generates summaries
-  - `QueryLoggerService`: Handles query logging to disk
+    - `MongoConnectionService`: Manages MongoDB connection pool
+    - `QueryService`: Processes queries and generates summaries
+    - `QueryLoggerService`: Handles query logging to disk
 
 **Endpoints:**
 
@@ -152,6 +161,7 @@ The application includes a Fastify REST API server with the following features:
 6. **`GET /health`** - Health check endpoint (no auth required)
 
 **Server-Sent Events (SSE):**
+
 - Streams query data in real-time to web frontend
 - Event name: `queries`
 - Respects `minTime`, `refreshInterval`, and `showAll` query parameters
@@ -162,6 +172,7 @@ The application includes a Fastify REST API server with the following features:
 The web frontend is built with React and follows modern best practices:
 
 **State Management:**
+
 - **Zustand**: User preferences (serverId, minTime, refreshInterval, filters) with localStorage persistence
 - **React Hooks**: Local component state for UI interactions
 - **Server-Sent Events**: Real-time data streaming from API
@@ -169,74 +180,80 @@ The web frontend is built with React and follows modern best practices:
 **Key Components:**
 
 1. **Dashboard** (`routes/index.tsx`)
-   - Main page component
-   - Auto-connects to MongoDB on mount
-   - Displays server selector, connection status, filters, summary stats, and query table
-   - Handles query detail dialog
+    - Main page component
+    - Auto-connects to MongoDB on mount
+    - Displays server selector, connection status, filters, summary stats, and query table
+    - Handles query detail dialog
 
 2. **QueryTable** (`components/QueryTable.tsx`)
-   - Virtualized table for performance with large query lists
-   - Uses `@tanstack/react-virtual` for rendering only visible rows
-   - Columns: Index, Operation ID, Runtime, Operation/Namespace, Client, Plan Summary
-   - Sorted by runtime descending (longest-running queries at top)
-   - New queries appear at bottom (prevents table jank)
-   - Click to open detail dialog
+    - Virtualized table for performance with large query lists
+    - Uses `@tanstack/react-virtual` for rendering only visible rows
+    - Columns: Index, Operation ID, Runtime, Operation/Namespace, Client, Plan Summary
+    - Sorted by runtime descending (longest-running queries at top)
+    - New queries appear at bottom (prevents table jank)
+    - Click to open detail dialog
 
 3. **QueryDetails** (`components/QueryDetails.tsx`)
-   - Dialog showing full query details
-   - JSON viewer with syntax highlighting (`@microlink/react-json-view`)
-   - Expandable/collapsible JSON tree
+    - Dialog showing full query details
+    - JSON viewer with syntax highlighting (`@microlink/react-json-view`)
+    - Expandable/collapsible JSON tree
 
 4. **FilterControls** (`components/FilterControls.tsx`)
-   - UI controls for minTime, refreshInterval, showAll toggle
-   - Connected to Zustand preferences store
+    - UI controls for minTime, refreshInterval, showAll toggle
+    - Connected to Zustand preferences store
 
 5. **SummaryStats** (`components/SummaryStats.tsx`)
-   - Cards displaying: Total Operations, Collections, Clients, Unindexed Queries
-   - Real-time updates from SSE stream
+    - Cards displaying: Total Operations, Collections, Clients, Unindexed Queries
+    - Real-time updates from SSE stream
 
 **Custom Hooks:**
 
 1. **`useServerSentEvents`** (`hooks/useServerSentEvents.ts`)
-   - Manages SSE connection with automatic reconnection
-   - Exponential backoff strategy (1s → 2s → 4s → ... → 30s max)
-   - Returns: `{ data, error, isConnected, isReconnecting }`
-   - Cleanup on unmount
+    - Manages SSE connection with automatic reconnection
+    - Exponential backoff strategy (1s → 2s → 4s → ... → 30s max)
+    - Returns: `{ data, error, isConnected, isReconnecting }`
+    - Cleanup on unmount
 
 2. **`useFetchServers`** (`hooks/useFetchServers.ts`)
-   - Fetches available MongoDB servers from API
-   - Returns: `{ servers, loading, error }`
+    - Fetches available MongoDB servers from API
+    - Returns: `{ servers, loading, error }`
 
 **Routing:**
+
 - **TanStack Router**: File-based routing with type safety
 - Routes auto-generated in `routeTree.gen.ts`
 - Root layout in `__root.tsx`, dashboard in `index.tsx`
 
 **Styling:**
+
 - **Tailwind CSS**: Utility-first styling
 - **shadcn/ui**: Pre-built accessible components (Dialog, Select, Table, Badge, etc.)
 - **CVA (class-variance-authority)**: Component variants
 - **Dark Mode**: Ready but not yet implemented
 
 **API Client:**
+
 - Centralized API client in `utils/api.ts`
 - Axios-based with base URL from `VITE_API_URL` env var (defaults to `http://localhost:9001`)
 - API key in headers from `VITE_API_KEY` env var
 
 ### Configuration System
+
 Uses the `config` package that automatically loads from `config/default.json` and `config/local.json`.
 
 **Config Entry Format:**
+
 ```json
 {
-  "server-name": {
-    "name": "Display Name",
-    "uri": "mongodb://user:pass@host:port/db?options"
-  }
+    "server-name": {
+        "name": "Display Name",
+        "uri": "mongodb://user:pass@host:port/db?options"
+    }
 }
 ```
 
 **Usage:**
+
 ```bash
 pnpm run dev:cli -- -c server-name
 # or after building:
@@ -244,44 +261,51 @@ node dist/cli.js -c server-name
 ```
 
 ### Main Loop (src/cli.ts)
+
 1. Connect to MongoDB using configured URI
 2. Setup raw mode for keyboard input handling
 3. Main loop:
-   - Fetch `db.currentOp()` with `secs_running >= minTime` filter
-   - Render header and table body
-   - Sleep for refresh interval
-   - Handle keyboard inputs
+    - Fetch `db.currentOp()` with `secs_running >= minTime` filter
+    - Render header and table body
+    - Sleep for refresh interval
+    - Handle keyboard inputs
 4. Exit on `q` or `Ctrl+C`
 
 ### Query Processing (src/lib/queryProcessor.ts)
 
 **`shouldSkipQuery(q)`**
+
 - Filters out system/internal queries to reduce noise
 - Always shows: indexing queries, PHP MongoDB extension queries
 - Skips: internal clients, monitoring modules, automation agents, hello/ismaster commands
 
 **`sanitizeQuery(q, full)`**
+
 - Removes verbose/sensitive fields (lsid, connectionId, clientMetadata, lockStats, etc.)
 - Produces cleaner JSON for display
 - `full=false` retains namespace and operation info for logging
 
 **`formatUserAgent(q)`**
+
 - Detects client type from `appName` and `clientMetadata`
 - Returns formatted string with chalk colors
 - Recognizes: NoSQLBooster, Mongoose, PHP ext-mongodb, Node.js versions
 
 **`summarizeArray(data)`**
+
 - Groups and counts similar items
 - Returns formatted string like "5 x command, 3 x query, 1 x update"
 
 ### Rendering (src/lib/renderer.ts)
 
 **`renderHeader()`**
+
 - Shows: server name, refresh interval, minTime, current time, window size
 - Indicates status: (paused), (reverse), showing all queries
 - Displays feedback messages (e.g., "Wrote query X to disk")
 
 **`renderBody(queries)`**
+
 - Sorts queries by run time (longest at top for immediate visibility)
 - Filters queries using `shouldSkipQuery()`
 - Builds table with columns: #, ID, Age, op/ns, query
@@ -291,29 +315,35 @@ node dist/cli.js -c server-name
 - Adds summary row with statistics
 
 **`saveQuery(query, collection, type)`**
+
 - Saves individual query to `logs/<config>/`
 - Creates both raw and sanitized versions
 - Filename format: `query-<opid>-<collection>-<type>.json`
 
 **`save(queries)`**
+
 - Saves snapshot of all current queries (triggered by `s` key)
 - Creates timestamped files in `logs/<config>/`
 
 ### Helper Functions (src/lib/helpers.ts)
 
 **`sleep(seconds)`**
+
 - Promise-based sleep for loop delays
 - Subtracts 100ms to account for refresh overhead
 
 **`clear()`**
+
 - Clears terminal screen and scroll buffer
 - Uses escape codes for thorough clearing
 
 **`setupRawMode(prefs)`**
+
 - Configures stdin for raw mode to capture key presses
 - Handles: `q`/`Ctrl+C` (quit), `p` (pause), `r` (reverse), `s` (snapshot), `a` (show all)
 
 **`beautifyJson(payload, width)`**
+
 - Uses `util.inspect()` for colored, formatted JSON
 - Configurable width for wrapping
 
@@ -321,13 +351,13 @@ node dist/cli.js -c server-name
 
 When the app is running, press these keys:
 
-| Key | Action |
-|-----|--------|
-| `p` | Pause/unpause fetching and rendering |
-| `r` | Reverse sort order (shortest queries at top instead of longest) |
-| `s` | Save snapshot of current queries to disk |
-| `a` | Toggle showing all queries (including system queries) |
-| `q` or `Ctrl+C` | Quit the application |
+| Key             | Action                                                          |
+| --------------- | --------------------------------------------------------------- |
+| `p`             | Pause/unpause fetching and rendering                            |
+| `r`             | Reverse sort order (shortest queries at top instead of longest) |
+| `s`             | Save snapshot of current queries to disk                        |
+| `a`             | Toggle showing all queries (including system queries)           |
+| `q` or `Ctrl+C` | Quit the application                                            |
 
 ## CLI Arguments
 
@@ -347,6 +377,7 @@ Options:
 ```
 
 **Examples:**
+
 ```bash
 # Basic usage with localhost
 pnpm run dev:cli
@@ -377,6 +408,7 @@ node dist/cli.js -c prod --minTime=2
 #### Adding New UI Components
 
 **Using shadcn/ui:**
+
 ```bash
 # Add a new component from shadcn/ui
 cd frontend
@@ -424,6 +456,7 @@ export const MyComponent = ({ title, onAction }: MyComponentProps) => {
 ```
 
 **Component Patterns:**
+
 - Use named exports (`export const MyComponent`)
 - Define props interface with `ComponentNameProps`
 - Use `className` prop for styling (not `style` prop)
@@ -473,11 +506,9 @@ await fastify.register(myRoutes, { prefix: "/api/myroute" });
 ```typescript
 // Add new API function
 export const myApi = {
-    getData: (id: string, filter?: string) =>
-        apiClient.get(`/api/myroute/${id}`, { params: { filter } }),
+    getData: (id: string, filter?: string) => apiClient.get(`/api/myroute/${id}`, { params: { filter } }),
 
-    postData: (data: string) =>
-        apiClient.post("/api/myroute", { data }),
+    postData: (data: string) => apiClient.post("/api/myroute", { data }),
 };
 ```
 
@@ -506,6 +537,8 @@ const MyComponent = () => {
 // frontend/src/store/mystore.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+// Usage in component
+import { useMyStore } from "../store/mystore";
 
 interface MyState {
     count: number;
@@ -529,9 +562,6 @@ export const useMyStore = create<MyState>()(
     ),
 );
 
-// Usage in component
-import { useMyStore } from "../store/mystore";
-
 const MyComponent = () => {
     const { count, name, increment, setName } = useMyStore();
     // ...
@@ -550,7 +580,7 @@ Modify the `shouldSkipQuery()` function:
 export const shouldSkipQuery = (q: MongoQuery): boolean => {
     // Add your custom filter logic here
     if (q.appName?.match(/YourAppName/i)) {
-        return true;  // Skip this query
+        return true; // Skip this query
     }
 
     // Check namespace
@@ -560,7 +590,7 @@ export const shouldSkipQuery = (q: MongoQuery): boolean => {
 
     // Check command type
     if (q.command?.yourCommand) {
-        return false;  // Always show this
+        return false; // Always show this
     }
 
     return false;
@@ -572,20 +602,23 @@ export const shouldSkipQuery = (q: MongoQuery): boolean => {
 **File:** `src/lib/renderer.ts`
 
 **Adjust Column Widths:**
+
 ```typescript
-const colWidths = [5, 25, 9, 25];  // Modify these values
+const colWidths = [5, 25, 9, 25]; // Modify these values
 ```
 
 **Add New Column:**
+
 ```typescript
 // In renderBody()
 table.push([row.idx, row.opid, row.time, row.op, query, newColumn]);
 ```
 
 **Change Color Highlighting:**
+
 ```typescript
 if (row.q.planSummary && row.q.planSummary === "COLLSCAN") {
-    query = chalk.red(query);  // Change from yellow to red
+    query = chalk.red(query); // Change from yellow to red
 }
 ```
 
@@ -595,14 +628,15 @@ if (row.q.planSummary && row.q.planSummary === "COLLSCAN") {
 
 ```json
 {
-  "my-server": {
-    "name": "My Production Server",
-    "uri": "mongodb://user:pass@host:27017/dbname?authSource=admin&ssl=true"
-  }
+    "my-server": {
+        "name": "My Production Server",
+        "uri": "mongodb://user:pass@host:27017/dbname?authSource=admin&ssl=true"
+    }
 }
 ```
 
 **Then run:**
+
 ```bash
 pnpm run dev:cli -- -c my-server
 ```
@@ -610,10 +644,12 @@ pnpm run dev:cli -- -c my-server
 ### Query Logging
 
 Queries are automatically saved to disk when:
+
 1. Run time exceeds `--log` threshold (default 10 seconds)
 2. Query uses COLLSCAN (collection scan without index)
 
 **Log Structure:**
+
 ```
 logs/
 └── <config-name>/
@@ -623,6 +659,7 @@ logs/
 ```
 
 **Snapshot Structure (triggered by `s` key):**
+
 ```
 logs/
 └── <config-name>/
@@ -656,6 +693,7 @@ export const formatUserAgent = (q: MongoQuery): string => {
 **File:** `src/lib/queryProcessor.ts`, function `sanitizeQuery()`
 
 **Hide Additional Fields:**
+
 ```typescript
 let query = omit(q, [
     "active",
@@ -673,6 +711,7 @@ Remove items from the omit arrays to include them in the output.
 ### Change Default Refresh Interval
 
 **File:** `src/lib/usage.ts`
+
 ```typescript
 .option("refresh", {
     default: 5,  // Change from 2 to 5 seconds
@@ -684,6 +723,7 @@ Remove items from the omit arrays to include them in the output.
 ### Change Default Minimum Query Time
 
 **File:** `src/lib/usage.ts`
+
 ```typescript
 .option("minTime", {
     default: 0,  // Change from 1 to 0 to see all queries
@@ -695,6 +735,7 @@ Remove items from the omit arrays to include them in the output.
 ### Disable Auto-Logging
 
 **File:** `src/lib/usage.ts`
+
 ```typescript
 .option("log", {
     default: Infinity,  // Change to Infinity to disable auto-logging
@@ -708,10 +749,11 @@ Or pass `--log=999999` when running.
 ### Change Sort Order Default
 
 **File:** `src/cli.ts`
+
 ```typescript
 const prefs = {
     paused: false,
-    reversed: false,  // Default is false (longest at top). Set to true to show shortest queries at top
+    reversed: false, // Default is false (longest at top). Set to true to show shortest queries at top
     // ...
 };
 ```
@@ -719,12 +761,14 @@ const prefs = {
 ## Running the App
 
 ### Quick Start
+
 ```bash
 pnpm install
 pnpm run dev:cli
 ```
 
 ### Development Modes
+
 ```bash
 # CLI only (watches and restarts on changes)
 pnpm run dev:cli
@@ -740,6 +784,7 @@ pnpm run dev:web
 ```
 
 ### Build and Production
+
 ```bash
 # Build TypeScript to JavaScript
 pnpm run build
@@ -752,12 +797,15 @@ pnpm run start:api
 ```
 
 ### Format Code
+
 ```bash
 pnpm run format
 ```
+
 Runs Prettier on all TypeScript files in `src/`.
 
 ### Production Usage
+
 ```bash
 # Monitor production server
 node dist/cli.js -c prod --minTime=2 --refresh=5
@@ -775,6 +823,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 ## Code Style
 
 ### General (Backend + Frontend)
+
 - **TypeScript**: Pure TypeScript codebase with strict type checking
 - **ES Modules**: Uses `import`/`export` syntax throughout
 - **Arrow Functions**: Preferred for all functions and components
@@ -783,6 +832,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 - **Named Exports**: Always use named exports (`export const Foo`), never default exports except for route files
 
 ### Backend Specific
+
 - **Lodash-ES**: Extensively used for data manipulation (`sortBy`, `omit`, `isEmpty`, etc.)
 - **Chalk**: Terminal colors throughout CLI code
 - **Type Definitions**: Interfaces and types defined in `src/types/index.ts`
@@ -790,38 +840,39 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 - **Fastify Plugins**: Routes as async functions registered with `fastify.register()`
 
 ### Frontend Specific
+
 - **React 19**: Functional components with hooks
 - **Component Structure**:
-  - Define props interface as `ComponentNameProps`
-  - Use destructuring in function signature
-  - Keep components under 350 lines (split if larger)
-  - Component files should never exceed 400 lines
+    - Define props interface as `ComponentNameProps`
+    - Use destructuring in function signature
+    - Keep components under 350 lines (split if larger)
+    - Component files should never exceed 400 lines
 - **Naming Conventions**:
-  - Components: PascalCase (`QueryTable.tsx`)
-  - Hooks: camelCase with `use` prefix (`useFetchServers.ts`)
-  - Utilities: camelCase (`api.ts`, `utils.ts`)
-  - Boolean variables: Must start with `is`, `has`, `should`, `can` (`isLoading`, `hasError`)
+    - Components: PascalCase (`QueryTable.tsx`)
+    - Hooks: camelCase with `use` prefix (`useFetchServers.ts`)
+    - Utilities: camelCase (`api.ts`, `utils.ts`)
+    - Boolean variables: Must start with `is`, `has`, `should`, `can` (`isLoading`, `hasError`)
 - **State Management**:
-  - Zustand for global/persistent state
-  - React hooks for local component state
-  - Lift state up only when needed
+    - Zustand for global/persistent state
+    - React hooks for local component state
+    - Lift state up only when needed
 - **Styling**:
-  - Tailwind CSS utility classes only
-  - Use `cn()` utility for conditional classes
-  - No inline styles or CSS modules
-  - Component variants with `cva()` from class-variance-authority
+    - Tailwind CSS utility classes only
+    - Use `cn()` utility for conditional classes
+    - No inline styles or CSS modules
+    - Component variants with `cva()` from class-variance-authority
 - **Type Safety**:
-  - Always type component props
-  - Type custom hooks return values
-  - Use interfaces over types
-  - Import types with `import type { ... }`
+    - Always type component props
+    - Type custom hooks return values
+    - Use interfaces over types
+    - Import types with `import type { ... }`
 - **Imports**:
-  - Sorted by prettier plugin (external → internal → relative)
-  - Use path aliases if configured (`@/components/...`)
+    - Sorted by prettier plugin (external → internal → relative)
+    - Use path aliases if configured (`@/components/...`)
 - **Error Handling**:
-  - Use try-catch for async operations
-  - Display user-friendly error messages in UI
-  - Log errors to console for debugging
+    - Use try-catch for async operations
+    - Display user-friendly error messages in UI
+    - Log errors to console for debugging
 
 ## Troubleshooting
 
@@ -831,6 +882,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 **Problem:** Cannot connect to MongoDB
 **Solution:**
+
 - Check your `config/local.json` URI format and network access
 - Verify MongoDB server is running and accessible
 - Check firewall rules and authentication credentials
@@ -850,6 +902,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 **Problem:** App lags with many queries
 **Solution:**
+
 - Increase `--minTime` to filter out fast queries
 - Increase `--refresh` interval
 - Use `--ip` to filter by specific client
@@ -858,6 +911,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 **Problem:** API server fails to start
 **Solution:**
+
 - Check if port 9001 is already in use: `lsof -i :9001`
 - Verify environment variables are set correctly
 - Check logs for error messages
@@ -865,6 +919,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 **Problem:** 401 Unauthorized errors
 **Solution:**
+
 - Verify `API_KEY` matches between backend `.env` and frontend `frontend/.env`
 - Check that API key is being sent in requests (see Network tab in browser dev tools)
 - Ensure OPTIONS requests are not blocked (CORS preflight)
@@ -875,6 +930,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 **Problem:** Frontend fails to start
 **Solution:**
+
 - Run `pnpm install` in `frontend/` directory
 - Check for port conflicts (default: 3000)
 - Clear Vite cache: `rm -rf frontend/node_modules/.vite`
@@ -882,6 +938,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 **Problem:** TypeScript errors
 **Solution:**
+
 - Run `pnpm run build` to see all errors
 - Check that types are up to date with API responses
 - Verify `tsconfig.json` settings
@@ -891,6 +948,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 **Problem:** "Connection lost" error in UI
 **Solution:**
+
 - Verify API server is running on `http://localhost:9001`
 - Check `VITE_API_URL` in `frontend/.env`
 - Test API health endpoint: `curl http://localhost:9001/health`
@@ -899,6 +957,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 **Problem:** No real-time updates
 **Solution:**
+
 - Check EventSource connection in browser Network tab (should be persistent)
 - Verify SSE endpoint is working: open `http://localhost:9001/api/queries/localhost/stream?apiKey=dev-key-change-in-production` in browser
 - Check if browser supports EventSource (all modern browsers do)
@@ -906,6 +965,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 **Problem:** CORS errors
 **Solution:**
+
 - Verify frontend URL is in API server's CORS config (`src/server.ts`)
 - Check that credentials are enabled in CORS settings
 - Ensure frontend is running on allowed origin (default: `localhost:3000`)
@@ -915,6 +975,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 **Problem:** Tailwind classes not working
 **Solution:**
+
 - Verify `tailwind.config.js` is correct
 - Check that `styles.css` is imported in root component
 - Restart Vite dev server
@@ -922,6 +983,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 **Problem:** Components not styled correctly
 **Solution:**
+
 - Ensure shadcn/ui components are installed correctly
 - Check `cn()` utility is working (`lib/utils.ts`)
 - Verify Radix UI dependencies are installed
@@ -931,6 +993,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 **Problem:** Preferences not persisting
 **Solution:**
+
 - Check browser localStorage (DevTools → Application → Local Storage)
 - Verify Zustand persist middleware is configured
 - Clear localStorage and restart: `localStorage.clear()`
@@ -938,6 +1001,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 
 **Problem:** Stale query data
 **Solution:**
+
 - Check that SSE connection is active and receiving events
 - Verify `refreshInterval` is set correctly in preferences
 - Check if MongoDB is returning current data (test with CLI tool)
@@ -946,6 +1010,7 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
 ## Environment Variables
 
 ### Backend (.env)
+
 ```bash
 # API Server
 API_KEY=dev-key-change-in-production   # API key for authentication
@@ -954,6 +1019,7 @@ LOG_LEVEL=info                          # Fastify log level (info, debug, error,
 ```
 
 ### Frontend (frontend/.env)
+
 ```bash
 VITE_API_URL=http://localhost:9001     # Backend API URL
 VITE_API_KEY=dev-key-change-in-production  # API key for authentication
@@ -962,6 +1028,7 @@ VITE_API_KEY=dev-key-change-in-production  # API key for authentication
 ## Development Workflow
 
 ### Running Full Stack Development
+
 ```bash
 # Terminal 1: Backend API + CLI
 pnpm run dev:web
@@ -972,6 +1039,7 @@ pnpm run dev:web
 ```
 
 ### Running Components Separately
+
 ```bash
 # Backend API only
 pnpm run dev:api
@@ -986,16 +1054,19 @@ pnpm run dev:cli -- -c localhost
 ### Making Changes
 
 **Backend Changes:**
+
 1. Edit files in `src/`
 2. `tsx` will auto-restart the server
 3. Test API endpoints with curl or frontend
 
 **Frontend Changes:**
+
 1. Edit files in `frontend/src/`
 2. Vite HMR will hot-reload changes instantly
 3. Check browser console for errors
 
 **Before Committing:**
+
 ```bash
 # Format backend
 pnpm run format
@@ -1011,12 +1082,14 @@ cd frontend && pnpm run build
 ## Future Enhancement Ideas
 
 ### CLI
+
 - Add keyboard shortcuts for adjusting minTime/refresh on the fly
 - Terminal UI framework (blessed, ink) for better interactivity
 - Export to different formats (CSV, markdown, HTML)
 - Better visualizations for lock contention
 
 ### Frontend
+
 - Dark mode implementation (Tailwind classes already support it)
 - Query comparison view (compare two queries side-by-side)
 - Historical query view (view past snapshots)
@@ -1031,6 +1104,7 @@ cd frontend && pnpm run build
 - Mobile-responsive design improvements
 
 ### Backend/API
+
 - Add query kill endpoint (`POST /api/queries/:serverId/:opid/kill`)
 - Historical trending of query patterns (store snapshots in database)
 - WebSocket support as alternative to SSE
@@ -1043,6 +1117,7 @@ cd frontend && pnpm run build
 - Query caching layer for repeated fetches
 
 ### Shared
+
 - Docker support with docker-compose for easy deployment
 - Kubernetes manifests
 - CI/CD pipelines (GitHub Actions)
@@ -1053,6 +1128,7 @@ cd frontend && pnpm run build
 ## Resources
 
 ### Backend
+
 - [MongoDB currentOp Documentation](https://www.mongodb.com/docs/manual/reference/method/db.currentOp/)
 - [MongoDB Profiler](https://www.mongodb.com/docs/manual/tutorial/manage-the-database-profiler/)
 - [Fastify Documentation](https://fastify.dev/)
@@ -1060,6 +1136,7 @@ cd frontend && pnpm run build
 - [chalk Documentation](https://github.com/chalk/chalk)
 
 ### Frontend
+
 - [React Documentation](https://react.dev/)
 - [TanStack Router](https://tanstack.com/router/latest)
 - [TanStack Virtual](https://tanstack.com/virtual/latest)

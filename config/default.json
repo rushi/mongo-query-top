@@ -1,0 +1,6 @@
+{
+  "localhost": {
+    "name": "Local MongoDB",
+    "uri": "mongodb://localhost:27017"
+  }
+}

@@ -5,7 +5,7 @@ import type { GeoLocation, MongoQuery } from "../types/index.js";
 
 export interface ProcessedQuery {
     idx: number;
-    opid: number;
+    opid: string;
     secs_running: number;
     runtime_formatted: string;
     operation: string;
@@ -41,7 +41,7 @@ export class QueryService {
         const filtered = showAll ? queries : queries.filter((q) => !shouldSkipQuery(q));
 
         return filtered
-            .sort((a, b) => a.microsecs_running - b.microsecs_running)
+            .sort((a, b) => b.microsecs_running - a.microsecs_running) // Descending: longest at top
             .map((q, idx) => this.toProcessedQuery(q, idx + 1));
     }
 
@@ -51,9 +51,12 @@ export class QueryService {
 
         const clientInfo = this.parseClient(q.client);
 
+        // MongoDB returns opid as signed 32-bit int - use >>> 0 to convert to unsigned
+        const opidStr = typeof q.opid === "number" ? String(q.opid >>> 0) : String(q.opid);
+
         return {
             idx,
-            opid: q.opid,
+            opid: opidStr,
             secs_running: q.secs_running,
             runtime_formatted: this.formatRuntime(q.secs_running),
             operation: q.op,

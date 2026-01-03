@@ -96,7 +96,9 @@ export default class Renderer {
                 row.selectedQuery = c.italic("trimmed by MongoDB:\n") + row.query;
             }
 
-            row.opid = q.opid;
+            // MongoDB returns opid as signed 32-bit int - use >>> 0 to convert to unsigned
+            row.opid = typeof q.opid === "number" ? String(q.opid >>> 0) : String(q.opid);
+
             if (q.client) {
                 const client = q.client.replace(/:.*$/, ""); // Slice off the port at the end of the string
                 let str = client;
@@ -272,15 +274,19 @@ export default class Renderer {
         }
 
         const rawQuery = query;
+
+        // MongoDB returns opid as signed 32-bit int - use >>> 0 to convert to unsigned
+        const opidStr = typeof rawQuery.opid === "number" ? String(rawQuery.opid >>> 0) : String(rawQuery.opid);
+
         type = type ? `${type}-` : type;
-        const fileNameRaw = `${rawFolderPath}/query-${rawQuery.opid}-${collection}-${type}raw.json`;
+        const fileNameRaw = `${rawFolderPath}/query-${opidStr}-${collection}-${type}raw.json`;
         await fs.writeFile(fileNameRaw, JSON.stringify(rawQuery, null, 2));
 
         const sanitized = { ...sanitizeQuery(query, false), secs_running: rawQuery.secs_running };
-        const filenameSanitized = `${folderPath}/query-${rawQuery.opid}-${collection}-${type}sanitized.json`;
+        const filenameSanitized = `${folderPath}/query-${opidStr}-${collection}-${type}sanitized.json`;
         await fs.writeFile(filenameSanitized, JSON.stringify(sanitized, null, 2));
 
-        this.headerText = `Wrote query ${rawQuery.opid} to disk`;
+        this.headerText = `Wrote query ${opidStr} to disk`;
     }
 }
 

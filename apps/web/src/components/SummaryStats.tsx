@@ -5,48 +5,88 @@ interface SummaryStatsProps {
 }
 
 export const SummaryStats = ({ summary }: SummaryStatsProps) => {
-    const operations = Object.entries(summary.operations)
-        .map(([op, count]) => `${count} × ${op}`)
-        .join(", ");
-
-    const collections = Object.entries(summary.collections)
-        .slice(0, 3)
-        .map(([coll, count]) => `${count} × ${coll}`)
-        .join(", ");
-
-    const moreCollections =
-        Object.keys(summary.collections).length > 3 ? ` (+${Object.keys(summary.collections).length - 3} more)` : "";
+    const operationsEntries = Object.entries(summary.operations).sort(([, a], [, b]) => b - a);
+    const collectionsEntries = Object.entries(summary.collections).sort(([, a], [, b]) => b - a);
+    const topCollections = collectionsEntries.slice(0, 5);
+    const remainingCollections = collectionsEntries.length - 5;
 
     return (
-        <div className="flex items-center gap-6 rounded-md border bg-muted/50 p-3 text-sm">
-            <div className="flex items-baseline gap-1">
-                <span className="text-muted-foreground">Queries:</span>
-                <span className="text-md font-medium">{summary.totalQueries}</span>
+        <div className="mb-4 border-2 border-border bg-card">
+            {/* ASCII Divider */}
+            <div className="border-b-2 border-border bg-muted px-4 py-1.5">
+                <span className="font-mono text-xs tracking-wider text-primary uppercase">■ OPERATION_SUMMARY</span>
             </div>
 
-            {summary.unindexedCount > 0 && (
-                <div className="flex items-baseline gap-1">
-                    <span className="text-muted-foreground">COLLSCAN:</span>
-                    <span className="font-bold text-yellow-600 dark:text-yellow-500">{summary.unindexedCount}</span>
+            <div className="grid grid-cols-[minmax(160px,auto)_minmax(180px,auto)_1fr_1fr] gap-0">
+                {/* Total Queries */}
+                <div className="border-r-2 border-border p-3">
+                    <div className="mb-0.5 font-mono text-tiny tracking-wide text-muted-foreground uppercase">
+                        TOTAL_QUERIES
+                    </div>
+                    <div className="font-mono text-lg text-primary">{summary.totalQueries}</div>
                 </div>
-            )}
 
-            {operations && (
-                <div className="flex items-center gap-1">
-                    <span className="text-muted-foreground">Ops:</span>
-                    <span>{operations}</span>
+                {/* Unindexed Queries */}
+                <div className="border-r-2 border-border p-3">
+                    <div className="mb-0.5 font-mono text-tiny tracking-wide text-muted-foreground uppercase">
+                        COLLSCAN_DETECT
+                    </div>
+                    <div
+                        className={`font-mono text-lg ${summary.unindexedCount > 0 ? "text-warning" : "text-muted-foreground"}`}
+                    >
+                        {summary.unindexedCount}
+                    </div>
+                    {summary.unindexedCount > 0 && (
+                        <div className="mt-1 font-mono text-tiny text-warning uppercase">⚠ UNINDEXED</div>
+                    )}
                 </div>
-            )}
 
-            {collections && (
-                <div className="flex min-w-0 flex-1 items-baseline gap-1">
-                    <span className="text-muted-foreground">Collections:</span>
-                    <span className="flex items-center gap-1 truncate">
-                        <span>{collections}</span>
-                        <span className="text-muted-foreground">{moreCollections}</span>
-                    </span>
+                {/* Operations Breakdown */}
+                <div className="border-r-2 border-border p-3">
+                    <div className="mb-1.5 font-mono text-tiny tracking-wide text-muted-foreground uppercase">
+                        OPERATIONS
+                    </div>
+                    {operationsEntries.length > 0 ? (
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs">
+                            {operationsEntries.map(([op, count]) => (
+                                <div key={op} className="flex items-center gap-1.5">
+                                    <span className="text-primary">▸</span>
+                                    <span className="font-bold text-primary">{count}</span>
+                                    <span className="text-foreground uppercase">{op}</span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="font-mono text-xs text-muted-foreground">NO_DATA</div>
+                    )}
                 </div>
-            )}
+
+                {/* Collections */}
+                <div className="p-3">
+                    <div className="mb-1.5 font-mono text-tiny tracking-wide text-muted-foreground uppercase">
+                        COLLECTIONS
+                    </div>
+                    {topCollections.length > 0 ? (
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs">
+                            {topCollections.map(([coll, count]) => (
+                                <div key={coll} className="flex items-center gap-1.5">
+                                    <span className="text-primary">▸</span>
+                                    <span className="font-bold text-primary">{count}</span>
+                                    <span className="truncate text-foreground">{coll}</span>
+                                </div>
+                            ))}
+                            {remainingCollections > 0 && (
+                                <div className="flex items-center gap-1.5 text-muted-foreground">
+                                    <span>▸</span>
+                                    <span>+{remainingCollections} MORE</span>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="font-mono text-xs text-muted-foreground">NO_DATA</div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 };

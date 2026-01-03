@@ -83,108 +83,157 @@ function Dashboard() {
     const getConnectionBadge = () => {
         if (isConnecting) {
             return (
-                <Badge variant="secondary" className="gap-1.5">
-                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-muted-foreground" />
-                    Connecting...
+                <Badge variant="secondary" className="gap-1.5 border-2 font-mono text-tiny! uppercase">
+                    <div className="h-2 w-2 animate-spin border border-muted-foreground/20 border-t-muted-foreground" />
+                    CONNECTING
                 </Badge>
             );
         }
 
         if (isConnected) {
-            return <Badge variant="success">● Connected</Badge>;
+            return (
+                <Badge
+                    variant="success"
+                    className="border-2 border-primary bg-primary/20 font-mono text-tiny! text-primary uppercase"
+                >
+                    ● CONNECTED
+                </Badge>
+            );
         }
 
         if (isReconnecting) {
-            return <Badge variant="secondary">⟳ Reconnecting...</Badge>;
+            return (
+                <Badge variant="secondary" className="border-2 font-mono text-tiny! uppercase">
+                    ⟳ RECONNECTING
+                </Badge>
+            );
         }
 
-        return <Badge variant="destructive">○ Disconnected</Badge>;
+        return (
+            <Badge variant="destructive" className="border-2 font-mono text-tiny! uppercase">
+                ○ DISCONNECTED
+            </Badge>
+        );
     };
 
     return (
-        <div className="min-h-screen space-y-6 bg-background p-6">
-            <header>
-                <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-semibold">MongoDB Query Monitor</h1>
-                    <div className="flex items-center gap-4 text-sm">
-                        <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground">Server:</span>
-                            <Select value={serverId} onValueChange={handleServerChange} disabled={serversLoading}>
-                                <SelectTrigger className="h-8 w-50">
-                                    <SelectValue placeholder="Select a server">
-                                        {currentServer?.name || serverId}
-                                    </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {servers.map((server) => (
-                                        <SelectItem key={server.id} value={server.id}>
-                                            {server.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+        <div className="min-h-screen space-y-0 bg-background p-6">
+            {/* ASCII Header Border */}
+            <div className="animate-reveal mb-4 border-2 border-primary p-4 font-mono text-xs leading-tight opacity-0">
+                <div className="mb-2 text-primary">
+                    ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+                </div>
+                <header className="space-y-2">
+                    <div className="flex items-start justify-between">
+                        <div className="space-y-0.5">
+                            <h1 className="terminal-cursor text-xl tracking-wider text-primary">
+                                MONGODB_QUERY_MONITOR
+                            </h1>
+                            <p className="text-tiny tracking-wide text-muted-foreground uppercase">
+                                ▸ REAL-TIME DATABASE OPERATIONS STREAM
+                            </p>
                         </div>
-                        {getConnectionBadge()}
-                        {data?.metadata?.isMockData && (
-                            <Badge variant="outline" className="gap-1">
-                                <span className="text-amber-600">⚠</span>
-                                Mock Data
-                            </Badge>
-                        )}
-                        {data?.metadata && (
-                            <span className="font-mono text-xs text-muted-foreground">
-                                Last update: {new Date(data.metadata.timestamp).toLocaleTimeString()}
-                            </span>
-                        )}
+                        <div className="flex flex-col items-end gap-2 text-xs">
+                            <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">SRV:</span>
+                                <Select value={serverId} onValueChange={handleServerChange} disabled={serversLoading}>
+                                    <SelectTrigger className="h-8 w-50 border-2 border-border bg-input font-mono text-xs">
+                                        <SelectValue placeholder="Select a server">
+                                            {currentServer?.name || serverId}
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent className="border-2 border-border">
+                                        {servers.map((server) => (
+                                            <SelectItem key={server.id} value={server.id} className="font-mono text-xs">
+                                                {server.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                {getConnectionBadge()}
+                                {data?.metadata?.isMockData && (
+                                    <Badge
+                                        variant="outline"
+                                        className="gap-1 border-warning bg-warning font-mono text-warning-foreground"
+                                    >
+                                        ⚠ MOCK_DATA
+                                    </Badge>
+                                )}
+                            </div>
+                            {data?.metadata && (
+                                <span className="font-mono text-tiny text-muted-foreground">
+                                    LAST_UPDATE: {new Date(data.metadata.timestamp).toLocaleTimeString()}
+                                </span>
+                            )}
+                        </div>
                     </div>
+                </header>
+                <div className="text-primary">
+                    ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
                 </div>
-                <p className="text-muted-foreground">
-                    Real-time monitoring of MongoDB queries with performance insights
-                </p>
-            </header>
+            </div>
 
-            <FilterControls />
+            <div className="animate-reveal space-y-4 opacity-0 delay-100">
+                <FilterControls />
 
-            {connectError && (
-                <div className="rounded-md border border-destructive bg-destructive/10 p-4">
-                    <p className="font-semibold text-destructive">MongoDB Connection Error</p>
-                    <p className="text-sm text-muted-foreground">{connectError}</p>
-                </div>
-            )}
-
-            {error && !isReconnecting && (
-                <div className="rounded-md border border-destructive bg-destructive/10 p-4">
-                    <p className="font-semibold text-destructive">Stream Error</p>
-                    <p className="text-sm text-muted-foreground">{error}</p>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                        Make sure the API server is running on {import.meta.env.VITE_API_URL || "http://localhost:9001"}
-                    </p>
-                </div>
-            )}
-
-            {isReconnecting && (
-                <div className="rounded-md border border-border bg-muted p-4">
-                    <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-muted-foreground" />
-                        <p className="font-medium">Reconnecting to server...</p>
+                {connectError && (
+                    <div className="border-2 border-destructive bg-destructive/10 p-6">
+                        <div className="mb-2 flex items-center gap-2">
+                            <span className="text-xl">▼</span>
+                            <p className="font-mono text-sm font-bold text-destructive uppercase">
+                                MONGODB_CONNECTION_ERROR
+                            </p>
+                        </div>
+                        <p className="font-mono text-xs text-muted-foreground">└─ {connectError}</p>
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Connection was interrupted. Attempting to reconnect automatically.
-                    </p>
-                </div>
-            )}
+                )}
+
+                {error && !isReconnecting && (
+                    <div className="border-2 border-destructive bg-destructive/10 p-6">
+                        <div className="mb-2 flex items-center gap-2">
+                            <span className="text-xl">▼</span>
+                            <p className="font-mono text-sm font-bold text-destructive uppercase">STREAM_ERROR</p>
+                        </div>
+                        <p className="font-mono text-xs text-muted-foreground">└─ {error}</p>
+                        <p className="mt-2 font-mono text-xs text-muted-foreground">
+                            └─ API_SERVER: {import.meta.env.VITE_API_URL || "http://localhost:9001"}
+                        </p>
+                    </div>
+                )}
+
+                {isReconnecting && (
+                    <div className="border-2 border-border bg-muted p-6">
+                        <div className="flex items-center gap-3">
+                            <div className="h-4 w-4 animate-spin border-2 border-muted-foreground/20 border-t-muted-foreground" />
+                            <p className="font-mono text-sm font-bold uppercase">RECONNECTING_TO_SERVER</p>
+                        </div>
+                        <p className="mt-2 font-mono text-xs text-muted-foreground">
+                            └─ Connection interrupted. Auto-reconnect in progress...
+                        </p>
+                    </div>
+                )}
+            </div>
 
             {data && (
                 <>
-                    <SummaryStats summary={data.summary} />
-                    <QueryTable queries={data.queries} onQueryClick={handleQueryClick} />
+                    <div className="animate-reveal opacity-0 delay-200">
+                        <SummaryStats summary={data.summary} />
+                    </div>
+                    <div className="animate-reveal opacity-0 delay-300">
+                        <QueryTable queries={data.queries} onQueryClick={handleQueryClick} />
+                    </div>
                 </>
             )}
 
             {!data && !error && (
-                <div className="py-12 text-center">
-                    <div className="inline-block h-12 w-12 animate-spin rounded-full border-b-2 border-primary"></div>
-                    <p className="mt-4 text-muted-foreground">Connecting to MongoDB and loading queries...</p>
+                <div className="py-24 text-center">
+                    <div className="inline-block h-16 w-16 animate-spin border-4 border-border border-t-primary"></div>
+                    <p className="mt-6 font-mono text-sm tracking-wide text-muted-foreground uppercase">
+                        INITIALIZING_MONGODB_CONNECTION
+                    </p>
+                    <p className="mt-2 font-mono text-xs text-muted-foreground">Loading query stream...</p>
                 </div>
             )}
 

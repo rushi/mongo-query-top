@@ -39,82 +39,123 @@ export const FilterControls = () => {
     };
 
     return (
-        <Card className="p-4">
-            <div className="flex flex-wrap items-end gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="minTime">Min Time (s)</Label>
+        <Card className="border-2 border-border bg-card p-0">
+            {/* Header */}
+            <div className="border-b-2 border-border bg-muted px-4 py-1.5">
+                <span className="font-mono text-xs tracking-wider text-primary uppercase">■ FILTER_CONTROLS</span>
+            </div>
+
+            <div className="flex flex-wrap items-end gap-4 p-4">
+                {/* Min Time Input */}
+                <div className="space-y-1">
+                    <Label
+                        htmlFor="minTime"
+                        className="font-mono text-tiny! tracking-wide text-muted-foreground uppercase"
+                    >
+                        MIN_TIME_SEC
+                    </Label>
                     <Input
                         id="minTime"
                         type="number"
                         value={minTime}
                         onChange={(e) => setMinTime(Number(e.target.value))}
-                        className="w-24"
+                        className="h-9 w-24 border-2 border-border bg-input font-mono text-sm"
                         min={0}
                     />
                 </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="refresh">Refresh (s)</Label>
+                {/* Refresh Interval */}
+                <div className="space-y-1">
+                    <Label
+                        htmlFor="refresh"
+                        className="font-mono text-tiny! tracking-wide text-muted-foreground uppercase"
+                    >
+                        REFRESH_SEC
+                    </Label>
                     <Input
                         id="refresh"
                         type="number"
                         value={refreshInterval}
                         onChange={(e) => setRefreshInterval(Number(e.target.value))}
-                        className="w-24"
+                        className="h-9 w-24 border-2 border-border bg-input font-mono text-sm"
                         min={1}
                     />
                 </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="ipFilter">IP Filter</Label>
+                {/* IP Filter */}
+                <div className="space-y-1">
+                    <Label
+                        htmlFor="ipFilter"
+                        className="font-mono text-tiny! tracking-wide text-muted-foreground uppercase"
+                    >
+                        IP_FILTER
+                    </Label>
                     <Input
                         id="ipFilter"
                         type="text"
                         value={ipFilter || ""}
                         onChange={(e) => setIpFilter(e.target.value || undefined)}
-                        placeholder="192.168.1.1"
-                        className="w-40"
+                        placeholder="0.0.0.0"
+                        className="h-9 w-40 border-2 border-border bg-input font-mono text-sm placeholder:text-muted-foreground/40"
                     />
                 </div>
 
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button onClick={toggleShowAll} variant={showAll ? "default" : "outline"} className="h-9">
-                                Show All
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-md">
-                            <p className="font-semibold">Show All Queries</p>
-                            <p className="mt-1 text-xs">
-                                When disabled, filters out system queries, private IPs (192.*), MongoDB internal
-                                operations, monitoring tools, and health checks.
-                            </p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                {/* Show All Toggle */}
+                <div className="space-y-1">
+                    <Label className="font-mono text-tiny! tracking-wide text-muted-foreground uppercase">
+                        OPTIONS
+                    </Label>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={toggleShowAll}
+                                    variant={showAll ? "default" : "outline"}
+                                    className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                                >
+                                    {showAll ? "● " : "○ "}SHOW_ALL
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-md border-2 border-border bg-popover p-3">
+                                <p className="font-mono text-xs font-bold text-muted-foreground uppercase">
+                                    SHOW_ALL_QUERIES
+                                </p>
+                                <p className="mt-2 font-mono text-tiny leading-relaxed text-foreground">
+                                    When disabled, filters system queries, private IPs (192.*), MongoDB internal ops,
+                                    monitoring tools, and health checks.
+                                </p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
 
+                {/* Action Buttons */}
                 <div className="ml-auto flex gap-2">
-                    <Button onClick={resetFilters} variant="outline" className="h-9" title="Reset filters to default">
-                        <ArrowCounterClockwiseIcon weight="bold" className="mr-2 h-4 w-4" />
-                        Reset
+                    <Button
+                        onClick={resetFilters}
+                        variant="outline"
+                        className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                        title="Reset filters to default"
+                    >
+                        <ArrowCounterClockwiseIcon weight="bold" className="mr-2 h-3.5 w-3.5" />
+                        RESET
                     </Button>
 
                     <Button
                         onClick={handleSaveAll}
                         disabled={isSaving || saved}
                         variant={saved ? "default" : "outline"}
-                        className="h-9"
+                        className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
                     >
                         {saved ? (
                             <>
-                                <CheckIcon weight="bold" className="mr-2 h-4 w-4" />
-                                Saved
+                                <CheckIcon weight="bold" className="mr-2 h-3.5 w-3.5" />
+                                SAVED
                             </>
                         ) : (
                             <>
-                                <FloppyDiskIcon weight="bold" className="mr-2 h-4 w-4" />
-                                Save All
+                                <FloppyDiskIcon weight="bold" className="mr-2 h-3.5 w-3.5" />
+                                SAVE_ALL
                             </>
                         )}
                     </Button>

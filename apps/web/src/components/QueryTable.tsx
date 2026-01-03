@@ -122,49 +122,59 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
 
     if (queries.length === 0) {
         return (
-            <div className="rounded-md border p-8 text-center text-muted-foreground">
-                No queries found. Try adjusting your filters or wait for queries to appear.
+            <div className="border-2 border-border p-12 text-center">
+                <div className="mb-3 font-mono text-4xl text-muted-foreground">∅</div>
+                <p className="font-mono text-sm tracking-wide text-muted-foreground uppercase">NO_QUERIES_DETECTED</p>
+                <p className="mt-2 font-mono text-xs text-muted-foreground">
+                    Adjust filters or wait for database operations
+                </p>
             </div>
         );
     }
 
     return (
-        <div className="rounded-md border">
-            <div className="border-b bg-muted/50 px-4 py-3">
-                <div className="grid grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 text-sm font-medium">
+        <div className="border-2 border-border">
+            {/* Table Header Section */}
+            <div className="border-b-2 border-border bg-muted px-4 py-2">
+                <span className="font-mono text-xs tracking-wider text-primary uppercase">■ ACTIVE_QUERIES</span>
+            </div>
+
+            {/* Column Headers */}
+            <div className="border-b-2 bg-card px-4 py-3">
+                <div className="grid grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 font-mono text-tiny font-bold tracking-wide text-muted-foreground uppercase">
                     <div>#</div>
                     <button
                         onClick={() => setSortColumn("opid")}
-                        className="flex cursor-pointer items-center gap-1 text-left hover:text-foreground"
+                        className="flex cursor-pointer items-center gap-1 text-left transition-colors hover:text-primary"
                     >
-                        Op ID {renderSortIcon("opid")}
+                        OP_ID {renderSortIcon("opid")}
                     </button>
                     <button
                         onClick={() => setSortColumn("runtime")}
-                        className="flex cursor-pointer items-center gap-1 justify-end pr-2 hover:text-foreground"
+                        className="flex cursor-pointer items-center justify-end gap-1 pr-2 transition-colors hover:text-primary"
                     >
-                        Runtime {renderSortIcon("runtime")}
+                        RUNTIME {renderSortIcon("runtime")}
                     </button>
                     <button
                         onClick={() => setSortColumn("operation")}
-                        className="flex cursor-pointer items-center gap-1 text-left hover:text-foreground"
+                        className="flex cursor-pointer items-center gap-1 text-left transition-colors hover:text-primary"
                     >
-                        Operation {renderSortIcon("operation")}
+                        OPERATION {renderSortIcon("operation")}
                     </button>
                     <button
                         onClick={() => setSortColumn("namespace")}
-                        className="flex cursor-pointer items-center gap-1 text-left hover:text-foreground"
+                        className="flex cursor-pointer items-center gap-1 text-left transition-colors hover:text-primary"
                     >
-                        Namespace {renderSortIcon("namespace")}
+                        NAMESPACE {renderSortIcon("namespace")}
                     </button>
                     <button
                         onClick={() => setSortColumn("client")}
-                        className="flex cursor-pointer items-center gap-1 text-left hover:text-foreground"
+                        className="flex cursor-pointer items-center gap-1 text-left transition-colors hover:text-primary"
                     >
-                        Client {renderSortIcon("client")}
+                        CLIENT {renderSortIcon("client")}
                     </button>
-                    <div>Status</div>
-                    <div>Actions</div>
+                    <div>STATUS</div>
+                    <div>ACTIONS</div>
                 </div>
             </div>
 
@@ -189,32 +199,38 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                     width: "100%",
                                     transform: `translateY(${virtualRow.start}px)`,
                                 }}
-                                className={`grid cursor-pointer grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 border-b px-4 py-3 transition-colors hover:bg-muted/50 ${isCollscan ? "bg-yellow-50 dark:bg-yellow-950/20" : ""} `}
+                                className={`grid cursor-pointer grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_150px_80px_180px] gap-4 border-b border-border px-4 py-3 transition-colors hover:bg-muted/90 ${isCollscan ? "border-l-4 border-l-warning bg-warning/5" : ""} `}
                             >
-                                <div className="flex items-center text-sm text-muted-foreground tabular-nums">
-                                    #{query.idx}
+                                <div className="flex items-center font-mono text-sm text-muted-foreground tabular-nums">
+                                    {query.idx}
                                 </div>
-                                <div className="flex items-center font-mono text-sm">{query.opid}</div>
-                                <div className="flex items-center font-mono text-sm justify-end pr-2">
+                                <div className="flex items-center font-mono text-sm text-foreground">{query.opid}</div>
+                                <div className="flex items-center justify-end pr-2 font-mono text-sm font-medium text-primary">
                                     {query.runtime_formatted}
                                 </div>
-                                <div className="flex items-center truncate text-sm">{query.operation}</div>
-                                <div className="flex items-center truncate text-sm">
+                                <div className="flex items-center truncate font-mono text-sm text-muted-foreground uppercase">
+                                    {query.operation}
+                                </div>
+                                <div className="flex items-center truncate font-mono text-sm text-foreground">
                                     <span className="text-muted-foreground">{query.database}.</span>
-                                    {query.collection}
+                                    <span className="font-medium">{query.collection}</span>
                                 </div>
-                                <div className="flex items-center truncate text-sm text-muted-foreground">
-                                    {query.userAgent}
-                                </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center truncate font-mono text-sm">{query.userAgent}</div>
+                                <div className="flex items-center gap-1">
                                     {isCollscan && (
-                                        <Badge variant="destructive" className="text-xs">
-                                            COLLSCAN
+                                        <Badge
+                                            variant="destructive"
+                                            className="border border-warning bg-warning/20 font-mono text-tiny text-warning uppercase"
+                                        >
+                                            ⚠ COLLSCAN
                                         </Badge>
                                     )}
                                     {query.waitingForLock && (
-                                        <Badge variant="outline" className="text-xs">
-                                            🔒 Lock
+                                        <Badge
+                                            variant="outline"
+                                            className="border border-destructive font-mono text-tiny uppercase"
+                                        >
+                                            🔒 LOCK
                                         </Badge>
                                     )}
                                 </div>
@@ -223,32 +239,32 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         onClick={(e) => handleFilterByIp(e, query)}
                                         size="sm"
                                         variant="ghost"
-                                        className="h-7 w-7 cursor-pointer p-0"
+                                        className="h-6 w-6 cursor-pointer border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
                                         title="Filter by IP"
                                     >
-                                        <FunnelIcon weight="bold" className="h-3.5 w-3.5" />
+                                        <FunnelIcon weight="bold" className="h-3 w-3" />
                                     </Button>
                                     <Button
                                         onClick={(e) => handleViewDetails(e, query)}
                                         size="sm"
                                         variant="ghost"
-                                        className="h-7 w-7 cursor-pointer p-0"
+                                        className="h-6 w-6 cursor-pointer border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
                                         title="View Details"
                                     >
-                                        <EyeIcon weight="bold" className="h-3.5 w-3.5" />
+                                        <EyeIcon weight="bold" className="h-3 w-3" />
                                     </Button>
                                     <Button
                                         onClick={(e) => handleSave(e, query)}
                                         size="sm"
                                         variant="ghost"
-                                        className="h-7 w-7 cursor-pointer p-0"
+                                        className="h-6 w-6 cursor-pointer border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
                                         disabled={isSaving || isSaved}
                                         title="Save Query"
                                     >
                                         {isSaved ? (
-                                            <CheckIcon weight="bold" className="h-3.5 w-3.5 text-green-600" />
+                                            <CheckIcon weight="bold" className="h-3 w-3 text-primary" />
                                         ) : (
-                                            <FloppyDiskIcon weight="bold" className="h-3.5 w-3.5" />
+                                            <FloppyDiskIcon weight="bold" className="h-3 w-3" />
                                         )}
                                     </Button>
                                 </div>
@@ -258,8 +274,10 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                 </div>
             </div>
 
-            <div className="border-t bg-muted/50 px-4 py-2 text-sm text-muted-foreground">
-                Showing {sortedQueries.length} {sortedQueries.length === 1 ? "query" : "queries"}
+            <div className="border-t border-primary bg-muted px-4 py-2">
+                <span className="font-mono text-tiny tracking-wide text-muted-foreground uppercase">
+                    ▸ SHOWING {sortedQueries.length} {sortedQueries.length === 1 ? "QUERY" : "QUERIES"}
+                </span>
             </div>
         </div>
     );

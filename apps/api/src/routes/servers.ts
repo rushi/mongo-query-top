@@ -18,7 +18,7 @@ export default async function serversRoutes(fastify: FastifyInstance) {
         // Add mock server for UI testing
         serverList.unshift({
             id: "mock",
-            name: "Mock Data (UI Testing)",
+            name: "Mock Data",
             connected: true,
         });
 

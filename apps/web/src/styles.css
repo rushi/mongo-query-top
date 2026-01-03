@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Archivo+Black&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap");
 
 @custom-variant dark (&:is(.dark *));
 
@@ -47,27 +47,20 @@ body {
 }
 
 code {
-    font-family:
-        "IBM Plex Mono",
-        Times New Roman,
-        ui-monospace,
-        SFMono-Regular,
-        Menlo,
-        Monaco,
-        Consolas,
-        monospace;
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* Brutalist heading font */
+/* Brutalist terminal heading font */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-    font-family: "Archivo Black", "IBM Plex Mono", sans-serif;
+    font-family: "Rajdhani", "IBM Plex Mono", system-ui, sans-serif;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
 }
 
 /* Terminal cursor effect */

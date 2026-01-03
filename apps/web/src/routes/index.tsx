@@ -135,7 +135,7 @@ function Dashboard() {
                 </div>
                 <header className="space-y-2">
                     <div className="flex items-start justify-between">
-                        <div className="space-y-0.5">
+                        <div className="space-y-0.5 pl-3">
                             <h1 className="terminal-cursor text-xl tracking-wider text-primary">
                                 MONGODB_QUERY_MONITOR
                             </h1>
@@ -207,9 +207,7 @@ function Dashboard() {
                             <p className="font-mono text-sm font-bold text-destructive uppercase">STREAM_ERROR</p>
                         </div>
                         <p className="font-mono text-xs text-muted-foreground">└─ {error}</p>
-                        <p className="mt-2 font-mono text-xs text-muted-foreground">
-                            └─ API_SERVER: {getApiBaseUrl()}
-                        </p>
+                        <p className="mt-2 font-mono text-xs text-muted-foreground">└─ API_SERVER: {getApiBaseUrl()}</p>
                     </div>
                 )}
 

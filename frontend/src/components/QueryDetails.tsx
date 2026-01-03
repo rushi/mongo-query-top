@@ -1,4 +1,5 @@
-import { Check, Save } from "lucide-react";
+import JsonView from "@microlink/react-json-view";
+import { Check, FloppyDisk } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { usePreferences } from "../store/preferences";
 import type { ProcessedQuery } from "../types";
@@ -17,8 +18,9 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
     const { serverId } = usePreferences();
     const [isSaving, setIsSaving] = useState(false);
     const [saved, setSaved] = useState(false);
-
-    if (!query) return null;
+    if (!query) {
+        return null;
+    }
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -36,45 +38,47 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent className="w-[800px] sm:max-w-[800px] overflow-auto">
-                <SheetHeader>
-                    <SheetTitle>Query Details</SheetTitle>
-                    <SheetDescription>Detailed information about operation #{query.opid}</SheetDescription>
+                <SheetHeader className="flex-row items-start justify-between pr-12">
+                    <div className="flex flex-col gap-1.5">
+                        <SheetTitle>Query Details</SheetTitle>
+                        <SheetDescription>Detailed information about operation #{query.opid}</SheetDescription>
+                    </div>
+                    <Button
+                        onClick={handleSave}
+                        disabled={isSaving || saved}
+                        size="sm"
+                        variant={saved ? "default" : "outline"}
+                    >
+                        {saved ? (
+                            <>
+                                <Check weight="bold" className="h-4 w-4 mr-2" />
+                                Saved
+                            </>
+                        ) : (
+                            <>
+                                <FloppyDisk weight="bold" className="h-4 w-4 mr-2" />
+                                Save
+                            </>
+                        )}
+                    </Button>
                 </SheetHeader>
 
                 <div className="px-6 space-y-4">
-                    <div className="flex justify-end">
-                        <Button
-                            onClick={handleSave}
-                            disabled={isSaving || saved}
-                            size="sm"
-                            variant={saved ? "default" : "outline"}
-                        >
-                            {saved ? (
-                                <>
-                                    <Check className="h-4 w-4 mr-2" />
-                                    Saved
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="h-4 w-4 mr-2" />
-                                    Save
-                                </>
-                            )}
-                        </Button>
-                    </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <div className="text-sm text-muted-foreground">Operation ID</div>
-                            <div className="font-mono text-lg">{query.opid}</div>
+                            <div className="font-mono text-sm">{query.opid}</div>
                         </div>
                         <div className="space-y-1">
                             <div className="text-sm text-muted-foreground">Runtime</div>
                             <div className="text-lg font-semibold">{query.runtime_formatted}</div>
-                            <div className="text-xs text-muted-foreground">({query.secs_running} seconds)</div>
+                            {query.secs_running >= 1 && (
+                                <div className="text-xs text-muted-foreground">({query.secs_running} seconds)</div>
+                            )}
                         </div>
                         <div className="space-y-1">
                             <div className="text-sm text-muted-foreground">Operation</div>
-                            <div className="font-medium">{query.operation}</div>
+                            <div className="font-mono text-sm">{query.operation}</div>
                         </div>
                         <div className="space-y-1">
                             <div className="text-sm text-muted-foreground">Namespace</div>
@@ -85,7 +89,7 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                         </div>
                         <div className="space-y-1">
                             <div className="text-sm text-muted-foreground">Client IP</div>
-                            <div className="font-mono">{query.client.ip}</div>
+                            <div className="font-mono text-sm">{query.client.ip}</div>
                             {query.client.port && (
                                 <div className="text-xs text-muted-foreground">Port: {query.client.port}</div>
                             )}
@@ -135,11 +139,19 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                         </div>
                     )}
 
-                    <div>
-                        <h3 className="text-lg font-semibold mb-2">Query Object</h3>
-                        <pre className="bg-muted p-4 rounded-md overflow-auto text-xs font-mono max-h-[300px]">
-                            {JSON.stringify(query.query, null, 2)}
-                        </pre>
+                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-md overflow-auto max-h-[600px] border border-border">
+                        <JsonView
+                            src={query.query}
+                            name={false}
+                            collapsed={4}
+                            displayDataTypes={false}
+                            displayObjectSize={false}
+                            enableClipboard={false}
+                            style={{
+                                fontSize: "13px",
+                                fontFamily: "ui-monospace, monospace",
+                            }}
+                        />
                     </div>
                 </div>
             </SheetContent>

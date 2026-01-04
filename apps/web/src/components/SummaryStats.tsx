@@ -21,7 +21,7 @@ export const SummaryStats = ({ summary }: SummaryStatsProps) => {
             <div className="grid grid-cols-[minmax(160px,auto)_minmax(180px,auto)_1fr_1fr] gap-0">
                 {/* Total Queries */}
                 <div className="border-r-2 border-border p-3">
-                    <div className="mb-0.5 font-mono text-tiny tracking-wide text-muted-foreground uppercase">
+                    <div className="text-tiny mb-0.5 font-mono tracking-wide text-muted-foreground uppercase">
                         TOTAL_QUERIES
                     </div>
                     <div className="font-mono text-lg text-primary">{summary.totalQueries}</div>
@@ -29,7 +29,7 @@ export const SummaryStats = ({ summary }: SummaryStatsProps) => {
 
                 {/* Unindexed Queries */}
                 <div className="border-r-2 border-border p-3">
-                    <div className="mb-0.5 font-mono text-tiny tracking-wide text-muted-foreground uppercase">
+                    <div className="text-tiny mb-0.5 font-mono tracking-wide text-muted-foreground uppercase">
                         COLLSCAN_DETECT
                     </div>
                     <div
@@ -41,13 +41,13 @@ export const SummaryStats = ({ summary }: SummaryStatsProps) => {
                         {summary.unindexedCount}
                     </div>
                     {summary.unindexedCount > 0 && (
-                        <div className="mt-1 font-mono text-tiny text-warning uppercase">⚠ UNINDEXED</div>
+                        <div className="text-tiny mt-1 font-mono text-warning uppercase">⚠ UNINDEXED</div>
                     )}
                 </div>
 
                 {/* Operations Breakdown */}
                 <div className="border-r-2 border-border p-3">
-                    <div className="mb-1.5 font-mono text-tiny tracking-wide text-muted-foreground uppercase">
+                    <div className="text-tiny mb-1.5 font-mono tracking-wide text-muted-foreground uppercase">
                         OPERATIONS
                     </div>
                     {operationsEntries.length > 0 ? (
@@ -67,7 +67,7 @@ export const SummaryStats = ({ summary }: SummaryStatsProps) => {
 
                 {/* Collections */}
                 <div className="p-3">
-                    <div className="mb-1.5 font-mono text-tiny tracking-wide text-muted-foreground uppercase">
+                    <div className="text-tiny mb-1.5 font-mono tracking-wide text-muted-foreground uppercase">
                         COLLECTIONS
                     </div>
                     {topCollections.length > 0 ? (

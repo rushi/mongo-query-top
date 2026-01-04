@@ -135,7 +135,7 @@ function Dashboard() {
     const getConnectionBadge = () => {
         if (isConnecting) {
             return (
-                <Badge variant="secondary" className="gap-1.5 border-2 font-mono text-tiny! uppercase">
+                <Badge variant="secondary" className="text-tiny gap-1.5 border-2 font-mono uppercase">
                     <div className="h-2 w-2 animate-spin border border-muted-foreground/20 border-t-muted-foreground" />
                     CONNECTING
                 </Badge>
@@ -144,7 +144,7 @@ function Dashboard() {
 
         if (isConnected && isStale) {
             return (
-                <Badge variant="secondary" className="border-2 border-warning font-mono text-tiny! uppercase">
+                <Badge variant="secondary" className="text-tiny border-2 border-warning font-mono uppercase">
                     ⏱ STALE
                 </Badge>
             );
@@ -154,7 +154,7 @@ function Dashboard() {
             return (
                 <Badge
                     variant="success"
-                    className="border-2 border-primary bg-primary/20 font-mono text-tiny! text-primary uppercase"
+                    className="text-tiny border-2 border-primary bg-primary/20 font-mono text-primary uppercase"
                 >
                     ● CONNECTED
                 </Badge>
@@ -163,14 +163,14 @@ function Dashboard() {
 
         if (isReconnecting) {
             return (
-                <Badge variant="secondary" className="border-2 font-mono text-tiny! uppercase">
+                <Badge variant="secondary" className="text-tiny border-2 font-mono uppercase">
                     ⟳ RECONNECTING
                 </Badge>
             );
         }
 
         return (
-            <Badge variant="destructive" className="border-2 font-mono text-tiny! uppercase">
+            <Badge variant="destructive" className="text-tiny border-2 font-mono uppercase">
                 ○ DISCONNECTED
             </Badge>
         );
@@ -192,7 +192,7 @@ function Dashboard() {
                             <p className="text-tiny tracking-wide text-muted-foreground uppercase">
                                 ▸ REAL-TIME DATABASE OPERATIONS STREAM{" "}
                                 {data?.metadata && (
-                                    <span className="font-mono text-tiny text-muted-foreground">
+                                    <span className="text-tiny font-mono text-muted-foreground">
                                         LAST_UPDATE: {new Date(data.metadata.timestamp).toLocaleTimeString()}
                                     </span>
                                 )}

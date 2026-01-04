@@ -3,7 +3,7 @@
   <h1>MongoDB Query "Top"</h1>
 </div>
 
-A modern, full-stack MongoDB monitoring tool that presents `db.currentOp()` results in an intuitive interface. Built with TypeScript in a monorepo architecture, featuring a CLI, REST API with Server-Sent Events, and React web dashboard.
+A modern, full-stack MongoDB monitoring tool that presents `db.currentOp()` results in an intuitive interface. Built with TypeScript in a monorepo architecture, featuring a REST API with Server-Sent Events and a React web dashboard.
 
 ## Features
 
@@ -46,16 +46,13 @@ pnpm install
 # Configure your MongoDB servers (see Configuration section)
 cp config/local.yaml.example config/local.yaml
 
-# Start web dashboard (recommended)
+# Start web dashboard
 pnpm run dev:web
-
-# Or start CLI only
-pnpm run dev:cli
 ```
 
 ## Usage
 
-### Web Dashboard (Recommended)
+### Web Dashboard
 
 ```bash
 pnpm run dev:web
@@ -67,23 +64,6 @@ Opens **http://localhost:9000** with:
 - Interactive table with virtualization
 - Query details with JSON viewer
 - Server selection and connection management
-
-### CLI Mode
-
-```bash
-# Monitor default server (localhost)
-pnpm run dev:cli
-
-# Monitor specific server
-pnpm run dev:cli -- -c production
-
-# Show queries running longer than 5 seconds
-pnpm run dev:cli -- --minTime=5
-```
-
-**Interactive Controls:** `p` (pause), `r` (reverse), `s` (snapshot), `a` (show all), `q` (quit)
-
-See [docs/CLI.md](docs/CLI.md) for complete CLI documentation, options, and examples.
 
 ### API Server
 
@@ -144,16 +124,15 @@ Copy `config/local.yaml.example` to get started.
 ```
 apps/
 ├── api/      # Fastify REST API + SSE streaming
-├── cli/      # Terminal monitoring tool
+│             # Includes MongoDB services and query processing
 └── web/      # React dashboard (TanStack Router, Zustand, shadcn/ui)
+│             # Includes utility functions for styling
 
 packages/
-├── types/    # Shared TypeScript types
-├── utils/    # Shared utilities
-└── core/     # Business logic and services
+└── types/    # Shared TypeScript types
 ```
 
-**Services** (packages/core):
+**Services** (apps/api/src/core):
 
 - `MongoConnectionService` - Connection pooling
 - `QueryService` - Query processing and filtering
@@ -163,7 +142,6 @@ packages/
 
 - **Monorepo:** Turborepo, pnpm workspaces
 - **Backend:** TypeScript, MongoDB Driver v7, Fastify, lodash-es
-- **CLI:** chalk, cli-table3, yargs
 - **Frontend:** React 19, TanStack Router + Virtual, Zustand, Vite, Tailwind CSS, shadcn/ui
 
 ## Development
@@ -173,7 +151,6 @@ packages/
 pnpm install
 
 # Development modes
-pnpm run dev:cli    # CLI only
 pnpm run dev:api    # API only
 pnpm run dev:web    # API + Web (recommended)
 pnpm run dev        # All apps
@@ -188,23 +165,20 @@ turbo build --filter=@mongo-query-top/api
 pnpm run format
 
 # Production
-pnpm run start:cli
 pnpm run start:api
 ```
 
 ## Documentation
 
 - **[docs/API.md](docs/API.md)** - Complete API endpoint documentation
-- **[docs/CLI.md](docs/CLI.md)** - CLI usage guide and interactive controls
 - **[CLAUDE.md](CLAUDE.md)** - Developer guide with code patterns, architecture details, and customization instructions
 
 ## Query Logging
 
 Queries are auto-saved to `logs/<server-id>/` when:
 
-- Runtime exceeds `--log` threshold (default: 10s)
+- Runtime exceeds configured threshold (default: 10s)
 - Query uses COLLSCAN (collection scan)
-- User presses `s` (snapshot)
 
 ## License
 

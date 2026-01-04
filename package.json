@@ -14,10 +14,8 @@
         "build": "turbo build",
         "dev": "turbo dev --filter=@mongo-query-top/web --filter=@mongo-query-top/api",
         "dev:api": "turbo dev --filter=@mongo-query-top/api",
-        "dev:cli": "turbo dev --filter=@mongo-query-top/cli",
         "start": "concurrently \"pnpm start:api\" \"pnpm start:web\"",
         "start:api": "pnpm --filter=@mongo-query-top/api start",
-        "start:cli": "pnpm --filter=@mongo-query-top/cli start",
         "start:web": "pnpm --filter=@mongo-query-top/web start",
         "format": "prettier -l --write \"**/*.{ts,tsx,json,md}\"",
         "lint": "turbo lint",
@@ -37,11 +35,8 @@
         "@types/js-yaml": "^4.0.9",
         "@types/lodash-es": "^4.17.12",
         "@types/node": "^25.0.3",
-        "@types/yargs": "^17.0.35",
         "@typescript-eslint/eslint-plugin": "^8.51.0",
         "@typescript-eslint/parser": "^8.51.0",
-        "chalk": "^5.6.2",
-        "cli-table3": "^0.6.5",
         "concurrently": "^9.2.1",
         "dayjs": "^1.11.19",
         "eslint": "^9.39.2",
@@ -57,8 +52,6 @@
         "prettier-plugin-tailwindcss": "^0.7.2",
         "tsx": "^4.21.0",
         "turbo": "^2.7.2",
-        "typescript": "^5.9.3",
-        "window-size": "^1.1.1",
-        "yargs": "^18.0.0"
+        "typescript": "^5.9.3"
     }
 }

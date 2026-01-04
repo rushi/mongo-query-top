@@ -1,5 +1,4 @@
 import type { ProcessedQuery } from "@mongo-query-top/types";
-import { cn } from "@mongo-query-top/utils";
 import {
     CaretDownIcon,
     CaretUpIcon,
@@ -12,6 +11,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useMemo, useRef, useState } from "react";
 import type { SortColumn } from "../hooks/useUrlPreferences";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
+import { cn } from "../lib/utils";
 import { apiClient } from "../utils/api";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";

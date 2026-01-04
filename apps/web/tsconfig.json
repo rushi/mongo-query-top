@@ -23,5 +23,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "references": [{ "path": "./tsconfig.node.json" }, { "path": "../../packages/types" }, { "path": "../../packages/utils" }]
+  "references": [{ "path": "./tsconfig.node.json" }, { "path": "../../packages/types" }]
 }

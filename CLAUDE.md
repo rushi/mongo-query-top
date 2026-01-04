@@ -6,31 +6,28 @@
 
 ### Architecture
 
-This is a **Turborepo monorepo** with three applications and three shared packages:
+This is a **Turborepo monorepo** with two applications and one shared package:
 
 **Applications:**
 
-1. **CLI Tool** (`apps/cli/`) - Terminal-based monitoring interface with keyboard controls
-2. **API Server** (`apps/api/`) - Fastify REST API with Server-Sent Events for real-time streaming
-3. **Web Frontend** (`apps/web/`) - React dashboard with real-time query visualization
+1. **API Server** (`apps/api/`) - Fastify REST API with Server-Sent Events for real-time streaming
+    - Includes MongoDB services and query processing logic
+2. **Web Frontend** (`apps/web/`) - React dashboard with real-time query visualization
+    - Includes utility functions for styling
 
-**Shared Packages:**
+**Shared Package:**
 
 1. **types** (`packages/types/`) - Shared TypeScript type definitions for API contracts
-2. **utils** (`packages/utils/`) - Shared utility functions (cn, etc.)
-3. **core** (`packages/core/`) - Shared business logic, services, and MongoDB operations
 
 ### Key Features
 
-- **Real-time Monitoring**: Auto-refresh with configurable intervals (CLI + Web UI)
+- **Real-time Monitoring**: Auto-refresh with configurable intervals
 - **Intelligent Filtering**: Automatically filters system/internal queries to reduce noise
 - **Performance Insights**: Highlights unindexed queries (COLLSCAN) in yellow/red
 - **GeoIP Location**: Display geographic location for public IP addresses
 - **Auto-Logging**: Saves long-running and problematic queries to disk
 - **Client Detection**: Detects and formats various MongoDB clients (Mongoose, PHP, NoSQLBooster, etc.)
-- **Interactive Controls**:
-    - CLI: Keyboard controls (pause, reverse, snapshot, show all)
-    - Web: Filter controls, query details dialog, server switching
+- **Interactive Controls**: Filter controls, query details dialog, server switching
 - **Summary Statistics**: Operations, collections, clients, unindexed queries
 - **Multi-Server Support**: Connect to multiple MongoDB servers via configuration
 - **Server-Sent Events**: Real-time streaming of query data to web frontend
@@ -54,20 +51,19 @@ mongo-query-top/
 │   ├── api/                             # Fastify REST API + SSE server
 │   │   ├── src/
 │   │   │   ├── server.ts                # API entry point
-│   │   │   └── routes/
-│   │   │       ├── queries.ts           # Query endpoints + SSE streaming
-│   │   │       └── servers.ts           # Server connection management
-│   │   ├── package.json                 # Depends: @mongo-query-top/core, types
-│   │   └── tsconfig.json
-│   │
-│   ├── cli/                             # Terminal monitoring tool
-│   │   ├── src/
-│   │   │   ├── cli.ts                   # CLI entry point
-│   │   │   ├── ConsoleRenderer.ts       # Terminal rendering logic
-│   │   │   └── lib/
-│   │   │       ├── renderer.ts          # Table rendering with cli-table3
-│   │   │       └── usage.ts             # CLI argument parsing with yargs
-│   │   ├── package.json                 # Depends: @mongo-query-top/core, types
+│   │   │   ├── routes/
+│   │   │   │   ├── queries.ts           # Query endpoints + SSE streaming
+│   │   │   │   └── servers.ts           # Server connection management
+│   │   │   └── core/                    # MongoDB services & query processing
+│   │   │       ├── services/
+│   │   │       │   ├── MongoConnectionService.ts  # MongoDB connection pool
+│   │   │       │   ├── QueryService.ts      # Query processing & filtering
+│   │   │       │   └── QueryLoggerService.ts # Query logging to disk
+│   │   │       ├── lib/
+│   │   │       │   ├── queryProcessor.ts    # Query filtering, sanitization
+│   │   │       │   └── helpers.ts           # Utilities: sleep, clear, etc.
+│   │   │       └── index.ts             # Barrel exports
+│   │   ├── package.json                 # Depends: @mongo-query-top/types
 │   │   └── tsconfig.json
 │   │
 │   └── web/                             # React dashboard (Vite + TanStack Router)
@@ -84,42 +80,24 @@ mongo-query-top/
 │       │   ├── hooks/
 │       │   │   ├── useServerSentEvents.ts  # SSE hook with auto-reconnect
 │       │   │   └── useFetchServers.ts   # Fetch servers hook
+│       │   ├── lib/
+│       │   │   └── utils.ts             # Utility functions (cn, etc.)
 │       │   ├── store/
 │       │   │   └── preferences.ts       # Zustand store for user prefs
 │       │   └── utils/
 │       │       └── api.ts               # API client helper
-│       ├── package.json                 # Depends: @mongo-query-top/types, utils
+│       ├── package.json                 # Depends: @mongo-query-top/types
 │       ├── tsconfig.json
 │       └── vite.config.ts               # Vite config (port 9000)
 │
 ├── packages/
-│   ├── types/                           # Shared TypeScript type definitions
-│   │   ├── src/
-│   │   │   ├── api.ts                   # API contract types (ProcessedQuery, etc.)
-│   │   │   ├── mongo.ts                 # MongoDB types (MongoQuery, ServerConfig)
-│   │   │   ├── shared.ts                # Shared types (GeoLocation)
-│   │   │   └── index.ts                 # Barrel exports
-│   │   ├── package.json                 # No dependencies (private package)
-│   │   └── tsconfig.json
-│   │
-│   ├── utils/                           # Shared utility functions
-│   │   ├── src/
-│   │   │   ├── cn.ts                    # Tailwind class name merger
-│   │   │   └── index.ts                 # Barrel exports
-│   │   ├── package.json                 # Depends: clsx, tailwind-merge
-│   │   └── tsconfig.json
-│   │
-│   └── core/                            # Shared business logic & services
+│   └── types/                           # Shared TypeScript type definitions
 │       ├── src/
-│       │   ├── services/
-│       │   │   ├── MongoConnectionService.ts  # MongoDB connection pool
-│       │   │   ├── QueryService.ts      # Query processing & filtering
-│       │   │   └── QueryLoggerService.ts # Query logging to disk
-│       │   ├── lib/
-│       │   │   ├── queryProcessor.ts    # Query filtering, sanitization
-│       │   │   └── helpers.ts           # Utilities: sleep, clear, etc.
+│       │   ├── api.ts                   # API contract types (ProcessedQuery, etc.)
+│       │   ├── mongo.ts                 # MongoDB types (MongoQuery, ServerConfig)
+│       │   ├── shared.ts                # Shared types (GeoLocation)
 │       │   └── index.ts                 # Barrel exports
-│       ├── package.json                 # Depends: @mongo-query-top/types, mongodb
+│       ├── package.json                 # No dependencies (private package)
 │       └── tsconfig.json
 │
 ├── config/
@@ -152,34 +130,16 @@ mongo-query-top/
 
 - **bson** (^6.10.4): MongoDB BSON library for type definitions
 
-**packages/utils:**
-
-- **clsx** (^2.1.1): Conditional className utility
-- **tailwind-merge** (^3.4.0): Tailwind CSS class merging utility
-
-**packages/core:**
-
-- **mongodb** (^7.0.0): MongoDB Node.js driver for connecting and running currentOp
-- **lodash-es** (^4.17.22): Utility functions for data manipulation
-- **dayjs** (^1.11.19): Date formatting and manipulation
-- **chalk** (^5.6.2): Terminal colors and styling
-- **geoip-lite** (^1.4.10): IP geolocation lookup
-- **humanize-duration** (^3.33.2): Human-readable time formatting
-- **config** (^4.1.1): Configuration management
-
-#### Backend Apps
-
-**apps/api:**
+#### Backend (apps/api)
 
 - **fastify** (^5.6.2): Fast, low-overhead web framework for the API server
 - **@fastify/cors** (^11.2.0): CORS plugin for Fastify
-
-**apps/cli:**
-
-- **cli-table3** (^0.6.5): Beautiful terminal tables for CLI rendering
-- **yargs** (^18.0.0): CLI argument parsing
-- **window-size** (^1.1.1): Terminal window size detection
-- **tsx** (^4.21.0): TypeScript execution for development
+- **mongodb** (^7.0.0): MongoDB Node.js driver for connecting and running currentOp
+- **lodash-es** (^4.17.22): Utility functions for data manipulation
+- **dayjs** (^1.11.19): Date formatting and manipulation
+- **geoip-lite** (^1.4.10): IP geolocation lookup
+- **humanize-duration** (^3.33.2): Human-readable time formatting
+- **config** (^4.1.1): Configuration management
 
 #### Frontend (apps/web)
 
@@ -188,6 +148,8 @@ mongo-query-top/
 - **@tanstack/react-virtual** (^3.13.14): Virtualization for large query lists
 - **zustand** (^5.0.9): Lightweight state management for user preferences
 - **tailwindcss** (^4.0.6): Utility-first CSS framework
+- **clsx** (^2.1.1): Conditional className utility
+- **tailwind-merge** (^3.4.0): Tailwind CSS class merging utility
 - **shadcn/ui**: Radix UI components styled with Tailwind (Dialog, Select, Table, etc.)
 - **@phosphor-icons/react** (^2.1.10): Icon library
 - **date-fns** (^4.1.0): Date utilities
@@ -337,16 +299,6 @@ frontend:
     url: http://localhost:9000
 ```
 
-**Usage:**
-
-```bash
-# CLI with server config
-pnpm run dev:cli -- -c server-name
-
-# After building
-node dist/cli.js -c server-name
-```
-
 **In Code:**
 
 ```typescript
@@ -360,7 +312,7 @@ const port = config.get<number>("api.port");
 const apiKey = config.get<string>("api.apiKey");
 ```
 
-### Query Processing (packages/core/src/lib/queryProcessor.ts)
+### Query Processing (apps/api/src/core/lib/queryProcessor.ts)
 
 **`shouldSkipQuery(q)`**
 
@@ -377,7 +329,7 @@ const apiKey = config.get<string>("api.apiKey");
 **`formatUserAgent(q)`**
 
 - Detects client type from `appName` and `clientMetadata`
-- Returns formatted string with chalk colors
+- Returns formatted string identifying the client
 - Recognizes: NoSQLBooster, Mongoose, PHP ext-mongodb, Node.js versions
 
 **`summarizeArray(data)`**
@@ -554,7 +506,7 @@ const MyComponent = () => {
 
 ### Adding New Query Filters
 
-**File:** [packages/core/src/lib/queryProcessor.ts](packages/core/src/lib/queryProcessor.ts)
+**File:** [apps/api/src/core/lib/queryProcessor.ts](apps/api/src/core/lib/queryProcessor.ts)
 
 Modify the `shouldSkipQuery()` function:
 
@@ -600,7 +552,7 @@ export const formatUserAgent = (q: MongoQuery): string => {
 
     // Add your custom client detection
     if (clientMetadata?.driver?.name?.match(/YourDriver/i)) {
-        return chalk.bold("Your Custom Driver");
+        return "Your Custom Driver";
     }
 
     if (appName?.match(/YourApp/i)) {
@@ -613,7 +565,7 @@ export const formatUserAgent = (q: MongoQuery): string => {
 
 ### Modifying Query Sanitization
 
-**File:** [packages/core/src/lib/queryProcessor.ts](packages/core/src/lib/queryProcessor.ts), function `sanitizeQuery()`
+**File:** [apps/api/src/core/lib/queryProcessor.ts](apps/api/src/core/lib/queryProcessor.ts), function `sanitizeQuery()`
 
 **Hide Additional Fields:**
 
@@ -646,9 +598,6 @@ pnpm run dev:web
 
 # API server only
 pnpm run dev:api
-
-# CLI only
-pnpm run dev:cli
 ```
 
 ### Build and Production
@@ -657,9 +606,8 @@ pnpm run dev:cli
 # Build all packages
 pnpm run build
 
-# Run specific app
+# Run API server
 pnpm run start:api
-pnpm run start:cli
 ```
 
 ### Format Code
@@ -684,9 +632,8 @@ Runs Prettier on all TypeScript files across all packages in the monorepo.
 ### Backend Specific
 
 - **Lodash-ES**: Extensively used for data manipulation (`sortBy`, `omit`, `isEmpty`, etc.)
-- **Chalk**: Terminal colors throughout CLI code
 - **Type Definitions**: Interfaces and types defined in [packages/types/src/](packages/types/src/)
-- **Service Pattern**: Business logic encapsulated in service classes in [packages/core/src/services/](packages/core/src/services/)
+- **Service Pattern**: Business logic encapsulated in service classes in [apps/api/src/core/services/](apps/api/src/core/services/)
 - **Fastify Plugins**: Routes as async functions registered with `fastify.register()`
 
 ### Frontend Specific
@@ -798,12 +745,12 @@ VITE_API_KEY=dev-key-change-in-production  # API key for authentication
 ### Running Full Stack Development
 
 ```bash
-# Terminal 1: Backend API + CLI
+# Run the full stack (API + Frontend)
 pnpm run dev:web
 
 # This runs both:
 # - API server on http://localhost:9001
-# - Frontend dev server on http://localhost:3000
+# - Frontend dev server on http://localhost:9000
 ```
 
 ### Running Components Separately
@@ -812,11 +759,8 @@ pnpm run dev:web
 # Backend API only
 pnpm run dev:api
 
-# Frontend only (in frontend directory)
-cd frontend && pnpm run dev
-
-# CLI only
-pnpm run dev:cli -- -c localhost
+# Frontend only
+cd apps/web && pnpm run dev
 ```
 
 ### Making Changes

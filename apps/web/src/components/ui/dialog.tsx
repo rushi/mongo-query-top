@@ -1,9 +1,9 @@
 "use client";
 
-import { cn } from "@mongo-query-top/utils";
 import { X } from "@phosphor-icons/react/dist/ssr";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as React from "react";
+import { cn } from "../../lib/utils";
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
     return <DialogPrimitive.Root data-slot="dialog" {...props} />;

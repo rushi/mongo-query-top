@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import cors from "@fastify/cors";
-import { MongoConnectionService, QueryLoggerService, QueryService } from "@mongo-query-top/core";
 import config from "config";
 import Fastify from "fastify";
+import { MongoConnectionService, QueryLoggerService, QueryService } from "./core/index.js";
 import queriesRoutes from "./routes/queries.js";
 import serversRoutes from "./routes/servers.js";
 

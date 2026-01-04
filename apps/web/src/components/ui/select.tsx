@@ -1,9 +1,9 @@
 "use client";
 
-import { cn } from "@mongo-query-top/utils";
 import { CaretDown, CaretUp, Check } from "@phosphor-icons/react/dist/ssr";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import * as React from "react";
+import { cn } from "../../lib/utils";
 
 function Select({ ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {
     return <SelectPrimitive.Root data-slot="select" {...props} />;

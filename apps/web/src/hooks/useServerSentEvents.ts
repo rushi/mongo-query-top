@@ -19,10 +19,12 @@ export const useServerSentEvents = (
 
     const [isConnected, setIsConnected] = useState(false);
     const [isReconnecting, setIsReconnecting] = useState(false);
+    const [isStale, setIsStale] = useState(false);
 
     const reconnectAttemptsRef = useRef(0);
     const retryDelayRef = useRef(INITIAL_RETRY_DELAY);
     const abortControllerRef = useRef<AbortController | null>(null);
+    const lastUpdateTimeRef = useRef<number>(Date.now());
 
     useEffect(() => {
         if (isPaused || !enabled) {
@@ -76,6 +78,8 @@ export const useServerSentEvents = (
                                 const parsedData = JSON.parse(event.data);
                                 setData(parsedData);
                                 setError(null);
+                                lastUpdateTimeRef.current = Date.now();
+                                setIsStale(false);
                             } catch (err) {
                                 console.log("[Connection] Failed to parse query data:", { err });
                                 setError("Failed to parse query data");
@@ -133,5 +137,28 @@ export const useServerSentEvents = (
         };
     }, [serverId, minTime, refreshInterval, showAll, enabled, isPaused]);
 
-    return { data, error, isConnected, isReconnecting };
+    // Check for stale connection (no updates for > 2 seconds)
+    useEffect(() => {
+        if (!isConnected || isPaused) {
+            return;
+        }
+
+        const checkStaleInterval = setInterval(() => {
+            const timeSinceLastUpdate = Date.now() - lastUpdateTimeRef.current;
+            const isCurrentlyStale = timeSinceLastUpdate > 2000;
+
+            if (isCurrentlyStale !== isStale) {
+                setIsStale(isCurrentlyStale);
+                if (isCurrentlyStale) {
+                    console.log("[Connection] Connection appears stale - no updates for 2+ seconds");
+                }
+            }
+        }, 500);
+
+        return () => {
+            clearInterval(checkStaleInterval);
+        };
+    }, [isConnected, isPaused, isStale]);
+
+    return { data, error, isConnected, isReconnecting, isStale };
 };

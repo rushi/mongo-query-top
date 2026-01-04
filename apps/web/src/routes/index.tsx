@@ -53,7 +53,7 @@ function Dashboard() {
     const [isConnecting, setIsConnecting] = useState(false);
     const [mongoConnected, setMongoConnected] = useState(false);
     const [connectError, setConnectError] = useState<string | null>(null);
-    const { data, error, isConnected, isReconnecting } = useServerSentEvents(
+    const { data, error, isConnected, isReconnecting, isStale } = useServerSentEvents(
         serverId,
         minTime,
         refreshInterval,
@@ -138,6 +138,14 @@ function Dashboard() {
                 <Badge variant="secondary" className="gap-1.5 border-2 font-mono text-tiny! uppercase">
                     <div className="h-2 w-2 animate-spin border border-muted-foreground/20 border-t-muted-foreground" />
                     CONNECTING
+                </Badge>
+            );
+        }
+
+        if (isConnected && isStale) {
+            return (
+                <Badge variant="secondary" className="border-2 border-warning font-mono text-tiny! uppercase">
+                    ⏱ STALE
                 </Badge>
             );
         }

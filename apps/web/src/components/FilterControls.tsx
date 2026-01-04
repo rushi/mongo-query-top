@@ -59,7 +59,7 @@ export const FilterControls = () => {
                 <div className="space-y-1">
                     <Label
                         htmlFor="minTime"
-                        className="text-tiny font-mono tracking-wide text-muted-foreground uppercase"
+                        className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase"
                     >
                         MIN_TIME_MS
                     </Label>
@@ -78,7 +78,7 @@ export const FilterControls = () => {
                 <div className="space-y-1">
                     <Label
                         htmlFor="refresh"
-                        className="text-tiny font-mono tracking-wide text-muted-foreground uppercase"
+                        className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase"
                     >
                         REFRESH_SEC
                     </Label>
@@ -96,7 +96,7 @@ export const FilterControls = () => {
                 <div className="space-y-1">
                     <Label
                         htmlFor="ipFilter"
-                        className="text-tiny font-mono tracking-wide text-muted-foreground uppercase"
+                        className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase"
                     >
                         IP_FILTER
                     </Label>
@@ -125,7 +125,9 @@ export const FilterControls = () => {
 
                 {/* Show All Toggle & Pause */}
                 <div className="space-y-1">
-                    <Label className="text-tiny font-mono tracking-wide text-muted-foreground uppercase">OPTIONS</Label>
+                    <Label className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
+                        OPTIONS
+                    </Label>
                     <div className="flex gap-2">
                         <TooltipProvider>
                             <Tooltip>
@@ -153,7 +155,7 @@ export const FilterControls = () => {
                                     <p className="font-mono text-xs font-bold text-muted-foreground uppercase">
                                         {isPaused ? "RESUME_UPDATES" : "PAUSE_UPDATES"}
                                     </p>
-                                    <p className="text-tiny mt-2 font-mono leading-relaxed text-foreground">
+                                    <p className="mt-2 font-mono text-[10px] leading-relaxed text-foreground">
                                         {isPaused
                                             ? "Click to resume real-time query updates from the server."
                                             : "Click to pause real-time updates and freeze the current view."}
@@ -177,7 +179,7 @@ export const FilterControls = () => {
                                     <p className="font-mono text-xs font-bold text-muted-foreground uppercase">
                                         SHOW_ALL_QUERIES
                                     </p>
-                                    <p className="text-tiny mt-2 font-mono leading-relaxed text-foreground">
+                                    <p className="mt-2 font-mono text-[10px] leading-relaxed text-foreground">
                                         When disabled, filters system queries, private IPs (192.*), MongoDB internal
                                         ops, monitoring tools, and health checks.
                                     </p>

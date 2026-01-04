@@ -170,7 +170,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
 
             {/* Column Headers */}
             <div className="border-b-2 bg-card px-4 py-3">
-                <div className="text-tiny grid grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_140px_150px_110px] gap-4 font-mono font-bold tracking-wide text-muted-foreground uppercase">
+                <div className="grid grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_140px_150px_110px] gap-4 font-mono text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
                     <div>#</div>
                     <button
                         className="flex cursor-pointer items-center gap-1 text-left transition-colors hover:text-primary"
@@ -252,7 +252,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         {isCollscan && (
                                             <Badge
                                                 variant="destructive"
-                                                className="text-tiny border border-warning bg-warning/20 font-mono text-warning uppercase"
+                                                className="border border-warning bg-warning/20 font-mono text-[10px] text-warning uppercase"
                                             >
                                                 ⚠ COLLSCAN
                                             </Badge>
@@ -260,7 +260,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         {query.waitingForLock && (
                                             <Badge
                                                 variant="outline"
-                                                className="text-tiny border border-destructive font-mono uppercase"
+                                                className="border border-destructive font-mono text-[10px] uppercase"
                                             >
                                                 🔒 LOCK
                                             </Badge>
@@ -317,7 +317,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
             </div>
 
             <div className="border-t border-primary bg-muted px-4 py-2">
-                <span className="text-tiny font-mono tracking-wide text-muted-foreground uppercase">
+                <span className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
                     ▸ SHOWING {sortedQueries.length} {sortedQueries.length === 1 ? "QUERY" : "QUERIES"}
                 </span>
             </div>

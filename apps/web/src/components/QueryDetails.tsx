@@ -76,30 +76,30 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                         </div>
                         <div className="grid grid-cols-2 gap-0">
                             <div className="border-r border-b border-border p-4">
-                                <div className="text-tiny mb-1 font-mono tracking-wide text-muted-foreground uppercase">
+                                <div className="mb-1 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
                                     OPERATION_ID
                                 </div>
                                 <div className="font-mono text-sm text-foreground">{query.opid}</div>
                             </div>
                             <div className="border-b border-border p-4">
-                                <div className="text-tiny mb-1 font-mono tracking-wide text-muted-foreground uppercase">
+                                <div className="mb-1 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
                                     RUNTIME
                                 </div>
                                 <div className="font-mono text-sm text-primary">{query.runtime_formatted}</div>
                                 {query.secs_running >= 1 && (
-                                    <div className="text-tiny mt-1 font-mono text-muted-foreground">
+                                    <div className="mt-1 font-mono text-[10px] text-muted-foreground">
                                         ({query.secs_running}s)
                                     </div>
                                 )}
                             </div>
                             <div className="border-r border-b border-border p-4">
-                                <div className="text-tiny mb-1 font-mono tracking-wide text-muted-foreground uppercase">
+                                <div className="mb-1 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
                                     OPERATION
                                 </div>
                                 <div className="font-mono text-sm text-foreground uppercase">{query.operation}</div>
                             </div>
                             <div className="border-b border-border p-4">
-                                <div className="text-tiny mb-1 font-mono tracking-wide text-muted-foreground uppercase">
+                                <div className="mb-1 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
                                     NAMESPACE
                                 </div>
                                 <div className="font-mono text-sm text-foreground">
@@ -108,18 +108,18 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                                 </div>
                             </div>
                             <div className="border-r border-border p-4">
-                                <div className="text-tiny mb-1 font-mono tracking-wide text-muted-foreground uppercase">
+                                <div className="mb-1 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
                                     CLIENT_IP
                                 </div>
                                 <div className="font-mono text-sm text-foreground">{query.client.ip}</div>
                                 {query.client.port && (
-                                    <div className="text-tiny mt-1 font-mono text-muted-foreground">
+                                    <div className="mt-1 font-mono text-[10px] text-muted-foreground">
                                         PORT: {query.client.port}
                                     </div>
                                 )}
                             </div>
                             <div className="p-4">
-                                <div className="text-tiny mb-1 font-mono tracking-wide text-muted-foreground uppercase">
+                                <div className="mb-1 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
                                     USER_AGENT
                                 </div>
                                 <div className="font-mono text-sm text-foreground">{query.userAgent}</div>
@@ -130,7 +130,7 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                     {/* Geolocation */}
                     {query.client.geo && (
                         <div className="border-2 border-border bg-muted p-4">
-                            <div className="text-tiny mb-2 font-mono tracking-wide text-primary uppercase">
+                            <div className="mb-2 font-mono text-[10px] tracking-wide text-primary uppercase">
                                 ▸ GEOLOCATION
                             </div>
                             <div className="font-mono text-sm text-foreground">
@@ -185,7 +185,7 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                     {/* Message */}
                     {query.message && (
                         <div className="border-2 border-border bg-muted p-4">
-                            <div className="text-tiny mb-2 font-mono tracking-wide text-primary uppercase">
+                            <div className="mb-2 font-mono text-[10px] tracking-wide text-primary uppercase">
                                 ▸ MESSAGE
                             </div>
                             <div className="font-mono text-xs text-muted-foreground">{query.message}</div>

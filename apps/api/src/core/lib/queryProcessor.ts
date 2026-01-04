@@ -1,5 +1,5 @@
 import type { MongoQuery } from "@mongo-query-top/types";
-import { countBy, omit } from "lodash-es";
+import { omit } from "lodash-es";
 import { beautifyJson } from "./helpers.js";
 
 export const shouldSkipQuery = (q: MongoQuery): boolean => {
@@ -145,15 +145,4 @@ export const formatUserAgent = (q: MongoQuery): string => {
     }
 
     return (clientMetadata as any)?.application?.name ?? clientMetadata?.driver?.name ?? beautifyJson(clientMetadata);
-};
-
-export const summarizeArray = (data: string[]): string => {
-    // Use lodash-es countBy (cleaner than native reduce)
-    const counts = countBy(data);
-
-    // Sort by count descending using native methods
-    return Object.entries(counts)
-        .sort((a, b) => b[1] - a[1])
-        .map(([key, count]) => `${count} x ${key}`)
-        .join(", ");
 };

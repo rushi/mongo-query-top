@@ -14,22 +14,25 @@ export const useServerSentEvents = (
     enabled: boolean = true,
     isPaused: boolean = false,
 ) => {
-    const [data, setData] = useState<QueryData | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [data, setData] = useState<QueryData | null>(null);
+
     const [isConnected, setIsConnected] = useState(false);
     const [isReconnecting, setIsReconnecting] = useState(false);
 
-    const abortControllerRef = useRef<AbortController | null>(null);
-    const retryDelayRef = useRef(INITIAL_RETRY_DELAY);
     const reconnectAttemptsRef = useRef(0);
+    const retryDelayRef = useRef(INITIAL_RETRY_DELAY);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
-        if (!enabled || isPaused) {
-            // Cleanup connection if paused
+        if (isPaused || !enabled) {
             if (abortControllerRef.current) {
+                // Cleanup connection if paused
+                console.log("[Connection] Pausing SSE connection");
                 abortControllerRef.current.abort();
                 abortControllerRef.current = null;
             }
+
             setIsConnected(false);
             setIsReconnecting(false);
             if (isPaused) {
@@ -41,25 +44,29 @@ export const useServerSentEvents = (
         let isActive = true;
 
         const connect = async () => {
-            if (!isActive) return;
+            if (!isActive) {
+                return;
+            }
 
             const abortController = new AbortController();
             abortControllerRef.current = abortController;
-
             const url = `${API_BASE}/queries/${serverId}/stream?minTime=${minTime}&refreshInterval=${refreshInterval}&showAll=${showAll}`;
 
             try {
+                console.log("[Connection] Establishing SSE connection to", { url });
                 await fetchEventSource(url, {
                     signal: abortController.signal,
                     headers: { "X-API-Key": API_KEY },
                     async onopen(response) {
                         if (response.ok) {
+                            console.log("[Connection] SSE connection established");
                             setIsConnected(true);
                             setIsReconnecting(false);
                             setError(null);
                             retryDelayRef.current = INITIAL_RETRY_DELAY;
                             reconnectAttemptsRef.current = 0;
                         } else {
+                            console.log("[Connection] SSE connection failed to open", { response });
                             throw new Error(`Failed to connect: ${response.statusText}`);
                         }
                     },
@@ -70,15 +77,18 @@ export const useServerSentEvents = (
                                 setData(parsedData);
                                 setError(null);
                             } catch (err) {
+                                console.log("[Connection] Failed to parse query data:", { err });
                                 setError("Failed to parse query data");
                             }
                         }
                     },
                     onerror(err) {
                         setError("Connection lost");
+                        console.log("[Connection] SSE connection lost", { err });
                         setIsConnected(false);
 
                         if (!isActive) {
+                            console.log("[Connection] SSE connection aborted");
                             throw err; // Stops reconnection
                         }
 
@@ -88,16 +98,19 @@ export const useServerSentEvents = (
 
                         // Exponential backoff: double the delay, up to MAX_RETRY_DELAY
                         retryDelayRef.current = Math.min(retryDelayRef.current * 2, MAX_RETRY_DELAY);
+                        console.log(`[Connection] Reconnecting in ${retryDelayRef.current} ms`);
 
                         // Return the retry delay to trigger reconnection
                         return retryDelayRef.current;
                     },
                     onclose() {
-                        setIsConnected(false);
                         // Connection closed by server, will attempt to reconnect
+                        console.log("[Connection] SSE connection closed by server");
+                        setIsConnected(false);
                     },
                 });
             } catch (err: any) {
+                console.log("[Connection] SSE connection error:", err.message);
                 if (err.name !== "AbortError" && isActive) {
                     setError(err.message || "Connection failed");
                     setIsConnected(false);

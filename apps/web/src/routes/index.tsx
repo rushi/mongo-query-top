@@ -47,10 +47,11 @@ const generateSummary = (queries: ProcessedQuery[]): QuerySummary => {
 export const Route = createFileRoute("/")({ component: Dashboard });
 
 function Dashboard() {
-    const { serverId, setServerId, minTime, refreshInterval, showAll, isPaused, ipFilter } = useUrlPreferences();
     const { servers, loading: serversLoading } = useFetchServers();
-    const [mongoConnected, setMongoConnected] = useState(false);
+    const { serverId, setServerId, minTime, refreshInterval, showAll, isPaused, ipFilter } = useUrlPreferences();
+
     const [isConnecting, setIsConnecting] = useState(false);
+    const [mongoConnected, setMongoConnected] = useState(false);
     const [connectError, setConnectError] = useState<string | null>(null);
     const { data, error, isConnected, isReconnecting } = useServerSentEvents(
         serverId,
@@ -60,8 +61,9 @@ function Dashboard() {
         mongoConnected,
         isPaused,
     );
-    const [selectedQuery, setSelectedQuery] = useState<ProcessedQuery | null>(null);
+
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [selectedQuery, setSelectedQuery] = useState<ProcessedQuery | null>(null);
 
     // Filter queries by IP if ipFilter is set
     const filteredQueries = data?.queries.filter((query) => (ipFilter ? query.client.ip === ipFilter : true)) ?? [];
@@ -102,21 +104,20 @@ function Dashboard() {
     }, [serverId]);
 
     // Update browser tab title with query count
+    const serverName = servers.find((s) => s.id === serverId)?.name || serverId;
     useEffect(() => {
         const queryCount = filteredQueries.length;
-        const defaultTitle = "MongoDB Query Monitor";
-
+        const defaultTitle = isConnected ? `[${serverName}] MongoDB Query Monitor` : "MongoDB Query Monitor";
         if (queryCount >= 2) {
             document.title = `(${queryCount}) ${defaultTitle}`;
         } else {
             document.title = defaultTitle;
         }
 
-        // Cleanup: reset title on unmount
         return () => {
             document.title = defaultTitle;
         };
-    }, [filteredQueries.length]);
+    }, [filteredQueries.length, serverName]);
 
     const handleQueryClick = (query: ProcessedQuery) => {
         setSelectedQuery(query);
@@ -181,7 +182,12 @@ function Dashboard() {
                                 MONGODB_QUERY_MONITOR
                             </h1>
                             <p className="text-tiny tracking-wide text-muted-foreground uppercase">
-                                ▸ REAL-TIME DATABASE OPERATIONS STREAM
+                                ▸ REAL-TIME DATABASE OPERATIONS STREAM{" "}
+                                {data?.metadata && (
+                                    <span className="font-mono text-tiny text-muted-foreground">
+                                        LAST_UPDATE: {new Date(data.metadata.timestamp).toLocaleTimeString()}
+                                    </span>
+                                )}
                             </p>
                         </div>
                         <div className="flex flex-col items-end gap-2 text-xs">
@@ -202,8 +208,8 @@ function Dashboard() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="flex items-center gap-3">
-                                {getConnectionBadge()}
+                            <div className="flex flex-col items-end gap-3">
+                                <div>{getConnectionBadge()}</div>
                                 {data?.metadata?.isMockData && (
                                     <Badge
                                         variant="outline"
@@ -213,11 +219,6 @@ function Dashboard() {
                                     </Badge>
                                 )}
                             </div>
-                            {data?.metadata && (
-                                <span className="font-mono text-tiny text-muted-foreground">
-                                    LAST_UPDATE: {new Date(data.metadata.timestamp).toLocaleTimeString()}
-                                </span>
-                            )}
                         </div>
                     </div>
                 </header>

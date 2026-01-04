@@ -123,8 +123,8 @@ mongo-query-top/
 │       └── tsconfig.json
 │
 ├── config/
-│   ├── default.json                     # Default MongoDB server configurations
-│   └── local.json                       # User-specific MongoDB URIs (gitignored)
+│   ├── default.yaml                     # Default MongoDB server configurations
+│   └── local.yaml                       # User-specific MongoDB URIs (gitignored)
 │
 ├── logs/                                # Auto-saved query snapshots (gitignored)
 │   └── <server-id>/
@@ -360,17 +360,6 @@ const port = config.get<number>("api.port");
 const apiKey = config.get<string>("api.apiKey");
 ```
 
-### Main Loop (apps/cli/src/cli.ts)
-
-1. Connect to MongoDB using configured URI
-2. Setup raw mode for keyboard input handling
-3. Main loop:
-    - Fetch `db.currentOp()` with `secs_running >= minTime` filter
-    - Render header and table body
-    - Sleep for refresh interval
-    - Handle keyboard inputs
-4. Exit on `q` or `Ctrl+C`
-
 ### Query Processing (packages/core/src/lib/queryProcessor.ts)
 
 **`shouldSkipQuery(q)`**
@@ -395,111 +384,6 @@ const apiKey = config.get<string>("api.apiKey");
 
 - Groups and counts similar items
 - Returns formatted string like "5 x command, 3 x query, 1 x update"
-
-### Rendering (apps/cli/src/lib/renderer.ts)
-
-**`renderHeader()`**
-
-- Shows: server name, refresh interval, minTime, current time, window size
-- Indicates status: (paused), (reverse), showing all queries
-- Displays feedback messages (e.g., "Wrote query X to disk")
-
-**`renderBody(queries)`**
-
-- Sorts queries by run time (longest at top for immediate visibility)
-- Filters queries using `shouldSkipQuery()`
-- Builds table with columns: #, ID, Age, op/ns, query
-- Highlights COLLSCAN queries in yellow
-- Shows GeoIP location for public IPs
-- Auto-saves long-running queries and COLLSCANs
-- Adds summary row with statistics
-
-**`saveQuery(query, collection, type)`**
-
-- Saves individual query to `logs/<config>/`
-- Creates both raw and sanitized versions
-- Filename format: `query-<opid>-<collection>-<type>.json`
-
-**`save(queries)`**
-
-- Saves snapshot of all current queries (triggered by `s` key)
-- Creates timestamped files in `logs/<config>/`
-
-### Helper Functions (packages/core/src/lib/helpers.ts)
-
-**`sleep(seconds)`**
-
-- Promise-based sleep for loop delays
-- Subtracts 100ms to account for refresh overhead
-
-**`clear()`**
-
-- Clears terminal screen and scroll buffer
-- Uses escape codes for thorough clearing
-
-**`setupRawMode(prefs)`**
-
-- Configures stdin for raw mode to capture key presses
-- Handles: `q`/`Ctrl+C` (quit), `p` (pause), `r` (reverse), `s` (snapshot), `a` (show all)
-
-**`beautifyJson(payload, width)`**
-
-- Uses `util.inspect()` for colored, formatted JSON
-- Configurable width for wrapping
-
-## Interactive Controls
-
-When the app is running, press these keys:
-
-| Key             | Action                                                          |
-| --------------- | --------------------------------------------------------------- |
-| `p`             | Pause/unpause fetching and rendering                            |
-| `r`             | Reverse sort order (shortest queries at top instead of longest) |
-| `s`             | Save snapshot of current queries to disk                        |
-| `a`             | Toggle showing all queries (including system queries)           |
-| `q` or `Ctrl+C` | Quit the application                                            |
-
-## CLI Arguments
-
-```bash
-pnpm run dev:cli -- [options]
-# or after building:
-node dist/cli.js [options]
-
-Options:
-  --config, -c    Server config name from config/default.yaml or config/local.yaml (default: "localhost")
-  --refresh       Refresh interval in seconds (default: 2)
-  --minTime       Only show queries running longer than X seconds (default: 1)
-  --all           Show all queries without filtering (default: false)
-  --log           Auto-save queries running longer than X seconds (default: 10)
-  --ip            Filter by client IP address
-  --help, -h      Show help
-```
-
-**Examples:**
-
-```bash
-# Basic usage with localhost
-pnpm run dev:cli
-
-# Connect to different server
-pnpm run dev:cli -- -c m01
-
-# Show fast queries with quick refresh
-pnpm run dev:cli -- --minTime=0 --refresh=1
-
-# Log queries longer than 5 seconds
-pnpm run dev:cli -- --log=5
-
-# Filter by IP address
-pnpm run dev:cli -- --ip=192.168.1.100
-
-# Show all queries including system queries
-pnpm run dev:cli -- --all
-
-# Production (after build)
-node dist/cli.js -c prod --minTime=2
-```
 
 ## Development Guidelines
 
@@ -695,31 +579,6 @@ export const shouldSkipQuery = (q: MongoQuery): boolean => {
 };
 ```
 
-### Customizing Table Display
-
-**File:** [apps/cli/src/lib/renderer.ts](apps/cli/src/lib/renderer.ts)
-
-**Adjust Column Widths:**
-
-```typescript
-const colWidths = [5, 25, 9, 25]; // Modify these values
-```
-
-**Add New Column:**
-
-```typescript
-// In renderBody()
-table.push([row.idx, row.opid, row.time, row.op, query, newColumn]);
-```
-
-**Change Color Highlighting:**
-
-```typescript
-if (row.q.planSummary && row.q.planSummary === "COLLSCAN") {
-    query = chalk.red(query); // Change from yellow to red
-}
-```
-
 ### Adding New Server Configuration
 
 **File:** `config/local.yaml`
@@ -729,38 +588,6 @@ servers:
     my-server:
         name: My Production Server
         uri: mongodb://user:pass@host:27017/dbname?authSource=admin&ssl=true
-```
-
-**Then run:**
-
-```bash
-pnpm run dev:cli -- -c my-server
-```
-
-### Query Logging
-
-Queries are automatically saved to disk when:
-
-1. Run time exceeds `--log` threshold (default 10 seconds)
-2. Query uses COLLSCAN (collection scan without index)
-
-**Log Structure:**
-
-```
-logs/
-└── <config-name>/
-    ├── raw/
-    │   └── query-<opid>-<collection>-<type>-raw.json
-    └── query-<opid>-<collection>-<type>-sanitized.json
-```
-
-**Snapshot Structure (triggered by `s` key):**
-
-```
-logs/
-└── <config-name>/
-    ├── queries-raw-<timestamp>.json
-    └── queries-sanitized-<timestamp>.json
 ```
 
 ### Adding New Client Detection
@@ -802,94 +629,37 @@ let query = omit(q, [
 **Show More Fields:**
 Remove items from the omit arrays to include them in the output.
 
-## Common Modifications
-
-### Change Default Refresh Interval
-
-**File:** [apps/cli/src/lib/usage.ts](apps/cli/src/lib/usage.ts)
-
-```typescript
-.option("refresh", {
-    default: 5,  // Change from 2 to 5 seconds
-    type: "number",
-    describe: "Refresh interval",
-})
-```
-
-### Change Default Minimum Query Time
-
-**File:** [apps/cli/src/lib/usage.ts](apps/cli/src/lib/usage.ts)
-
-```typescript
-.option("minTime", {
-    default: 0,  // Change from 1 to 0 to see all queries
-    type: "number",
-    describe: "Min runtime for queries",
-})
-```
-
-### Disable Auto-Logging
-
-**File:** [apps/cli/src/lib/usage.ts](apps/cli/src/lib/usage.ts)
-
-```typescript
-.option("log", {
-    default: Infinity,  // Change to Infinity to disable auto-logging
-    type: "number",
-    describe: "Save queries long running queries to disk",
-})
-```
-
-Or pass `--log=999999` when running.
-
-### Change Sort Order Default
-
-**File:** [apps/cli/src/cli.ts](apps/cli/src/cli.ts)
-
-```typescript
-const prefs = {
-    paused: false,
-    reversed: false, // Default is false (longest at top). Set to true to show shortest queries at top
-    // ...
-};
-```
-
 ## Running the App
 
 ### Quick Start
 
 ```bash
 pnpm install
-pnpm run dev:cli
+pnpm run dev:web  # Runs API + Frontend
 ```
 
 ### Development Modes
 
 ```bash
-# CLI only (watches and restarts on changes)
-pnpm run dev:cli
+# API + Frontend web UI (most common)
+pnpm run dev:web
 
 # API server only
 pnpm run dev:api
 
-# Both CLI and API
-pnpm run dev:both
-
-# API + Frontend web UI
-pnpm run dev:web
+# CLI only
+pnpm run dev:cli
 ```
 
 ### Build and Production
 
 ```bash
-# Build TypeScript to JavaScript
+# Build all packages
 pnpm run build
 
-# Run built CLI
-pnpm run start:cli
-
-# Run built API server
+# Run specific app
 pnpm run start:api
+pnpm run start:cli
 ```
 
 ### Format Code
@@ -899,22 +669,6 @@ pnpm run format
 ```
 
 Runs Prettier on all TypeScript files across all packages in the monorepo.
-
-### Production Usage
-
-```bash
-# Monitor production server
-node dist/cli.js -c prod --minTime=2 --refresh=5
-
-# Save all long queries for analysis
-node dist/cli.js -c prod --log=3 --minTime=0
-
-# Focus on specific IP
-node dist/cli.js -c prod --ip=10.0.1.50
-
-# Quick diagnosis - show everything
-node dist/cli.js -c prod --all --minTime=0 --refresh=1
-```
 
 ## Code Style
 
@@ -1021,139 +775,6 @@ node dist/cli.js -c prod --all --minTime=0 --refresh=1
     - Display user-friendly error messages in UI
     - Log errors to console for debugging
 
-## Troubleshooting
-
-### Backend Issues
-
-#### Connection Issues
-
-**Problem:** Cannot connect to MongoDB
-**Solution:**
-
-- Check your `config/local.json` URI format and network access
-- Verify MongoDB server is running and accessible
-- Check firewall rules and authentication credentials
-- Test connection with MongoDB Compass or `mongosh`
-
-#### Terminal Display Issues
-
-**Problem:** Colors not showing or garbled output in CLI
-**Solution:** Ensure terminal supports ANSI colors. Try different terminal emulator (iTerm2, Hyper, Windows Terminal).
-
-#### Raw Mode Issues
-
-**Problem:** Keys not responding in CLI
-**Solution:** Terminal must support raw mode. Check if stdin is a TTY.
-
-#### Performance Issues
-
-**Problem:** App lags with many queries
-**Solution:**
-
-- Increase `--minTime` to filter out fast queries
-- Increase `--refresh` interval
-- Use `--ip` to filter by specific client
-
-#### API Server Issues
-
-**Problem:** API server fails to start
-**Solution:**
-
-- Check if port 9001 is already in use: `lsof -i :9001`
-- Verify environment variables are set correctly
-- Check logs for error messages
-- Ensure MongoDB connections are configured in `config/local.json`
-
-**Problem:** 401 Unauthorized errors
-**Solution:**
-
-- Verify `API_KEY` matches between backend `.env` and frontend `frontend/.env`
-- Check that API key is being sent in requests (see Network tab in browser dev tools)
-- Ensure OPTIONS requests are not blocked (CORS preflight)
-
-### Frontend Issues
-
-#### Build/Dev Server Issues
-
-**Problem:** Frontend fails to start
-**Solution:**
-
-- Run `pnpm install` in `frontend/` directory
-- Check for port conflicts (default: 3000)
-- Clear Vite cache: `rm -rf frontend/node_modules/.vite`
-- Check Node.js version (requires Node 18+)
-
-**Problem:** TypeScript errors
-**Solution:**
-
-- Run `pnpm run build` to see all errors
-- Check that types are up to date with API responses
-- Verify `tsconfig.json` settings
-- Restart TypeScript server in your editor
-
-#### Connection/Streaming Issues
-
-**Problem:** "Connection lost" error in UI
-**Solution:**
-
-- Verify API server is running on `http://localhost:9001`
-- Check `VITE_API_URL` in `frontend/.env`
-- Test API health endpoint: `curl http://localhost:9001/health`
-- Check browser console for CORS errors
-- Verify MongoDB is connected (check server logs)
-
-**Problem:** No real-time updates
-**Solution:**
-
-- Check EventSource connection in browser Network tab (should be persistent)
-- Verify SSE endpoint is working: open `http://localhost:9001/api/queries/localhost/stream?apiKey=dev-key-change-in-production` in browser
-- Check if browser supports EventSource (all modern browsers do)
-- Look for errors in browser console
-
-**Problem:** CORS errors
-**Solution:**
-
-- Verify frontend URL is in API server's CORS config (`src/server.ts`)
-- Check that credentials are enabled in CORS settings
-- Ensure frontend is running on allowed origin (default: `localhost:3000`)
-- Try clearing browser cache and cookies
-
-#### Styling Issues
-
-**Problem:** Tailwind classes not working
-**Solution:**
-
-- Verify `tailwind.config.js` is correct
-- Check that `styles.css` is imported in root component
-- Restart Vite dev server
-- Check if class names are valid Tailwind utilities
-
-**Problem:** Components not styled correctly
-**Solution:**
-
-- Ensure shadcn/ui components are installed correctly
-- Check `cn()` utility is working (`lib/utils.ts`)
-- Verify Radix UI dependencies are installed
-- Check for CSS specificity conflicts
-
-#### State/Data Issues
-
-**Problem:** Preferences not persisting
-**Solution:**
-
-- Check browser localStorage (DevTools → Application → Local Storage)
-- Verify Zustand persist middleware is configured
-- Clear localStorage and restart: `localStorage.clear()`
-- Check for errors in store initialization
-
-**Problem:** Stale query data
-**Solution:**
-
-- Check that SSE connection is active and receiving events
-- Verify `refreshInterval` is set correctly in preferences
-- Check if MongoDB is returning current data (test with CLI tool)
-- Look for errors in query processing (server logs)
-
 ## Environment Variables
 
 ### Backend (.env)
@@ -1225,70 +846,3 @@ cd frontend && pnpm run format
 pnpm run build
 cd frontend && pnpm run build
 ```
-
-## Future Enhancement Ideas
-
-### CLI
-
-- Add keyboard shortcuts for adjusting minTime/refresh on the fly
-- Terminal UI framework (blessed, ink) for better interactivity
-- Export to different formats (CSV, markdown, HTML)
-- Better visualizations for lock contention
-
-### Frontend
-
-- Dark mode implementation (Tailwind classes already support it)
-- Query comparison view (compare two queries side-by-side)
-- Historical query view (view past snapshots)
-- Query explain plan integration and visualization
-- Real-time charts and graphs (query count over time, avg runtime, etc.)
-- Query filtering UI (by operation type, collection, namespace, client)
-- Save custom filter presets
-- Export queries to CSV/JSON
-- Query kill functionality with confirmation dialog
-- Multi-server dashboard view (monitor multiple servers at once)
-- Alerting UI (configure alerts for specific patterns)
-- Mobile-responsive design improvements
-
-### Backend/API
-
-- Add query kill endpoint (`POST /api/queries/:serverId/:opid/kill`)
-- Historical trending of query patterns (store snapshots in database)
-- WebSocket support as alternative to SSE
-- Query explain plan endpoint
-- Alerting system for specific query patterns
-- Integration with monitoring tools (Datadog, New Relic, Grafana)
-- Add tests (currently no test suite)
-- Rate limiting per API key
-- User authentication (replace simple API key with JWT/OAuth)
-- Query caching layer for repeated fetches
-
-### Shared
-
-- Docker support with docker-compose for easy deployment
-- Kubernetes manifests
-- CI/CD pipelines (GitHub Actions)
-- Add comprehensive test suite (unit, integration, e2e)
-- Performance benchmarks and monitoring
-- Documentation improvements (OpenAPI/Swagger for API)
-
-## Resources
-
-### Backend
-
-- [MongoDB currentOp Documentation](https://www.mongodb.com/docs/manual/reference/method/db.currentOp/)
-- [MongoDB Profiler](https://www.mongodb.com/docs/manual/tutorial/manage-the-database-profiler/)
-- [Fastify Documentation](https://fastify.dev/)
-- [cli-table3 Documentation](https://github.com/cli-table/cli-table3)
-- [chalk Documentation](https://github.com/chalk/chalk)
-
-### Frontend
-
-- [React Documentation](https://react.dev/)
-- [TanStack Router](https://tanstack.com/router/latest)
-- [TanStack Virtual](https://tanstack.com/virtual/latest)
-- [Zustand Documentation](https://zustand-demo.pmnd.rs/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [shadcn/ui Components](https://ui.shadcn.com/)
-- [Vite Documentation](https://vite.dev/)
-- [Server-Sent Events (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)

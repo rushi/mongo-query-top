@@ -1,6 +1,6 @@
 import JsonView from "@microlink/react-json-view";
 import type { ProcessedQuery } from "@mongo-query-top/types";
-import { CheckIcon, FloppyDiskIcon } from "@phosphor-icons/react/dist/ssr";
+import { CheckIcon, CopyIcon, FloppyDiskIcon } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { usePreferences } from "../store/preferences";
 import { apiClient } from "../utils/api";
@@ -18,6 +18,7 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
     const { serverId } = usePreferences();
     const [saved, setSaved] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [copied, setCopied] = useState(false);
     if (!query) {
         return null;
     }
@@ -35,6 +36,17 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
         }
     };
 
+    const handleCopyKillOp = async () => {
+        const killOpQuery = `db.killOp(${query.opid})`;
+        try {
+            await navigator.clipboard.writeText(killOpQuery);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error("Failed to copy killOp query:", err);
+        }
+    };
+
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent className="w-[900px] overflow-auto border-l-4 border-l-primary bg-background pb-6 sm:max-w-[900px]">
@@ -47,25 +59,46 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                             ▸ OPERATION_ID: {query.opid}
                         </SheetDescription>
                     </div>
-                    <Button
-                        variant={saved ? "default" : "outline"}
-                        size="sm"
-                        disabled={isSaving || saved}
-                        className="border-2 font-mono text-xs uppercase"
-                        onClick={handleSave}
-                    >
-                        {saved ? (
-                            <>
-                                <CheckIcon weight="bold" className="mr-2 h-3 w-3" />
-                                SAVED
-                            </>
-                        ) : (
-                            <>
-                                <FloppyDiskIcon weight="bold" className="mr-2 h-3 w-3" />
-                                SAVE
-                            </>
-                        )}
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button
+                            size="sm"
+                            variant={copied ? "default" : "outline"}
+                            disabled={copied}
+                            className="border-2 font-mono text-xs uppercase"
+                            onClick={handleCopyKillOp}
+                        >
+                            {copied ? (
+                                <>
+                                    <CheckIcon weight="bold" className="mr-2 h-3 w-3" />
+                                    COPIED
+                                </>
+                            ) : (
+                                <>
+                                    <CopyIcon weight="bold" className="mr-2 h-3 w-3" />
+                                    COPY KILLOP
+                                </>
+                            )}
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant={saved ? "default" : "outline"}
+                            disabled={isSaving || saved}
+                            className="border-2 font-mono text-xs uppercase"
+                            onClick={handleSave}
+                        >
+                            {saved ? (
+                                <>
+                                    <CheckIcon weight="bold" className="mr-2 h-3 w-3" />
+                                    SAVED
+                                </>
+                            ) : (
+                                <>
+                                    <FloppyDiskIcon weight="bold" className="mr-2 h-3 w-3" />
+                                    SAVE
+                                </>
+                            )}
+                        </Button>
+                    </div>
                 </SheetHeader>
 
                 <div className="mt-4 space-y-4 px-6">

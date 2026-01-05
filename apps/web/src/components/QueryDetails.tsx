@@ -2,6 +2,7 @@ import JsonView from "@microlink/react-json-view";
 import type { ProcessedQuery } from "@mongo-query-top/types";
 import { CheckIcon, CopyIcon, FloppyDiskIcon } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
+import { useCopyToClipboard } from "../hooks/useCopyToClipboard";
 import { usePreferences } from "../store/preferences";
 import { apiClient } from "../utils/api";
 import { Badge } from "./ui/badge";
@@ -18,7 +19,9 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
     const { serverId } = usePreferences();
     const [saved, setSaved] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [copied, setCopied] = useState(false);
+    const { copied: copiedKillOp, copy: copyKillOp } = useCopyToClipboard();
+    const { copied: copiedCommand, copy: copyCommand } = useCopyToClipboard();
+
     if (!query) {
         return null;
     }
@@ -28,7 +31,7 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
         try {
             await apiClient.post(`/queries/${serverId}/save`, { query });
             setSaved(true);
-            setTimeout(() => setSaved(false), 2000);
+            setTimeout(() => setSaved(false), 500);
         } catch (err) {
             console.error("Failed to save query:", err);
         } finally {
@@ -38,13 +41,12 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
 
     const handleCopyKillOp = async () => {
         const killOpQuery = `db.killOp(${query.opid})`;
-        try {
-            await navigator.clipboard.writeText(killOpQuery);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
-            console.error("Failed to copy killOp query:", err);
-        }
+        await copyKillOp(killOpQuery);
+    };
+
+    const handleCopyCommand = async () => {
+        const command = query.query?.command || query.query;
+        await copyCommand(JSON.stringify(command, null, 2));
     };
 
     return (
@@ -62,12 +64,12 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                     <div className="flex gap-2">
                         <Button
                             size="sm"
-                            variant={copied ? "default" : "outline"}
-                            disabled={copied}
-                            className="border-2 font-mono text-xs uppercase"
+                            variant={copiedKillOp ? "default" : "outline"}
+                            disabled={copiedKillOp}
+                            className="cursor-copy border-2 font-mono text-xs uppercase"
                             onClick={handleCopyKillOp}
                         >
-                            {copied ? (
+                            {copiedKillOp ? (
                                 <>
                                     <CheckIcon weight="bold" className="mr-2 h-3 w-3" />
                                     COPIED
@@ -83,7 +85,7 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                             size="sm"
                             variant={saved ? "default" : "outline"}
                             disabled={isSaving || saved}
-                            className="border-2 font-mono text-xs uppercase"
+                            className="cursor-pointer border-2 font-mono text-xs uppercase"
                             onClick={handleSave}
                         >
                             {saved ? (
@@ -234,10 +236,29 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
 
                     {/* Query JSON */}
                     <div className="border">
-                        <div className="flex items-center border-b bg-muted px-4 py-3">
+                        <div className="flex items-center justify-between border-b bg-muted px-4 py-3">
                             <span className="font-mono text-xs tracking-wider text-primary uppercase">
                                 ■ QUERY_OBJECT
                             </span>
+                            <Button
+                                size="sm"
+                                variant={copiedCommand ? "default" : "ghost"}
+                                disabled={copiedCommand}
+                                className="h-6 cursor-copy font-mono text-[10px] uppercase"
+                                onClick={handleCopyCommand}
+                            >
+                                {copiedCommand ? (
+                                    <>
+                                        <CheckIcon weight="bold" className="mr-1 h-3 w-3" />
+                                        COPIED
+                                    </>
+                                ) : (
+                                    <>
+                                        <CopyIcon weight="bold" className="mr-1 h-3 w-3" />
+                                        COPY
+                                    </>
+                                )}
+                            </Button>
                         </div>
                         <div className="max-h-[600px] overflow-auto bg-card p-4">
                             <JsonView

@@ -39,6 +39,7 @@ export class QueryService {
             isCollscan: q.planSummary === "COLLSCAN",
             waitingForLock: q.waitingForLock,
             message: q.msg,
+            effectiveUsers: q.effectiveUsers,
         };
     }
 

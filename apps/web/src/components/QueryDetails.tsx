@@ -16,8 +16,8 @@ interface QueryDetailsProps {
 
 export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) => {
     const { serverId } = usePreferences();
-    const [isSaving, setIsSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     if (!query) {
         return null;
     }
@@ -109,16 +109,23 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                             </div>
                             <div className="border-r border-border p-4">
                                 <div className="mb-1 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
-                                    CLIENT_IP
+                                    USER / CLIENT_IP
                                 </div>
-                                <div className="font-mono text-sm text-foreground">{query.client.ip}</div>
-                                {query.client.port && (
-                                    <div className="mt-1 font-mono text-[10px] text-muted-foreground">
-                                        PORT: {query.client.port}
-                                    </div>
-                                )}
+                                <div className="flex space-x-2">
+                                    {query.effectiveUsers && query.effectiveUsers.length > 0 && (
+                                        <div className="font-mono text-sm text-foreground">
+                                            {query.effectiveUsers.map((u, idx) => (
+                                                <div key={idx}>
+                                                    <span className="font-medium">{u.user}</span>
+                                                    <span className="text-muted-foreground">@{u.db}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <div className="font-mono text-sm text-foreground">{query.client.ip}</div>
+                                </div>
                             </div>
-                            <div className="p-4">
+                            <div className="border-r border-border p-4">
                                 <div className="mb-1 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
                                     USER_AGENT
                                 </div>

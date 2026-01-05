@@ -184,45 +184,39 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                     )}
 
                     {/* Status Badges */}
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-3">
                         {query.isCollscan && (
-                            <Badge
-                                variant="destructive"
-                                className="border-2 border-warning bg-warning/20 font-mono text-xs text-warning uppercase"
-                            >
-                                ⚠ COLLSCAN
-                            </Badge>
+                            <div className="flex gap-2">
+                                <Badge
+                                    variant="destructive"
+                                    className="w-fit border-2 border-warning bg-warning/20 font-mono text-xs text-warning uppercase"
+                                >
+                                    ⚠ COLLSCAN
+                                </Badge>
+                                <p className="border-l-2 border-warning bg-warning/5 px-3 py-2 font-mono text-xs text-muted-foreground">
+                                    Full collection scan detected. Consider adding an index for better performance.
+                                </p>
+                            </div>
                         )}
                         {query.waitingForLock && (
-                            <Badge
-                                variant="outline"
-                                className="border-2 border-destructive font-mono text-xs uppercase"
-                            >
-                                🔒 WAITING_FOR_LOCK
-                            </Badge>
+                            <div className="flex gap-2">
+                                <Badge
+                                    variant="outline"
+                                    className="w-fit border-2 border-destructive font-mono text-xs uppercase"
+                                >
+                                    🔒 WAITING_FOR_LOCK
+                                </Badge>
+                                <p className="border-l-2 border-destructive bg-destructive/5 px-3 py-2 font-mono text-xs text-muted-foreground">
+                                    Query is waiting for a lock. This may indicate resource contention.
+                                </p>
+                            </div>
                         )}
                         {query.planSummary && !query.isCollscan && (
-                            <Badge variant="outline" className="border-2 font-mono text-xs uppercase">
+                            <Badge variant="outline" className="w-fit border-2 font-mono text-xs uppercase">
                                 {query.planSummary}
                             </Badge>
                         )}
                     </div>
-
-                    {/* COLLSCAN Warning */}
-                    {query.isCollscan && (
-                        <div className="border-2 border-warning bg-warning/10 p-6">
-                            <div className="mb-2 flex items-center gap-2">
-                                <span className="text-2xl">▼</span>
-                                <h4 className="font-mono text-sm font-bold text-warning uppercase">
-                                    COLLECTION_SCAN_DETECTED
-                                </h4>
-                            </div>
-                            <p className="font-mono text-xs leading-relaxed text-muted-foreground">
-                                └─ This query performs a full collection scan without using an index. Performance will
-                                degrade as collection size grows. Consider adding an appropriate index.
-                            </p>
-                        </div>
-                    )}
 
                     {/* Message */}
                     {query.message && (

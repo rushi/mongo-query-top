@@ -5,7 +5,6 @@ servers:
     name: Local MongoDB
     uri: mongodb://localhost:27017
 
-# API Server Configuration
 api:
   port: 9001
   host: 0.0.0.0
@@ -13,11 +12,9 @@ api:
   apiKey: dev-key-change-in-production
   cors:
     origins:
-      - http://localhost:9000  # Vite dev server (preferred)
-      - http://localhost:3000  # Vite dev server (legacy/fallback)
-      - http://localhost:9173  # Vite preview server
+      - http://localhost:9000 # Vite dev server (preferred)
+      - http://localhost:9173 # Vite preview server
     credentials: true
 
-# Frontend Configuration
 frontend:
   url: http://localhost:9000

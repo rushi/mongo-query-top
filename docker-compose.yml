@@ -1,0 +1,52 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: mongo-query-top-api
+    ports:
+      - "9001:9001"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      # Mount config for all API settings (MongoDB URIs, API key, ports, etc.)
+      - ./config:/app/config:ro
+      # Mount logs directory for query logging
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - mongo-query-top-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:9001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Optional: Override API URL for production builds
+        # If not set, uses http://localhost:{port} from config/local.yaml
+        - API_URL=${API_URL:-}
+    container_name: mongo-query-top-web
+    ports:
+      - "9000:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - mongo-query-top-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+networks:
+  mongo-query-top-network:
+    driver: bridge

@@ -4,19 +4,20 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "tsc",
+        "build": "tsc --build",
         "dev": "NODE_CONFIG_DIR=../../config tsx watch src/server.ts",
         "start": "NODE_CONFIG_DIR=../../config node dist/server.js",
         "lint": "eslint src --config ../../eslint.config.js"
     },
     "dependencies": {
-        "@mongo-query-top/types": "workspace:*",
         "@fastify/cors": "^11.2.0",
+        "@mongo-query-top/types": "workspace:*",
         "config": "^4.1.1",
         "dayjs": "^1.11.19",
         "fastify": "^5.6.2",
         "geoip-lite": "^1.4.10",
         "humanize-duration": "^3.33.2",
+        "js-yaml": "^4.1.1",
         "lodash-es": "^4.17.22",
         "mongodb": "^7.0.0"
     },

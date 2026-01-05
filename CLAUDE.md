@@ -790,3 +790,43 @@ cd frontend && pnpm run format
 pnpm run build
 cd frontend && pnpm run build
 ```
+
+## Docker Deployment
+
+The application includes a complete Docker setup for running both API and Web services in containers.
+
+**Quick Start:**
+
+```bash
+# 1. Configure MongoDB and API in config/local.yaml
+cp config/local.yaml.example config/local.yaml
+
+# 2. Build Docker images (generates config from YAML - no env vars!)
+pnpm docker:build
+
+# 3. Start services
+docker compose up -d
+```
+
+**Access:**
+
+- Web UI: http://localhost:9000
+- API: http://localhost:9001
+
+**How It Works:**
+
+- A Node.js script (`scripts/generate-web-config.js`) reads `config/local.yaml`
+- It generates `apps/web/src/config.ts` with API URL and API key
+- No environment variables needed - all config from YAML files!
+
+**Production:** `pnpm docker:build https://api.yourdomain.com`
+
+See **[docs/DOCKER.md](docs/DOCKER.md)** for complete Docker documentation including:
+
+- Architecture details
+- Production deployment
+- Configuration options
+- Troubleshooting
+- Security considerations
+- Performance tuning
+- Monitoring and backup

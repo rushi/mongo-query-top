@@ -50,6 +50,27 @@ cp config/local.yaml.example config/local.yaml
 pnpm run dev:web
 ```
 
+## Docker Setup
+
+Run both API and Web services in containers:
+
+```bash
+# 1. Configure MongoDB and API settings in config/local.yaml
+cp config/local.yaml.example config/local.yaml
+
+# 2. Build Docker images (generates config from YAML - no env vars!)
+pnpm docker:build
+
+# 3. Start services
+docker compose up -d
+```
+
+**Access:** Web UI at http://localhost:9000, API at http://localhost:9001
+
+**Production:** `pnpm docker:build https://api.yourdomain.com`
+
+See **[docs/DOCKER.md](docs/DOCKER.md)** for complete documentation including production deployment, SSE-capable reverse proxy configuration, troubleshooting, and more.
+
 ## Usage
 
 ### Web Dashboard
@@ -171,6 +192,7 @@ pnpm run start:api
 ## Documentation
 
 - **[docs/API.md](docs/API.md)** - Complete API endpoint documentation
+- **[docs/DOCKER.md](docs/DOCKER.md)** - Docker deployment guide with production setup and SSE support
 - **[CLAUDE.md](CLAUDE.md)** - Developer guide with code patterns, architecture details, and customization instructions
 
 ## Query Logging

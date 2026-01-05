@@ -1,10 +1,11 @@
 import JsonView from "@microlink/react-json-view";
 import type { ProcessedQuery } from "@mongo-query-top/types";
 import { CheckIcon, CopyIcon, FloppyDiskIcon } from "@phosphor-icons/react/dist/ssr";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useCopyToClipboard } from "../hooks/useCopyToClipboard";
 import { usePreferences } from "../store/preferences";
 import { apiClient } from "../utils/api";
+import { detectQueryIssues, getSeverityClasses } from "../utils/queryIssueDetector";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "./ui/sheet";
@@ -14,6 +15,90 @@ interface QueryDetailsProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
+
+/**
+ * Component to display detected query issues
+ * Uses the modular issue detection system
+ */
+const QueryIssuesDisplay = ({ query }: { query: ProcessedQuery }) => {
+    const issues = useMemo(() => detectQueryIssues(query), [query]);
+
+    // Always show COLLSCAN and WAITING_FOR_LOCK from the query object plus any additional detected issues
+    const coreIssues = useMemo(() => {
+        const items: Array<{
+            id: string;
+            label: string;
+            message: string;
+            icon: string;
+            severity: "critical" | "warning" | "info";
+        }> = [];
+
+        if (query.isCollscan) {
+            items.push({
+                id: "collscan",
+                icon: "⚠",
+                label: "COLLSCAN",
+                severity: "warning",
+                message: "Full collection scan detected. Consider adding an index for better performance.",
+            });
+        }
+
+        if (query.waitingForLock) {
+            items.push({
+                id: "waiting-for-lock",
+                icon: "🔒",
+                severity: "critical",
+                label: "WAITING_FOR_LOCK",
+                message: "Query is waiting for a lock. This may indicate resource contention.",
+            });
+        }
+
+        return items;
+    }, [query.isCollscan, query.waitingForLock]);
+
+    // Combine core issues with detected issues, avoiding duplicates
+    const allIssues = useMemo(() => {
+        const filteredDetected = issues.filter((issue) => {
+            return !["collscan", "waiting-for-lock", "blocking-write"].includes(issue.id) || !query.waitingForLock;
+        });
+        return [...coreIssues, ...filteredDetected];
+    }, [coreIssues, issues, query.waitingForLock]);
+
+    if (allIssues.length === 0 && !query.planSummary) {
+        return null;
+    }
+
+    return (
+        <div className="flex flex-col gap-3">
+            {/* Plan Summary Badge (when not COLLSCAN) */}
+            {query.planSummary && !query.isCollscan && (
+                <Badge variant="outline" className="w-fit border-2 font-mono text-xs uppercase">
+                    {query.planSummary}
+                </Badge>
+            )}
+
+            {/* Detected Issues */}
+            {allIssues.map((issue) => {
+                const classes = getSeverityClasses(issue.severity);
+                return (
+                    <div key={issue.id} className="flex gap-2">
+                        <Badge
+                            variant={issue.severity === "critical" ? "destructive" : "outline"}
+                            className={`w-fit border-2 ${classes.border} ${classes.bg} font-mono text-xs ${classes.text} uppercase`}
+                        >
+                            {issue.icon} {issue.label}
+                        </Badge>
+                        <p
+                            className={`border-l-2 ${classes.border} ${classes.bg}/50 px-3 py-2 font-mono text-xs text-muted-foreground`}
+                        >
+                            {issue.message}
+                        </p>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
 
 export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) => {
     const { serverId } = usePreferences();
@@ -183,40 +268,8 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                         </div>
                     )}
 
-                    {/* Status Badges */}
-                    <div className="flex flex-col gap-3">
-                        {query.isCollscan && (
-                            <div className="flex gap-2">
-                                <Badge
-                                    variant="destructive"
-                                    className="w-fit border-2 border-warning bg-warning/20 font-mono text-xs text-warning uppercase"
-                                >
-                                    ⚠ COLLSCAN
-                                </Badge>
-                                <p className="border-l-2 border-warning bg-warning/5 px-3 py-2 font-mono text-xs text-muted-foreground">
-                                    Full collection scan detected. Consider adding an index for better performance.
-                                </p>
-                            </div>
-                        )}
-                        {query.waitingForLock && (
-                            <div className="flex gap-2">
-                                <Badge
-                                    variant="outline"
-                                    className="w-fit border-2 border-destructive font-mono text-xs uppercase"
-                                >
-                                    🔒 WAITING_FOR_LOCK
-                                </Badge>
-                                <p className="border-l-2 border-destructive bg-destructive/5 px-3 py-2 font-mono text-xs text-muted-foreground">
-                                    Query is waiting for a lock. This may indicate resource contention.
-                                </p>
-                            </div>
-                        )}
-                        {query.planSummary && !query.isCollscan && (
-                            <Badge variant="outline" className="w-fit border-2 font-mono text-xs uppercase">
-                                {query.planSummary}
-                            </Badge>
-                        )}
-                    </div>
+                    {/* Status Badges & Issues */}
+                    <QueryIssuesDisplay query={query} />
 
                     {/* Message */}
                     {query.message && (
@@ -254,11 +307,12 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                                 )}
                             </Button>
                         </div>
-                        <div className="max-h-[600px] overflow-auto bg-card p-4">
+                        <div className="bg-card p-4">
                             <JsonView
-                                src={query.query}
                                 name={false}
                                 collapsed={6}
+                                sortKeys={true}
+                                src={query.query}
                                 displayDataTypes={false}
                                 displayObjectSize={false}
                                 enableClipboard={false}

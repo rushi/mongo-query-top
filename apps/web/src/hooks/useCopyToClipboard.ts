@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useBoolean } from "ahooks";
 
 export const useCopyToClipboard = (resetDelay = 500) => {
-    const [copied, setCopied] = useState(false);
+    const [copied, { setTrue: setCopiedTrue, setFalse: setCopiedFalse }] = useBoolean(false);
 
     const copy = async (text: string) => {
         try {
             await navigator.clipboard.writeText(text);
-            setCopied(true);
-            setTimeout(() => setCopied(false), resetDelay);
+            setCopiedTrue();
+            setTimeout(() => setCopiedFalse(), resetDelay);
             return true;
         } catch (err) {
             console.error("Failed to copy to clipboard:", err);

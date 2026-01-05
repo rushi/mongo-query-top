@@ -1,5 +1,6 @@
 import type { ProcessedQuery, QuerySummary } from "@mongo-query-top/types";
 import { createFileRoute } from "@tanstack/react-router";
+import { useBoolean, useSetState, useTitle } from "ahooks";
 import { useEffect, useMemo, useState } from "react";
 import { FilterControls } from "../components/FilterControls";
 import { QueryDetails } from "../components/QueryDetails";
@@ -50,19 +51,22 @@ function Dashboard() {
     const { servers, loading: serversLoading } = useFetchServers();
     const { serverId, setServerId, minTime, refreshInterval, showAll, isPaused, ipFilter } = useUrlPreferences();
 
-    const [isConnecting, setIsConnecting] = useState(false);
-    const [mongoConnected, setMongoConnected] = useState(false);
-    const [connectError, setConnectError] = useState<string | null>(null);
+    const [connectionState, setConnectionState] = useSetState({
+        isConnecting: false,
+        mongoConnected: false,
+        connectError: null as string | null,
+    });
+
     const { data, error, isConnected, isReconnecting, isStale } = useServerSentEvents(
         serverId,
         minTime,
         refreshInterval,
         showAll,
-        mongoConnected,
+        connectionState.mongoConnected,
         isPaused,
     );
 
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isDialogOpen, { setTrue: openDialog, setFalse: closeDialog }] = useBoolean(false);
     const [selectedQuery, setSelectedQuery] = useState<ProcessedQuery | null>(null);
 
     // Filter queries by IP if ipFilter is set
@@ -86,54 +90,42 @@ function Dashboard() {
     // Auto-connect to MongoDB on mount
     useEffect(() => {
         const connectToMongo = async () => {
-            setIsConnecting(true);
-            setConnectError(null);
+            setConnectionState({ isConnecting: true, connectError: null });
             try {
                 await apiClient.post(`/servers/${serverId}/connect`);
-                setMongoConnected(true);
-                setConnectError(null);
+                setConnectionState({ mongoConnected: true, connectError: null, isConnecting: false });
             } catch (err: any) {
-                setConnectError(err.message || "Failed to connect to MongoDB");
-                setMongoConnected(false);
-            } finally {
-                setIsConnecting(false);
+                setConnectionState({
+                    connectError: err.message || "Failed to connect to MongoDB",
+                    mongoConnected: false,
+                    isConnecting: false,
+                });
             }
         };
 
         connectToMongo();
-    }, [serverId]);
+    }, [serverId, setConnectionState]);
 
     // Update browser tab title with query count
     const serverName = servers.find((s) => s.id === serverId)?.name || serverId;
-    useEffect(() => {
-        const queryCount = filteredQueries.length;
-        const defaultTitle = isConnected ? `[${serverName}] MongoDB Query Monitor` : "MongoDB Query Monitor";
-        if (queryCount >= 2) {
-            document.title = `(${queryCount}) ${defaultTitle}`;
-        } else {
-            document.title = defaultTitle;
-        }
-
-        return () => {
-            document.title = defaultTitle;
-        };
-    }, [filteredQueries.length, serverName]);
+    const queryCount = filteredQueries.length;
+    const baseTitle = serverName ? `[${serverName}] MongoDB Query Monitor` : "MongoDB Query Monitor";
+    useTitle(queryCount >= 2 ? `(${queryCount}) ${baseTitle}` : baseTitle);
 
     const handleQueryClick = (query: ProcessedQuery) => {
         setSelectedQuery(query);
-        setIsDialogOpen(true);
+        openDialog();
     };
 
     const handleServerChange = (newServerId: string) => {
         setServerId(newServerId);
-        setMongoConnected(false);
-        setConnectError(null);
+        setConnectionState({ mongoConnected: false, connectError: null });
     };
 
     const currentServer = servers.find((s) => s.id === serverId);
 
     const getConnectionBadge = () => {
-        if (isConnecting) {
+        if (connectionState.isConnecting) {
             return (
                 <Badge variant="secondary" className="gap-1.5 border-2 font-mono text-[10px] uppercase">
                     <div className="h-2 w-2 animate-spin border border-muted-foreground/20 border-t-muted-foreground" />
@@ -238,15 +230,13 @@ function Dashboard() {
             <div className="animate-reveal space-y-4 opacity-0 delay-100">
                 <FilterControls />
 
-                {connectError && (
-                    <div className="border-2 border-destructive bg-destructive/10 p-6">
+                {connectionState.connectError && (
+                    <div className="mb-4 border-2 border-destructive bg-destructive/10 p-4">
                         <div className="mb-2 flex items-center gap-2">
-                            <span className="text-xl">▼</span>
-                            <p className="font-mono text-sm font-bold text-destructive uppercase">
-                                MONGODB_CONNECTION_ERROR
-                            </p>
+                            <span className="text-lg">▼</span>
+                            <h4 className="font-mono text-xs font-bold text-destructive uppercase">CONNECTION_ERROR</h4>
                         </div>
-                        <p className="font-mono text-xs text-muted-foreground">└─ {connectError}</p>
+                        <p className="font-mono text-xs text-muted-foreground">└─ {connectionState.connectError}</p>
                     </div>
                 )}
 
@@ -295,7 +285,7 @@ function Dashboard() {
                 </div>
             )}
 
-            <QueryDetails query={selectedQuery} open={isDialogOpen} onOpenChange={setIsDialogOpen} />
+            <QueryDetails query={selectedQuery} open={isDialogOpen} onOpenChange={closeDialog} />
         </div>
     );
 }

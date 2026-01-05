@@ -1,6 +1,6 @@
 import JsonView from "@microlink/react-json-view";
 import type { ProcessedQuery } from "@mongo-query-top/types";
-import { Check, FloppyDisk } from "@phosphor-icons/react/dist/ssr";
+import { CheckIcon, FloppyDiskIcon } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { usePreferences } from "../store/preferences";
 import { apiClient } from "../utils/api";
@@ -56,12 +56,12 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                     >
                         {saved ? (
                             <>
-                                <Check weight="bold" className="mr-2 h-3 w-3" />
+                                <CheckIcon weight="bold" className="mr-2 h-3 w-3" />
                                 SAVED
                             </>
                         ) : (
                             <>
-                                <FloppyDisk weight="bold" className="mr-2 h-3 w-3" />
+                                <FloppyDiskIcon weight="bold" className="mr-2 h-3 w-3" />
                                 SAVE
                             </>
                         )}

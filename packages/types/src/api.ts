@@ -20,6 +20,7 @@ export interface ProcessedQuery {
     isCollscan: boolean;
     waitingForLock?: boolean;
     message?: string;
+    effectiveUsers?: Array<{ user: string; db: string }>;
 }
 
 export interface QuerySummary {

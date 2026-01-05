@@ -1,5 +1,6 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import type { QueryData } from "@mongo-query-top/types";
+import { useDocumentVisibility, useInterval } from "ahooks";
 import { useEffect, useRef, useState } from "react";
 import { API_BASE, API_KEY } from "../utils/api";
 
@@ -17,9 +18,9 @@ export const useServerSentEvents = (
     const [error, setError] = useState<string | null>(null);
     const [data, setData] = useState<QueryData | null>(null);
 
+    const [isStale, setIsStale] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
     const [isReconnecting, setIsReconnecting] = useState(false);
-    const [isStale, setIsStale] = useState(false);
 
     const reconnectAttemptsRef = useRef(0);
     const retryDelayRef = useRef(INITIAL_RETRY_DELAY);
@@ -138,14 +139,22 @@ export const useServerSentEvents = (
     }, [serverId, minTime, refreshInterval, showAll, enabled, isPaused]);
 
     // Check for stale connection (no updates for > 2 seconds)
-    useEffect(() => {
-        if (!isConnected || isPaused) {
-            return;
-        }
+    // Skip stale detection when page is hidden to avoid false positives
+    const documentVisibility = useDocumentVisibility();
 
-        const checkStaleInterval = setInterval(() => {
+    // Reset stale state when page becomes visible
+    useEffect(() => {
+        if (documentVisibility === "visible") {
+            lastUpdateTimeRef.current = Date.now();
+            setIsStale(false);
+        }
+    }, [documentVisibility]);
+
+    // Use useInterval for stale checking with conditional execution
+    useInterval(
+        () => {
             const timeSinceLastUpdate = Date.now() - lastUpdateTimeRef.current;
-            const isCurrentlyStale = timeSinceLastUpdate > 2000;
+            const isCurrentlyStale = timeSinceLastUpdate > 3000;
 
             if (isCurrentlyStale !== isStale) {
                 setIsStale(isCurrentlyStale);
@@ -153,12 +162,10 @@ export const useServerSentEvents = (
                     console.log("[Connection] Connection appears stale - no updates for 2+ seconds");
                 }
             }
-        }, 500);
-
-        return () => {
-            clearInterval(checkStaleInterval);
-        };
-    }, [isConnected, isPaused, isStale]);
+        },
+        // Only run when connected, not paused, and page is visible
+        isConnected && !isPaused && documentVisibility === "visible" ? 500 : undefined,
+    );
 
     return { data, error, isConnected, isReconnecting, isStale };
 };

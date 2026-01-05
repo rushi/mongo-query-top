@@ -1,5 +1,5 @@
+import { useMemoizedFn } from "ahooks";
 import { parseAsBoolean, parseAsInteger, parseAsString, useQueryStates } from "nuqs";
-import { useCallback } from "react";
 
 export type SortColumn = "runtime" | "operation" | "namespace" | "client" | "opid";
 export type SortDirection = "asc" | "desc";
@@ -43,58 +43,43 @@ export const useUrlPreferences = () => {
     const sortDirection = preferences.sortDirection as SortDirection;
     const ipFilter = preferences.ipFilter ?? undefined;
 
-    // Create setter functions
-    const setServerId = useCallback(
-        (id: string) => {
-            setPreferences({ serverId: id });
-        },
-        [setPreferences],
-    );
+    // Create setter functions with useMemoizedFn (no dependency arrays needed)
+    const setServerId = useMemoizedFn((id: string) => {
+        setPreferences({ serverId: id });
+    });
 
-    const setMinTime = useCallback(
-        (time: number) => {
-            setPreferences({ minTime: time });
-        },
-        [setPreferences],
-    );
+    const setMinTime = useMemoizedFn((time: number) => {
+        setPreferences({ minTime: time });
+    });
 
-    const setRefreshInterval = useCallback(
-        (interval: number) => {
-            setPreferences({ refreshInterval: interval });
-        },
-        [setPreferences],
-    );
+    const setRefreshInterval = useMemoizedFn((interval: number) => {
+        setPreferences({ refreshInterval: interval });
+    });
 
-    const toggleShowAll = useCallback(() => {
+    const toggleShowAll = useMemoizedFn(() => {
         setPreferences({ showAll: !preferences.showAll });
-    }, [preferences.showAll, setPreferences]);
+    });
 
-    const togglePause = useCallback(() => {
+    const togglePause = useMemoizedFn(() => {
         setPreferences({ isPaused: !preferences.isPaused });
-    }, [preferences.isPaused, setPreferences]);
+    });
 
-    const setSortColumn = useCallback(
-        (column: SortColumn) => {
-            // If clicking the same column, toggle direction
-            if (preferences.sortBy === column) {
-                const newDirection = preferences.sortDirection === "desc" ? "asc" : "desc";
-                setPreferences({ sortDirection: newDirection });
-            } else {
-                // New column - default to descending
-                setPreferences({ sortBy: column, sortDirection: "desc" });
-            }
-        },
-        [preferences.sortBy, preferences.sortDirection, setPreferences],
-    );
+    const setSortColumn = useMemoizedFn((column: SortColumn) => {
+        // If clicking the same column, toggle direction
+        if (preferences.sortBy === column) {
+            const newDirection = preferences.sortDirection === "desc" ? "asc" : "desc";
+            setPreferences({ sortDirection: newDirection });
+        } else {
+            // New column - default to descending
+            setPreferences({ sortBy: column, sortDirection: "desc" });
+        }
+    });
 
-    const setIpFilter = useCallback(
-        (ip?: string) => {
-            setPreferences({ ipFilter: ip || null });
-        },
-        [setPreferences],
-    );
+    const setIpFilter = useMemoizedFn((ip?: string) => {
+        setPreferences({ ipFilter: ip || null });
+    });
 
-    const resetFilters = useCallback(() => {
+    const resetFilters = useMemoizedFn(() => {
         setPreferences({
             minTime: DEFAULTS.minTime, // 1000ms
             refreshInterval: DEFAULTS.refreshInterval,
@@ -104,7 +89,7 @@ export const useUrlPreferences = () => {
             sortDirection: DEFAULTS.sortDirection,
             ipFilter: null,
         });
-    }, [setPreferences]);
+    });
 
     return {
         serverId,

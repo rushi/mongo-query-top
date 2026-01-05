@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useRequest } from "ahooks";
 import { apiClient } from "../utils/api";
 
 export interface ServerInfo {
@@ -8,25 +8,20 @@ export interface ServerInfo {
 }
 
 export const useFetchServers = () => {
-    const [servers, setServers] = useState<ServerInfo[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { data, loading, error } = useRequest(
+        async () => {
+            const response = await apiClient.get("/servers");
+            return response.servers as ServerInfo[];
+        },
+        {
+            cacheKey: "servers-list",
+            staleTime: 60000, // Cache for 60 seconds
+        },
+    );
 
-    useEffect(() => {
-        const fetchServers = async () => {
-            try {
-                const data = await apiClient.get("/servers");
-                setServers(data.servers);
-                setError(null);
-            } catch (err: any) {
-                setError(err.message || "Failed to fetch servers");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchServers();
-    }, []);
-
-    return { servers, loading, error };
+    return {
+        servers: data ?? [],
+        loading,
+        error: error?.message ?? null,
+    };
 };

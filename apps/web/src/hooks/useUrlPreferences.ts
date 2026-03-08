@@ -1,29 +1,33 @@
 import { useMemoizedFn } from "ahooks";
 import { parseAsBoolean, parseAsInteger, parseAsString, useQueryStates } from "nuqs";
+import { useSettings } from "../store/settings";
 
 export type SortColumn = "runtime" | "operation" | "namespace" | "client" | "opid";
 export type SortDirection = "asc" | "desc";
 
-// Define default values
-const DEFAULTS = {
-    serverId: "localhost",
-    minTime: 1000, // milliseconds (1 second)
-    refreshInterval: 2,
-    showAll: false,
-    isPaused: false,
-    sortBy: "runtime" as SortColumn,
-    sortDirection: "desc" as SortDirection,
+// Get defaults from settings
+const getDefaults = () => {
+    const { defaultFilters } = useSettings.getState();
+    return {
+        serverId: "localhost",
+        minTime: defaultFilters.minTimeMs,
+        refreshInterval: defaultFilters.refreshSec,
+        showAll: defaultFilters.showAll,
+        isPaused: false,
+        sortBy: "runtime" as SortColumn,
+        sortDirection: "desc" as SortDirection,
+    };
 };
 
-// Define parsers for each URL param
+// Define parsers for each URL param (no defaults, we'll apply them dynamically)
 const preferenceParsers = {
-    serverId: parseAsString.withDefault(DEFAULTS.serverId),
-    minTime: parseAsInteger.withDefault(DEFAULTS.minTime),
-    refreshInterval: parseAsInteger.withDefault(DEFAULTS.refreshInterval),
-    showAll: parseAsBoolean.withDefault(DEFAULTS.showAll),
-    isPaused: parseAsBoolean.withDefault(DEFAULTS.isPaused),
-    sortBy: parseAsString.withDefault(DEFAULTS.sortBy),
-    sortDirection: parseAsString.withDefault(DEFAULTS.sortDirection),
+    serverId: parseAsString,
+    minTime: parseAsInteger,
+    refreshInterval: parseAsInteger,
+    showAll: parseAsBoolean,
+    isPaused: parseAsBoolean,
+    sortBy: parseAsString,
+    sortDirection: parseAsString,
     ipFilter: parseAsString, // Optional, no default
 };
 
@@ -33,14 +37,17 @@ export const useUrlPreferences = () => {
         shallow: false, // Allow full page navigation if needed
     });
 
-    // Extract values with proper typing
-    const serverId = preferences.serverId;
-    const minTime = preferences.minTime;
-    const refreshInterval = preferences.refreshInterval;
-    const showAll = preferences.showAll;
-    const isPaused = preferences.isPaused;
-    const sortBy = preferences.sortBy as SortColumn;
-    const sortDirection = preferences.sortDirection as SortDirection;
+    // Get defaults from settings
+    const DEFAULTS = getDefaults();
+
+    // Extract values with proper typing, applying defaults from settings
+    const serverId = preferences.serverId ?? DEFAULTS.serverId;
+    const minTime = preferences.minTime ?? DEFAULTS.minTime;
+    const refreshInterval = preferences.refreshInterval ?? DEFAULTS.refreshInterval;
+    const showAll = preferences.showAll ?? DEFAULTS.showAll;
+    const isPaused = preferences.isPaused ?? DEFAULTS.isPaused;
+    const sortBy = (preferences.sortBy as SortColumn) ?? DEFAULTS.sortBy;
+    const sortDirection = (preferences.sortDirection as SortDirection) ?? DEFAULTS.sortDirection;
     const ipFilter = preferences.ipFilter ?? undefined;
 
     // Create setter functions with useMemoizedFn (no dependency arrays needed)
@@ -80,13 +87,14 @@ export const useUrlPreferences = () => {
     });
 
     const resetFilters = useMemoizedFn(() => {
+        const defaults = getDefaults();
         setPreferences({
-            minTime: DEFAULTS.minTime, // 1000ms
-            refreshInterval: DEFAULTS.refreshInterval,
-            showAll: DEFAULTS.showAll,
-            isPaused: DEFAULTS.isPaused,
-            sortBy: DEFAULTS.sortBy,
-            sortDirection: DEFAULTS.sortDirection,
+            minTime: defaults.minTime,
+            refreshInterval: defaults.refreshInterval,
+            showAll: defaults.showAll,
+            isPaused: defaults.isPaused,
+            sortBy: defaults.sortBy,
+            sortDirection: defaults.sortDirection,
             ipFilter: null,
         });
     });

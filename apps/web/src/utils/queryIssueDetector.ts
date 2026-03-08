@@ -23,7 +23,7 @@ export interface QueryIssue {
  * Configuration thresholds for issue detection
  * Adjust these values based on your environment and requirements
  */
-export const THRESHOLDS = {
+export const DEFAULT_THRESHOLDS = {
     LONG_RUNNING_WARNING_SECS: 30,
     LONG_RUNNING_CRITICAL_SECS: 60,
     /** Documents examined to returned ratio above this triggers inefficiency warning */
@@ -36,6 +36,29 @@ export const THRESHOLDS = {
     TIMEOUT_RISK_SECS: 300,
 } as const;
 
+export type ThresholdsConfig = typeof DEFAULT_THRESHOLDS;
+
+/**
+ * Convert settings thresholds to detector thresholds format
+ */
+export function convertSettingsToThresholds(settings: {
+    longRunningWarningSecs: number;
+    longRunningCriticalSecs: number;
+    docsExaminedRatioWarning: number;
+    largeResultSetWarning: number;
+    highMemoryWarningMB: number;
+    timeoutRiskSecs: number;
+}): ThresholdsConfig {
+    return {
+        LONG_RUNNING_WARNING_SECS: settings.longRunningWarningSecs,
+        LONG_RUNNING_CRITICAL_SECS: settings.longRunningCriticalSecs,
+        DOCS_EXAMINED_RATIO_WARNING: settings.docsExaminedRatioWarning,
+        LARGE_RESULT_SET_WARNING: settings.largeResultSetWarning,
+        HIGH_MEMORY_WARNING_BYTES: settings.highMemoryWarningMB * 1024 * 1024,
+        TIMEOUT_RISK_SECS: settings.timeoutRiskSecs,
+    };
+}
+
 /**
  * Issue Detector: Long-Running Queries
  *
@@ -46,13 +69,14 @@ export const THRESHOLDS = {
  * - Indicate missing indexes or inefficient query patterns
  *
  * @param query - The processed query to analyze
+ * @param thresholds - Optional custom thresholds (defaults to DEFAULT_THRESHOLDS)
  *
  * @returns QueryIssue if detected, null otherwise
  */
-export function detectLongRunning(query: ProcessedQuery): QueryIssue | null {
+export function detectLongRunning(query: ProcessedQuery, thresholds = DEFAULT_THRESHOLDS): QueryIssue | null {
     const { secs_running } = query;
 
-    if (secs_running >= THRESHOLDS.LONG_RUNNING_CRITICAL_SECS) {
+    if (secs_running >= thresholds.LONG_RUNNING_CRITICAL_SECS) {
         return {
             id: "long-running-critical",
             label: "LONG_RUNNING",
@@ -62,7 +86,7 @@ export function detectLongRunning(query: ProcessedQuery): QueryIssue | null {
         };
     }
 
-    if (secs_running >= THRESHOLDS.LONG_RUNNING_WARNING_SECS) {
+    if (secs_running >= thresholds.LONG_RUNNING_WARNING_SECS) {
         return {
             id: "long-running-warning",
             label: "LONG_RUNNING",
@@ -87,14 +111,15 @@ export function detectLongRunning(query: ProcessedQuery): QueryIssue | null {
  * Looks for: executionStats.memUsage or executionStats.memoryUsageBytes
  *
  * @param query - The processed query to analyze
+ * @param thresholds - Optional custom thresholds (defaults to DEFAULT_THRESHOLDS)
  *
  * @returns QueryIssue if detected, null otherwise
  */
-export function detectHighMemoryUsage(query: ProcessedQuery): QueryIssue | null {
+export function detectHighMemoryUsage(query: ProcessedQuery, thresholds = DEFAULT_THRESHOLDS): QueryIssue | null {
     const executionStats = query.query?.executionStats || query.query?.command?.executionStats;
     const memUsage = executionStats?.memUsage || executionStats?.memoryUsageBytes;
 
-    if (memUsage && memUsage > THRESHOLDS.HIGH_MEMORY_WARNING_BYTES) {
+    if (memUsage && memUsage > thresholds.HIGH_MEMORY_WARNING_BYTES) {
         const memMB = Math.round(memUsage / (1024 * 1024));
         return {
             id: "high-memory",
@@ -120,16 +145,17 @@ export function detectHighMemoryUsage(query: ProcessedQuery): QueryIssue | null 
  * Looks for: nReturned, docsExamined, or limit in command
  *
  * @param query - The processed query to analyze
+ * @param thresholds - Optional custom thresholds (defaults to DEFAULT_THRESHOLDS)
  *
  * @returns QueryIssue if detected, null otherwise
  */
-export function detectLargeResultSet(query: ProcessedQuery): QueryIssue | null {
+export function detectLargeResultSet(query: ProcessedQuery, thresholds = DEFAULT_THRESHOLDS): QueryIssue | null {
     const executionStats = query.query?.executionStats || query.query?.command?.executionStats;
     const nReturned = executionStats?.nReturned;
     const limit = query.query?.command?.limit;
 
     // If there's a large limit without proper pagination warning
-    if (limit && limit > THRESHOLDS.LARGE_RESULT_SET_WARNING) {
+    if (limit && limit > thresholds.LARGE_RESULT_SET_WARNING) {
         return {
             id: "large-result-set",
             label: "LARGE_RESULT",
@@ -139,7 +165,7 @@ export function detectLargeResultSet(query: ProcessedQuery): QueryIssue | null {
         };
     }
 
-    if (nReturned && nReturned > THRESHOLDS.LARGE_RESULT_SET_WARNING) {
+    if (nReturned && nReturned > thresholds.LARGE_RESULT_SET_WARNING) {
         return {
             id: "large-result-set",
             label: "LARGE_RESULT",
@@ -164,10 +190,11 @@ export function detectLargeResultSet(query: ProcessedQuery): QueryIssue | null {
  * Looks for: totalDocsExamined vs nReturned ratio
  *
  * @param query - The processed query to analyze
+ * @param thresholds - Optional custom thresholds (defaults to DEFAULT_THRESHOLDS)
  *
  * @returns QueryIssue if detected, null otherwise
  */
-export function detectExcessiveDocsExamined(query: ProcessedQuery): QueryIssue | null {
+export function detectExcessiveDocsExamined(query: ProcessedQuery, thresholds = DEFAULT_THRESHOLDS): QueryIssue | null {
     const executionStats = query.query?.executionStats || query.query?.command?.executionStats;
     const totalDocsExamined = executionStats?.totalDocsExamined || executionStats?.docsExamined;
     const nReturned = executionStats?.nReturned;
@@ -175,7 +202,7 @@ export function detectExcessiveDocsExamined(query: ProcessedQuery): QueryIssue |
     if (totalDocsExamined && nReturned && nReturned > 0) {
         const ratio = totalDocsExamined / nReturned;
 
-        if (ratio > THRESHOLDS.DOCS_EXAMINED_RATIO_WARNING) {
+        if (ratio > thresholds.DOCS_EXAMINED_RATIO_WARNING) {
             return {
                 id: "excessive-docs-examined",
                 label: "INEFFICIENT_SCAN",
@@ -278,13 +305,14 @@ export function detectInMemorySort(query: ProcessedQuery): QueryIssue | null {
  * - Should be killed or optimized immediately
  *
  * @param query - The processed query to analyze
+ * @param thresholds - Optional custom thresholds (defaults to DEFAULT_THRESHOLDS)
  *
  * @returns QueryIssue if detected, null otherwise
  */
-export function detectTimeoutRisk(query: ProcessedQuery): QueryIssue | null {
+export function detectTimeoutRisk(query: ProcessedQuery, thresholds = DEFAULT_THRESHOLDS): QueryIssue | null {
     const { secs_running } = query;
 
-    if (secs_running >= THRESHOLDS.TIMEOUT_RISK_SECS) {
+    if (secs_running >= thresholds.TIMEOUT_RISK_SECS) {
         return {
             id: "timeout-risk",
             label: "TIMEOUT_RISK",
@@ -363,10 +391,10 @@ export function detectRetryIndicator(query: ProcessedQuery): QueryIssue | null {
  * List of all available issue detectors.
  * Add or remove detectors here to customize issue detection.
  *
- * Each detector is a function that takes a ProcessedQuery and returns
- * either a QueryIssue or null if no issue is detected.
+ * Each detector is a function that takes a ProcessedQuery and optional thresholds,
+ * and returns either a QueryIssue or null if no issue is detected.
  */
-export const issueDetectors: Array<(query: ProcessedQuery) => QueryIssue | null> = [
+export const issueDetectorFns = [
     detectLongRunning,
     detectHighMemoryUsage,
     detectLargeResultSet,
@@ -384,14 +412,18 @@ export const issueDetectors: Array<(query: ProcessedQuery) => QueryIssue | null>
  * @param query - The processed query to analyze
  * @param options - Optional configuration
  * @param options.excludeIds - Array of issue IDs to exclude from detection
+ * @param options.thresholds - Custom thresholds (defaults to DEFAULT_THRESHOLDS)
  *
  * @returns Array of detected QueryIssue objects, sorted by severity
  */
-export function detectQueryIssues(query: ProcessedQuery, options?: { excludeIds?: string[] }): QueryIssue[] {
-    const { excludeIds = [] } = options || {};
+export function detectQueryIssues(
+    query: ProcessedQuery,
+    options?: { excludeIds?: string[]; thresholds?: ThresholdsConfig },
+): QueryIssue[] {
+    const { excludeIds = [], thresholds = DEFAULT_THRESHOLDS } = options || {};
 
-    const issues = issueDetectors
-        .map((detector) => detector(query))
+    const issues = issueDetectorFns
+        .map((detector) => detector(query, thresholds as typeof DEFAULT_THRESHOLDS))
         .filter((issue): issue is QueryIssue => issue !== null)
         .filter((issue) => !excludeIds.includes(issue.id));
 

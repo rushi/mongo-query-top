@@ -2,6 +2,7 @@ import { fetchEventSource } from "@microsoft/fetch-event-source";
 import type { QueryData } from "@mongo-query-top/types";
 import { useDocumentVisibility, useInterval } from "ahooks";
 import { useEffect, useRef, useState } from "react";
+import { useSettings } from "../store/settings";
 import { API_BASE, API_KEY } from "../utils/api";
 
 const MAX_RETRY_DELAY = 30000; // 30 seconds max
@@ -15,6 +16,7 @@ export const useServerSentEvents = (
     enabled: boolean = true,
     isPaused: boolean = false,
 ) => {
+    const settingsVersion = useSettings((state) => state.settingsVersion);
     const [error, setError] = useState<string | null>(null);
     const [data, setData] = useState<QueryData | null>(null);
 
@@ -53,7 +55,27 @@ export const useServerSentEvents = (
 
             const abortController = new AbortController();
             abortControllerRef.current = abortController;
-            const url = `${API_BASE}/queries/${serverId}/stream?minTime=${minTime}&refreshInterval=${refreshInterval}&showAll=${showAll}`;
+
+            // Read current settings when establishing connection
+            const { autoSave, issueThresholds } = useSettings.getState();
+
+            // Build URL with query params
+            const params = new URLSearchParams({
+                minTime: String(minTime),
+                refreshInterval: String(refreshInterval),
+                showAll: String(showAll),
+            });
+
+            // Add auto-save settings
+            params.append("autoSaveEnabled", String(autoSave.enabled));
+            params.append("autoSaveLongRunningThreshold", String(autoSave.longRunningThresholdSecs));
+            params.append("autoSaveCollscan", String(autoSave.saveCollscanQueries));
+            params.append("autoSaveTimeoutRisk", String(autoSave.saveTimeoutRiskQueries));
+
+            // Add timeout risk threshold
+            params.append("timeoutRiskThreshold", String(issueThresholds.timeoutRiskSecs));
+
+            const url = `${API_BASE}/queries/${serverId}/stream?${params.toString()}`;
 
             try {
                 console.log("[Connection] Establishing SSE connection to", { url });
@@ -136,7 +158,7 @@ export const useServerSentEvents = (
             setIsConnected(false);
             setIsReconnecting(false);
         };
-    }, [serverId, minTime, refreshInterval, showAll, enabled, isPaused]);
+    }, [serverId, minTime, refreshInterval, showAll, enabled, isPaused, settingsVersion]);
 
     // Check for stale connection (no updates for > 2 seconds)
     // Skip stale detection when page is hidden to avoid false positives

@@ -5,12 +5,14 @@ import { useEffect, useMemo, useState } from "react";
 import { FilterControls } from "../components/FilterControls";
 import { QueryDetails } from "../components/QueryDetails";
 import { QueryTable } from "../components/QueryTable";
+import { Settings } from "../components/Settings";
 import { SummaryStats } from "../components/SummaryStats";
 import { Badge } from "../components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useFetchServers } from "../hooks/useFetchServers";
 import { useServerSentEvents } from "../hooks/useServerSentEvents";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
+import { useSettings } from "../store/settings";
 import { apiClient, getApiBaseUrl } from "../utils/api";
 
 // Generate summary from filtered queries
@@ -50,6 +52,7 @@ export const Route = createFileRoute("/")({ component: Dashboard });
 function Dashboard() {
     const { servers, loading: serversLoading } = useFetchServers();
     const { serverId, setServerId, minTime, refreshInterval, showAll, isPaused, ipFilter } = useUrlPreferences();
+    const { issueThresholds } = useSettings();
 
     const [connectionState, setConnectionState] = useSetState({
         isConnecting: false,
@@ -207,6 +210,7 @@ function Dashboard() {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                <Settings />
                             </div>
                             <div className="flex flex-col items-end gap-3">
                                 <div>{getConnectionBadge()}</div>

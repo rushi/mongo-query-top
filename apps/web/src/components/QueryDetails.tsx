@@ -105,6 +105,7 @@ const QueryIssuesDisplay = ({ query }: { query: ProcessedQuery }) => {
     );
 };
 
+
 export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) => {
     const { serverId } = usePreferences();
     const [saved, setSaved] = useState(false);

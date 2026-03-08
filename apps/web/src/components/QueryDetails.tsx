@@ -4,8 +4,9 @@ import { CheckIcon, CopyIcon, FloppyDiskIcon } from "@phosphor-icons/react/dist/
 import { useMemo, useState } from "react";
 import { useCopyToClipboard } from "../hooks/useCopyToClipboard";
 import { usePreferences } from "../store/preferences";
+import { useSettings } from "../store/settings";
 import { apiClient } from "../utils/api";
-import { detectQueryIssues, getSeverityClasses } from "../utils/queryIssueDetector";
+import { convertSettingsToThresholds, detectQueryIssues, getSeverityClasses } from "../utils/queryIssueDetector";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "./ui/sheet";
@@ -21,7 +22,11 @@ interface QueryDetailsProps {
  * Uses the modular issue detection system
  */
 const QueryIssuesDisplay = ({ query }: { query: ProcessedQuery }) => {
-    const issues = useMemo(() => detectQueryIssues(query), [query]);
+    const { issueThresholds } = useSettings();
+    const issues = useMemo(
+        () => detectQueryIssues(query, { thresholds: convertSettingsToThresholds(issueThresholds) }),
+        [query, issueThresholds],
+    );
 
     // Always show COLLSCAN and WAITING_FOR_LOCK from the query object plus any additional detected issues
     const coreIssues = useMemo(() => {

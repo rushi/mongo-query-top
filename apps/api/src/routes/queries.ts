@@ -163,10 +163,28 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
     // GET /api/queries/:serverId/stream - Real-time SSE stream
     fastify.get<{
         Params: { serverId: string };
-        Querystring: { minTime?: string; refreshInterval?: string; showAll?: string };
+        Querystring: {
+            minTime?: string;
+            refreshInterval?: string;
+            showAll?: string;
+            autoSaveEnabled?: string;
+            autoSaveLongRunningThreshold?: string;
+            autoSaveCollscan?: string;
+            autoSaveTimeoutRisk?: string;
+            timeoutRiskThreshold?: string;
+        };
     }>("/:serverId/stream", async (request, reply) => {
         const { serverId } = request.params;
-        const { minTime = "1000", refreshInterval = "2", showAll = "false" } = request.query;
+        const {
+            minTime = "1000",
+            refreshInterval = "2",
+            showAll = "false",
+            autoSaveEnabled = "false",
+            autoSaveLongRunningThreshold = "60",
+            autoSaveCollscan = "true",
+            autoSaveTimeoutRisk = "true",
+            timeoutRiskThreshold = "300",
+        } = request.query;
 
         const client = request.services.mongoService.getConnection(serverId);
         if (!client) {
@@ -191,6 +209,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
 
         let intervalId: NodeJS.Timeout;
         let isActive = true;
+        const savedQueryIds = new Set<string>();
 
         const sendQueryUpdate = async () => {
             if (!isActive) {
@@ -208,6 +227,57 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
 
                 const queries = request.services.queryService.processQueries(result.inprog, showAll === "true");
                 const summary = request.services.queryService.generateSummary(queries);
+
+                // Auto-save queries if enabled
+                if (autoSaveEnabled === "true") {
+                    const longRunningThresholdSecs = Number(autoSaveLongRunningThreshold);
+                    const timeoutRiskSecs = Number(timeoutRiskThreshold);
+
+                    for (const query of queries) {
+                        // Skip if already saved
+                        if (savedQueryIds.has(query.opid)) {
+                            continue;
+                        }
+
+                        let shouldSave = false;
+                        let saveType = "auto-save";
+
+                        // Check long-running threshold
+                        if (query.secs_running >= longRunningThresholdSecs) {
+                            shouldSave = true;
+                            saveType = "auto-save-long-running";
+                            fastify.log.info(
+                                `Auto-save: Long-running query ${query.opid} (${query.secs_running}s >= ${longRunningThresholdSecs}s)`,
+                            );
+                        }
+
+                        // Check COLLSCAN
+                        if (autoSaveCollscan === "true" && query.isCollscan) {
+                            shouldSave = true;
+                            saveType = "auto-save-collscan";
+                            fastify.log.info(`Auto-save: COLLSCAN query ${query.opid} on ${query.namespace}`);
+                        }
+
+                        // Check timeout risk
+                        if (autoSaveTimeoutRisk === "true" && query.secs_running >= timeoutRiskSecs) {
+                            shouldSave = true;
+                            saveType = "auto-save-timeout-risk";
+                            fastify.log.info(
+                                `Auto-save: Timeout risk query ${query.opid} (${query.secs_running}s >= ${timeoutRiskSecs}s)`,
+                            );
+                        }
+
+                        if (shouldSave) {
+                            try {
+                                await request.services.loggerService.saveQuery(serverId, query, saveType);
+                                savedQueryIds.add(query.opid);
+                                fastify.log.info(`Auto-saved query ${query.opid} (${saveType})`);
+                            } catch (err: any) {
+                                fastify.log.error(`Failed to auto-save query ${query.opid}: ${err.message}`);
+                            }
+                        }
+                    }
+                }
 
                 const data = {
                     queries,
@@ -236,6 +306,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
         request.raw.on("close", () => {
             isActive = false;
             clearInterval(intervalId);
+            savedQueryIds.clear();
             fastify.log.info(`SSE connection closed for server: ${serverId}`);
         });
 

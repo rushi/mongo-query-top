@@ -12,6 +12,7 @@ import { useMemo, useRef, useState } from "react";
 import type { SortColumn } from "../hooks/useUrlPreferences";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
 import { cn } from "../lib/utils";
+import { useSettings } from "../store/settings";
 import { apiClient } from "../utils/api";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -52,6 +53,7 @@ const isInternalIp = (ip: string): boolean => {
 export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
     const parentRef = useRef<HTMLDivElement>(null);
     const { serverId, sortBy: sortColumn, sortDirection, setSortColumn, setIpFilter } = useUrlPreferences();
+    const { uiPreferences } = useSettings();
     const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
     const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
@@ -207,7 +209,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                 </div>
             </div>
 
-            <div ref={parentRef} className="h-[600px] overflow-auto">
+            <div ref={parentRef} style={{ height: `${uiPreferences.tableHeight}px` }} className="overflow-auto">
                 <div style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}>
                     {virtualizer.getVirtualItems().map((virtualRow) => {
                         const query = sortedQueries[virtualRow.index];

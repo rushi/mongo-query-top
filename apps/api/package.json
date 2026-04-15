@@ -14,7 +14,7 @@
         "@mongo-query-top/types": "workspace:*",
         "config": "^4.1.1",
         "dayjs": "^1.11.19",
-        "fastify": "^5.7.2",
+        "fastify": "^5.8.5",
         "geoip-lite": "^1.4.10",
         "humanize-duration": "^3.33.2",
         "js-yaml": "^4.1.1",

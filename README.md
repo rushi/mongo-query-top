@@ -50,6 +50,31 @@ cp config/local.yaml.example config/local.yaml
 pnpm run dev:web
 ```
 
+## Production (Local)
+
+Run the compiled build without Docker:
+
+```bash
+# 1. Configure your MongoDB servers
+cp config/local.yaml.example config/local.yaml
+
+# 2. Build all packages
+pnpm run build
+
+# 3. Start API + Web
+pnpm run start
+```
+
+- Web UI: http://localhost:9000
+- API: http://localhost:9001
+
+Run them separately if needed:
+
+```bash
+pnpm run start:api   # API only (port 9001)
+pnpm run start:web   # Web only — vite preview (port 9000)
+```
+
 ## Docker Setup
 
 Run both API and Web services in containers:
@@ -184,9 +209,6 @@ turbo build --filter=@mongo-query-top/api
 
 # Format code
 pnpm run format
-
-# Production
-pnpm run start:api
 ```
 
 ## Documentation

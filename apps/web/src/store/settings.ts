@@ -36,7 +36,6 @@ export interface DefaultFilters {
 
 export interface UiPreferences {
     tableHeight: number;
-    killOpEnabled: boolean;
 }
 
 interface SettingsState {
@@ -86,9 +85,16 @@ const DEFAULT_STATE = {
     },
     uiPreferences: {
         tableHeight: 600,
-        killOpEnabled: false,
     },
     settingsVersion: 0,
+};
+
+const onSettingsRehydrated = (state: SettingsState | undefined, error: unknown) => {
+    if (!error) {
+        console.log("[Settings] Hydrated from localStorage", state?.defaultFilters);
+        // Resolve the hydration promise
+        settingsHydratedResolve();
+    }
 };
 
 export const useSettings = create<SettingsState>()(
@@ -125,15 +131,7 @@ export const useSettings = create<SettingsState>()(
         }),
         {
             name: "mongo-query-top-settings",
-            onRehydrateStorage: () => {
-                return (state, error) => {
-                    if (!error) {
-                        console.log("[Settings] Hydrated from localStorage", state?.defaultFilters);
-                        // Resolve the hydration promise
-                        settingsHydratedResolve();
-                    }
-                };
-            },
+            onRehydrateStorage: () => onSettingsRehydrated,
         },
     ),
 );

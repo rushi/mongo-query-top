@@ -7,7 +7,7 @@ export interface MongoQuery {
     microsecs_running: number;
     op: string;
     ns: string;
-    command: Record<string, any>;
+    command: Record<string, unknown>;
     client?: string;
     appName?: string;
     clientMetadata?: {

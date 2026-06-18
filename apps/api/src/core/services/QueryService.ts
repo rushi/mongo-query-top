@@ -4,9 +4,9 @@ import shortHumanizeTime from "../lib/helpers.js";
 import { formatUserAgent, sanitizeQuery, shouldSkipQuery } from "../lib/queryProcessor.js";
 
 export class QueryService {
-    private geoCache: Map<string, GeoLocation | null> = new Map();
+    private readonly geoCache: Map<string, GeoLocation | null> = new Map();
 
-    processQueries(queries: MongoQuery[], showAll: boolean = false): ProcessedQuery[] {
+    processQueries(queries: MongoQuery[], showAll = false): ProcessedQuery[] {
         const filtered = showAll ? queries : queries.filter((q) => !shouldSkipQuery(q));
 
         return filtered
@@ -92,6 +92,6 @@ export class QueryService {
         if (!this.geoCache.has(ip)) {
             this.geoCache.set(ip, geoip.lookup(ip));
         }
-        return this.geoCache.get(ip) || null;
+        return this.geoCache.get(ip) ?? null;
     }
 }

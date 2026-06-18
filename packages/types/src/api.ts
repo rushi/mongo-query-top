@@ -9,7 +9,7 @@ export interface ProcessedQuery {
     namespace: string;
     collection: string;
     database: string;
-    query: Record<string, any>;
+    query: Record<string, unknown>;
     client: {
         ip: string;
         port?: number;

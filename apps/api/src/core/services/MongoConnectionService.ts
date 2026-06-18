@@ -1,7 +1,7 @@
 import { Db, MongoClient } from "mongodb";
 
 export class MongoConnectionService {
-    private connections: Map<string, MongoClient> = new Map();
+    private readonly connections: Map<string, MongoClient> = new Map();
 
     async connect(serverId: string, uri: string): Promise<MongoClient> {
         if (this.connections.has(serverId)) {
@@ -28,7 +28,7 @@ export class MongoConnectionService {
     }
 
     async disconnectAll(): Promise<void> {
-        const closePromises = Array.from(this.connections.values()).map((client) => client.close());
+        const closePromises = Array.from(this.connections.values()).map(async (client) => client.close());
         await Promise.all(closePromises);
         this.connections.clear();
     }
@@ -37,7 +37,7 @@ export class MongoConnectionService {
         return this.connections.get(serverId);
     }
 
-    getDb(serverId: string, dbName: string = "admin"): Db | undefined {
+    getDb(serverId: string, dbName = "admin"): Db | undefined {
         const client = this.connections.get(serverId);
         return client?.db(dbName);
     }

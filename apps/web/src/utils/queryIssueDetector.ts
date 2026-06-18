@@ -116,8 +116,8 @@ export function detectLongRunning(query: ProcessedQuery, thresholds = DEFAULT_TH
  * @returns QueryIssue if detected, null otherwise
  */
 export function detectHighMemoryUsage(query: ProcessedQuery, thresholds = DEFAULT_THRESHOLDS): QueryIssue | null {
-    const executionStats = query.query?.executionStats || query.query?.command?.executionStats;
-    const memUsage = executionStats?.memUsage || executionStats?.memoryUsageBytes;
+    const executionStats = query.query?.executionStats ?? query.query?.command?.executionStats;
+    const memUsage = executionStats?.memUsage ?? executionStats?.memoryUsageBytes;
 
     if (memUsage && memUsage > thresholds.HIGH_MEMORY_WARNING_BYTES) {
         const memMB = Math.round(memUsage / (1024 * 1024));
@@ -150,7 +150,7 @@ export function detectHighMemoryUsage(query: ProcessedQuery, thresholds = DEFAUL
  * @returns QueryIssue if detected, null otherwise
  */
 export function detectLargeResultSet(query: ProcessedQuery, thresholds = DEFAULT_THRESHOLDS): QueryIssue | null {
-    const executionStats = query.query?.executionStats || query.query?.command?.executionStats;
+    const executionStats = query.query?.executionStats ?? query.query?.command?.executionStats;
     const nReturned = executionStats?.nReturned;
     const limit = query.query?.command?.limit;
 
@@ -195,8 +195,8 @@ export function detectLargeResultSet(query: ProcessedQuery, thresholds = DEFAULT
  * @returns QueryIssue if detected, null otherwise
  */
 export function detectExcessiveDocsExamined(query: ProcessedQuery, thresholds = DEFAULT_THRESHOLDS): QueryIssue | null {
-    const executionStats = query.query?.executionStats || query.query?.command?.executionStats;
-    const totalDocsExamined = executionStats?.totalDocsExamined || executionStats?.docsExamined;
+    const executionStats = query.query?.executionStats ?? query.query?.command?.executionStats;
+    const totalDocsExamined = executionStats?.totalDocsExamined ?? executionStats?.docsExamined;
     const nReturned = executionStats?.nReturned;
 
     if (totalDocsExamined && nReturned && nReturned > 0) {
@@ -275,12 +275,14 @@ export function detectMissingProjection(query: ProcessedQuery): QueryIssue | nul
  * @returns QueryIssue if detected, null otherwise
  */
 export function detectInMemorySort(query: ProcessedQuery): QueryIssue | null {
-    const planSummary = query.planSummary || "";
+    const planSummary = query.planSummary ?? "";
     const executionStats = query.query?.executionStats;
 
     // Check for in-memory sort indicators
-    const hasInMemorySort =
-        planSummary.includes("SORT") || executionStats?.hasSortStage === true || executionStats?.usedDisk === true;
+    const hasSortInPlan = planSummary.includes("SORT");
+    const hasSortStage = executionStats?.hasSortStage === true;
+    const usedDisk = executionStats?.usedDisk === true;
+    const hasInMemorySort = [hasSortInPlan, hasSortStage, usedDisk].some(Boolean);
 
     if (hasInMemorySort && !planSummary.includes("IXSCAN")) {
         return {
@@ -372,7 +374,7 @@ export function detectBlockingWrite(query: ProcessedQuery): QueryIssue | null {
  */
 export function detectRetryIndicator(query: ProcessedQuery): QueryIssue | null {
     const executionStats = query.query?.executionStats;
-    const retryCount = executionStats?.retryCount || query.query?.retryCount;
+    const retryCount = executionStats?.retryCount ?? query.query?.retryCount;
 
     if (retryCount && retryCount > 0) {
         return {
@@ -420,7 +422,7 @@ export function detectQueryIssues(
     query: ProcessedQuery,
     options?: { excludeIds?: string[]; thresholds?: ThresholdsConfig },
 ): QueryIssue[] {
-    const { excludeIds = [], thresholds = DEFAULT_THRESHOLDS } = options || {};
+    const { excludeIds = [], thresholds = DEFAULT_THRESHOLDS } = options ?? {};
 
     const issues = issueDetectorFns
         .map((detector) => detector(query, thresholds as typeof DEFAULT_THRESHOLDS))

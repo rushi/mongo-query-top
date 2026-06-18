@@ -53,10 +53,10 @@ export default async function serversRoutes(fastify: FastifyInstance) {
                 serverId: id,
                 serverName: serverConfig.name,
             };
-        } catch (err: any) {
+        } catch (err) {
             return reply.code(500).send({
                 error: "Connection failed",
-                message: err.message,
+                message: (err as Error).message,
             });
         }
     });
@@ -85,10 +85,10 @@ export default async function serversRoutes(fastify: FastifyInstance) {
                 success: true,
                 serverId: id,
             };
-        } catch (err: any) {
+        } catch (err) {
             return reply.code(500).send({
                 error: "Disconnect failed",
-                message: err.message,
+                message: (err as Error).message,
             });
         }
     });

@@ -13,8 +13,8 @@ export const useServerSentEvents = (
     minTime: number,
     refreshInterval: number,
     showAll: boolean,
-    enabled: boolean = true,
-    isPaused: boolean = false,
+    enabled = true,
+    isPaused = false,
 ) => {
     const settingsVersion = useSettings((state) => state.settingsVersion);
     const [error, setError] = useState<string | null>(null);
@@ -136,10 +136,12 @@ export const useServerSentEvents = (
                         setIsConnected(false);
                     },
                 });
-            } catch (err: any) {
-                console.log("[Connection] SSE connection error:", err.message);
-                if (err.name !== "AbortError" && isActive) {
-                    setError(err.message || "Connection failed");
+            } catch (err: unknown) {
+                const errMessage = err instanceof Error ? err.message : "Connection failed";
+                const errName = err instanceof Error ? err.name : "";
+                console.log("[Connection] SSE connection error:", errMessage);
+                if (errName !== "AbortError" && isActive) {
+                    setError(errMessage ?? "Connection failed");
                     setIsConnected(false);
                 }
             }

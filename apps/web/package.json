@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "format": "prettier --write -l src",
-    "lint": "eslint src --config ../../eslint.config.js"
+    "lint": "eslint \"src/**/*.ts\" \"src/**/*.tsx\" --config ../../eslint.config.js"
   },
   "dependencies": {
     "@microlink/react-json-view": "^1.27.0",

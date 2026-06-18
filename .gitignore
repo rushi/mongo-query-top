@@ -24,3 +24,4 @@ references/*
 # Auto-generated web config
 apps/web/src/config.ts
 /.serena
+/.claude/worktrees

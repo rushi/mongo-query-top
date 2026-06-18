@@ -14,7 +14,7 @@ export const getApiBaseUrl = (): string => {
     return `${protocol}//${hostname}:9001`;
 };
 
-export const API_BASE = getApiBaseUrl() + "/api";
+export const API_BASE = `${getApiBaseUrl()}/api`;
 export const API_KEY = config.apiKey;
 
 const axiosInstance = axios.create({
@@ -27,19 +27,19 @@ const axiosInstance = axios.create({
 // Response interceptor for error handling
 axiosInstance.interceptors.response.use(
     (response) => response,
-    (error) => {
-        const errorMessage = error.response?.data?.message || error.message || "API request failed";
+    (error: { response?: { data?: { message?: string } }; message?: string }) => {
+        const errorMessage = error.response?.data?.message ?? error.message ?? "API request failed";
         throw new Error(errorMessage);
     },
 );
 
 export const apiClient = {
-    async get<T = any>(endpoint: string, params?: any): Promise<T> {
+    async get<T = unknown>(endpoint: string, params?: Record<string, unknown>): Promise<T> {
         const response = await axiosInstance.get(endpoint, { params });
         return response.data;
     },
 
-    async post<T = any>(endpoint: string, body?: any): Promise<T> {
+    async post<T = unknown>(endpoint: string, body?: unknown): Promise<T> {
         const response = await axiosInstance.post(endpoint, body);
         return response.data;
     },

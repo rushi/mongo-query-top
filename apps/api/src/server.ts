@@ -47,7 +47,7 @@ await fastify.register(cors, {
         }
 
         // Check if origin is from 192.x.x.x IP range (private network)
-        const is192Range = /^https?:\/\/192\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin);
+        const is192Range = /^ht{2}ps?:\/{2}192(?:\.\d{1,3}){3}(:\d+)?$/.test(origin);
         if (is192Range) {
             callback(null, true);
             return;
@@ -72,7 +72,7 @@ fastify.addHook("onRequest", async (request, reply) => {
     }
 
     const headerKey = request.headers["x-api-key"] as string;
-    const queryKey = (request.query as any)?.apiKey;
+    const queryKey = (request.query as Record<string, string>)?.apiKey;
     const apiKey = headerKey || queryKey;
     const validKey = config.get<string>("api.apiKey");
 

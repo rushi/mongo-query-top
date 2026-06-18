@@ -33,6 +33,7 @@ export const FilterControls = () => {
 
     const [isSaving, setIsSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const isSaveDisabled = [isSaving, saved].some(Boolean);
 
     const handleSaveAll = async () => {
         setIsSaving(true);
@@ -104,10 +105,10 @@ export const FilterControls = () => {
                         <Input
                             type="text"
                             id="ipFilter"
-                            value={ipFilter || ""}
+                            value={ipFilter ?? ""}
                             placeholder="0.0.0.0"
                             className="h-9 w-40 border-2 border-border bg-input font-mono text-sm placeholder:text-muted-foreground/40"
-                            onChange={(e) => setIpFilter(e.target.value || undefined)}
+                            onChange={(e) => setIpFilter(e.target.value === "" ? undefined : e.target.value)}
                         />
                         {ipFilter && (
                             <Button
@@ -203,7 +204,7 @@ export const FilterControls = () => {
 
                     <Button
                         variant={saved ? "default" : "outline"}
-                        disabled={isSaving || saved}
+                        disabled={isSaveDisabled}
                         className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
                         onClick={handleSaveAll}
                     >

@@ -1,4 +1,4 @@
-import type { MongoQuery } from "@mongo-query-top/types";
+import type { MongoQuery, ProcessedQuery } from "@mongo-query-top/types";
 import type { FastifyInstance } from "fastify";
 import { mockQueries } from "../data/mockQueries.js";
 
@@ -45,11 +45,10 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             "Cache-Control": "no-cache",
             Connection: "keep-alive",
             "X-Accel-Buffering": "no",
-            "Access-Control-Allow-Origin": request.headers.origin || "*",
+            "Access-Control-Allow-Origin": request.headers.origin ?? "*",
             "Access-Control-Allow-Credentials": "true",
         });
 
-        let intervalId: NodeJS.Timeout;
         let isActive = true;
 
         const sendQueryUpdate = async () => {
@@ -87,9 +86,9 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                 };
 
                 reply.raw.write(`event: queries\ndata: ${JSON.stringify(data)}\n\n`);
-            } catch (err: any) {
+            } catch (err) {
                 if (isActive) {
-                    reply.raw.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
+                    reply.raw.write(`event: error\ndata: ${JSON.stringify({ error: (err as Error).message })}\n\n`);
                 }
             }
         };
@@ -98,7 +97,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
         await sendQueryUpdate();
 
         // Setup interval for subsequent updates
-        intervalId = setInterval(sendQueryUpdate, Number(refreshInterval) * 1000);
+        const intervalId = setInterval(sendQueryUpdate, Number(refreshInterval) * 1000);
 
         // Cleanup on connection close
         request.raw.on("close", () => {
@@ -136,11 +135,10 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             // Convert milliseconds to seconds for MongoDB query
             const minTimeSeconds = Number(minTime) / 1000;
             const db = client.db("admin");
-            const result = await db.command(
-                { currentOp: 1, secs_running: { $gte: minTimeSeconds } },
-                // currentOp ignores URI readPreference (defaults to primary) — pass it explicitly
-                { readPreference: client.readPreference },
-            );
+            const result = await db.command({
+                currentOp: 1,
+                secs_running: { $gte: minTimeSeconds },
+            });
 
             const queries = request.services.queryService.processQueries(result.inprog, showAll === "true");
             const summary = request.services.queryService.generateSummary(queries);
@@ -153,10 +151,10 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                     timestamp: new Date().toISOString(),
                 },
             };
-        } catch (err: any) {
+        } catch (err) {
             return reply.code(500).send({
                 error: "Failed to fetch queries",
-                message: err.message,
+                message: (err as Error).message,
             });
         }
     });
@@ -191,7 +189,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
         if (!client) {
             reply.raw.writeHead(404, {
                 "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": request.headers.origin || "*",
+                "Access-Control-Allow-Origin": request.headers.origin ?? "*",
                 "Access-Control-Allow-Credentials": "true",
             });
             reply.raw.write(JSON.stringify({ error: "Server not connected" }));
@@ -204,11 +202,10 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             "Cache-Control": "no-cache",
             Connection: "keep-alive",
             "X-Accel-Buffering": "no",
-            "Access-Control-Allow-Origin": request.headers.origin || "*",
+            "Access-Control-Allow-Origin": request.headers.origin ?? "*",
             "Access-Control-Allow-Credentials": "true",
         });
 
-        let intervalId: NodeJS.Timeout;
         let isActive = true;
         const savedQueryIds = new Set<string>();
 
@@ -221,11 +218,10 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                 // Convert milliseconds to seconds for MongoDB query
                 const minTimeSeconds = Number(minTime) / 1000;
                 const db = client.db("admin");
-                const result = await db.command(
-                    { currentOp: 1, secs_running: { $gte: minTimeSeconds } },
-                    // currentOp ignores URI readPreference (defaults to primary) — pass it explicitly
-                    { readPreference: client.readPreference },
-                );
+                const result = await db.command({
+                    currentOp: 1,
+                    secs_running: { $gte: minTimeSeconds },
+                });
 
                 const queries = request.services.queryService.processQueries(result.inprog, showAll === "true");
                 const summary = request.services.queryService.generateSummary(queries);
@@ -274,8 +270,8 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                                 await request.services.loggerService.saveQuery(serverId, query, saveType);
                                 savedQueryIds.add(query.opid);
                                 fastify.log.info(`Auto-saved query ${query.opid} (${saveType})`);
-                            } catch (err: any) {
-                                fastify.log.error(`Failed to auto-save query ${query.opid}: ${err.message}`);
+                            } catch (err) {
+                                fastify.log.error(`Failed to auto-save query ${query.opid}: ${(err as Error).message}`);
                             }
                         }
                     }
@@ -291,9 +287,9 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                 };
 
                 reply.raw.write(`event: queries\ndata: ${JSON.stringify(data)}\n\n`);
-            } catch (err: any) {
+            } catch (err) {
                 if (isActive) {
-                    reply.raw.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
+                    reply.raw.write(`event: error\ndata: ${JSON.stringify({ error: (err as Error).message })}\n\n`);
                 }
             }
         };
@@ -302,7 +298,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
         await sendQueryUpdate();
 
         // Setup interval for subsequent updates
-        intervalId = setInterval(sendQueryUpdate, Number(refreshInterval) * 1000);
+        const intervalId = setInterval(sendQueryUpdate, Number(refreshInterval) * 1000);
 
         // Cleanup on connection close
         request.raw.on("close", () => {
@@ -341,11 +337,10 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             // Convert milliseconds to seconds for MongoDB query
             const minTimeSeconds = Number(minTime) / 1000;
             const db = client.db("admin");
-            const result = await db.command(
-                { currentOp: 1, secs_running: { $gte: minTimeSeconds } },
-                // currentOp ignores URI readPreference (defaults to primary) — pass it explicitly
-                { readPreference: client.readPreference },
-            );
+            const result = await db.command({
+                currentOp: 1,
+                secs_running: { $gte: minTimeSeconds },
+            });
 
             const queries = request.services.queryService.processQueries(result.inprog);
             const files = await request.services.loggerService.saveSnapshot(serverId, queries);
@@ -356,10 +351,10 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                 queryCount: queries.length,
                 timestamp: new Date().toISOString(),
             };
-        } catch (err: any) {
+        } catch (err) {
             return reply.code(500).send({
                 error: "Failed to save snapshot",
-                message: err.message,
+                message: (err as Error).message,
             });
         }
     });
@@ -367,7 +362,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
     // POST /api/queries/:serverId/save - Save a single query
     fastify.post<{
         Params: { serverId: string };
-        Body: { query: any; type?: string };
+        Body: { query: ProcessedQuery; type?: string };
     }>("/:serverId/save", async (request, reply) => {
         const { serverId } = request.params;
         const { query, type = "manual-save" } = request.body;
@@ -380,10 +375,10 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                 message: "Query saved successfully",
                 timestamp: new Date().toISOString(),
             };
-        } catch (err: any) {
+        } catch (err) {
             return reply.code(500).send({
                 error: "Failed to save query",
-                message: err.message,
+                message: (err as Error).message,
             });
         }
     });
@@ -402,44 +397,10 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                 logs,
                 count: logs.length,
             };
-        } catch (err: any) {
+        } catch (err) {
             return reply.code(500).send({
                 error: "Failed to list logs",
-                message: err.message,
-            });
-        }
-    });
-
-    // POST /api/queries/:serverId/kill/:opid - Kill a running operation
-    fastify.post<{
-        Params: { serverId: string; opid: string };
-    }>("/:serverId/kill/:opid", async (request, reply) => {
-        const { serverId, opid } = request.params;
-
-        const client = request.services.mongoService.getConnection(serverId);
-        if (!client) {
-            return reply.code(404).send({ error: "Server not connected" });
-        }
-
-        const opidNum = Number(opid);
-        if (!Number.isInteger(opidNum) || opidNum <= 0) {
-            return reply.code(400).send({ error: "Invalid opid" });
-        }
-
-        try {
-            const db = client.db("admin");
-            const result = await db.command({ killOp: 1, op: opidNum });
-
-            return {
-                success: true,
-                opid: opidNum,
-                result,
-                timestamp: new Date().toISOString(),
-            };
-        } catch (err: any) {
-            return reply.code(500).send({
-                error: "Failed to kill operation",
-                message: err.message,
+                message: (err as Error).message,
             });
         }
     });
@@ -458,10 +419,10 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                 filename,
                 content,
             };
-        } catch (err: any) {
+        } catch (err) {
             return reply.code(404).send({
                 error: "Log file not found",
-                message: err.message,
+                message: (err as Error).message,
             });
         }
     });

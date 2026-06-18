@@ -216,13 +216,13 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                         const isCollscan = query.isCollscan;
                         const isSaving = savingIds.has(query.opid);
                         const isSaved = savedIds.has(query.opid);
+                        const isSaveDisabled = [isSaving, isSaved].some(Boolean);
 
                         return (
                             <div
                                 key={virtualRow.key}
                                 data-index={virtualRow.index}
                                 ref={virtualizer.measureElement}
-                                onClick={() => onQueryClick(query)}
                                 style={{
                                     position: "absolute",
                                     top: 0,
@@ -234,6 +234,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                     "grid cursor-pointer grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_140px_150px_110px] gap-4 border-b border-border px-4 py-3 transition-colors hover:bg-muted/90",
                                     isCollscan && "border-l-4 border-l-warning bg-warning/5",
                                 )}
+                                onClick={() => onQueryClick(query)}
                             >
                                 <div className="flex items-center font-mono text-sm text-muted-foreground tabular-nums">
                                     {query.idx}
@@ -300,10 +301,10 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        disabled={isSaving || isSaved}
+                                        disabled={isSaveDisabled}
                                         title="Save Query"
                                         className="h-6 w-6 cursor-pointer border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
-                                        onClick={(e) => handleSave(e, query)}
+                                        onClick={async (e) => handleSave(e, query)}
                                     >
                                         {isSaved ? (
                                             <CheckIcon weight="bold" className="h-3 w-3 text-primary" />

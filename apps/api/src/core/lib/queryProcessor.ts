@@ -5,7 +5,7 @@ import { beautifyJson } from "./helpers.js";
 export const shouldSkipQuery = (q: MongoQuery): boolean => {
     const { command, clientMetadata, appName } = q;
 
-    const isIndex = q.ns && q.ns.indexOf("system.indexes") >= 0;
+    const isIndex = q.ns?.includes("system.indexes");
     if (isIndex) {
         // Always show indexing queries
         return false;
@@ -26,7 +26,7 @@ export const shouldSkipQuery = (q: MongoQuery): boolean => {
         }
     }
 
-    if (appName?.match(/MongoDB (Monitoring Module|Automation)/i)) {
+    if (appName?.match(/mongodb (monitoring module|automation)/i)) {
         return true;
     }
 
@@ -45,7 +45,7 @@ export const shouldSkipQuery = (q: MongoQuery): boolean => {
     return false;
 };
 
-export const sanitizeQuery = (q: MongoQuery, full: boolean = true): Record<string, any> => {
+export const sanitizeQuery = (q: MongoQuery, full = true): Record<string, unknown> => {
     let query = omit(q, [
         "active",
         "client",
@@ -70,7 +70,7 @@ export const sanitizeQuery = (q: MongoQuery, full: boolean = true): Record<strin
         "planSummary", // TODO: Better way to show this
     ]);
 
-    if (q.appName?.match(/NoSQLBooster/i)) {
+    if (q.appName?.match(/nosqlbooster/i)) {
         query = omit(query, ["clientMetadata"]);
     }
 
@@ -78,17 +78,17 @@ export const sanitizeQuery = (q: MongoQuery, full: boolean = true): Record<strin
         query = omit(query, ["appName", "effectiveUsers", "ns", "op", "secs_running"]);
     }
 
-    if ((q as any).type === "op") {
-        delete (query as any).type;
+    if ((q as unknown as Record<string, unknown>).type === "op") {
+        delete (query as unknown as Record<string, unknown>).type;
     }
 
     if (q.waitingForLock === false) {
-        delete (query as any).waitingForLock;
+        delete (query as unknown as Record<string, unknown>).waitingForLock;
     }
 
-    if (Object.keys(query).length === 1 && (query as any).command) {
+    if (Object.keys(query).length === 1 && (query as unknown as Record<string, unknown>).command) {
         // The query is the only thing left after filtering
-        return (query as any).command;
+        return (query as unknown as Record<string, unknown>).command as Record<string, unknown>;
     }
 
     return query;
@@ -97,39 +97,39 @@ export const sanitizeQuery = (q: MongoQuery, full: boolean = true): Record<strin
 export const formatUserAgent = (q: MongoQuery): string => {
     const { appName, clientMetadata } = q;
     if (appName) {
-        if (appName.match(/NoSQLBooster/i)) {
+        if (appName.match(/nosqlbooster/i)) {
             return "NoSQLBooster";
         }
-        if (appName.match(/MongoDB Monitoring Module/i)) {
+        if (appName.match(/mongodb monitoring module/i)) {
             return "Monitoring Module";
         }
-        if (appName.match(/MongoDB Automation Agent/i)) {
+        if (appName.match(/mongodb automation agent/i)) {
             return "Automation Agent";
         }
     }
 
     if (clientMetadata) {
-        if (clientMetadata.driver?.name?.match(/nodejs\|Mongoose/i)) {
+        if (clientMetadata.driver?.name?.match(/nodejs\|mongoose/i)) {
             return "Mongoose";
         }
 
-        if (clientMetadata.driver?.name?.match(/NetworkInterfaceTL/i)) {
+        if (clientMetadata.driver?.name?.match(/networkinterfacetl/i)) {
             return "NetworkInterfaceTL";
         }
 
-        if (clientMetadata.application?.name?.match(/MongoDB Monitoring Module/i)) {
+        if (clientMetadata.application?.name?.match(/mongodb monitoring module/i)) {
             return "Monitoring Module";
         }
 
-        if (clientMetadata.application?.name?.match(/MongoDB Automation Agent/i)) {
+        if (clientMetadata.application?.name?.match(/mongodb automation agent/i)) {
             return "Automation Agent";
         }
 
-        if (clientMetadata.application?.name?.match(/OplogFetcher/i)) {
+        if (clientMetadata.application?.name?.match(/oplogfetcher/i)) {
             return "OplogFetcher";
         }
 
-        if (clientMetadata.application?.name?.match(/MongoDB CPS Module/i)) {
+        if (clientMetadata.application?.name?.match(/mongodb cps module/i)) {
             return "CPS Module";
         }
 
@@ -137,12 +137,12 @@ export const formatUserAgent = (q: MongoQuery): string => {
             return "PHP ext-mongodb";
         }
 
-        const NODE_RE = /Node(.js)?\sv\d+/i;
+        const NODE_RE = /node(.js)?\sv\d+/i;
         const matches = clientMetadata.platform?.match(NODE_RE);
         if (matches?.[0]) {
             return matches[0];
         }
     }
 
-    return (clientMetadata as any)?.application?.name ?? clientMetadata?.driver?.name ?? beautifyJson(clientMetadata);
+    return clientMetadata?.application?.name ?? clientMetadata?.driver?.name ?? beautifyJson(clientMetadata);
 };

@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useFetchServers } from "../hooks/useFetchServers";
 import { useServerSentEvents } from "../hooks/useServerSentEvents";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
-import { useSettings } from "../store/settings";
 import { apiClient, getApiBaseUrl } from "../utils/api";
 
 // Generate summary from filtered queries
@@ -52,7 +51,6 @@ export const Route = createFileRoute("/")({ component: Dashboard });
 function Dashboard() {
     const { servers, loading: serversLoading } = useFetchServers();
     const { serverId, setServerId, minTime, refreshInterval, showAll, isPaused, ipFilter } = useUrlPreferences();
-    const { issueThresholds } = useSettings();
 
     const [connectionState, setConnectionState] = useSetState({
         isConnecting: false,
@@ -73,7 +71,10 @@ function Dashboard() {
     const [selectedQuery, setSelectedQuery] = useState<ProcessedQuery | null>(null);
 
     // Filter queries by IP if ipFilter is set
-    const filteredQueries = data?.queries.filter((query) => (ipFilter ? query.client.ip === ipFilter : true)) ?? [];
+    const filteredQueries = useMemo(
+        () => data?.queries.filter((query) => (ipFilter ? query.client.ip === ipFilter : true)) ?? [],
+        [data?.queries, ipFilter],
+    );
 
     // Generate summary from filtered queries
     const filteredSummary = useMemo(() => {
@@ -97,9 +98,9 @@ function Dashboard() {
             try {
                 await apiClient.post(`/servers/${serverId}/connect`);
                 setConnectionState({ mongoConnected: true, connectError: null, isConnecting: false });
-            } catch (err: any) {
+            } catch (err: unknown) {
                 setConnectionState({
-                    connectError: err.message || "Failed to connect to MongoDB",
+                    connectError: err instanceof Error ? err.message : "Failed to connect to MongoDB",
                     mongoConnected: false,
                     isConnecting: false,
                 });
@@ -110,7 +111,7 @@ function Dashboard() {
     }, [serverId, setConnectionState]);
 
     // Update browser tab title with query count
-    const serverName = servers.find((s) => s.id === serverId)?.name || serverId;
+    const serverName = servers.find((s) => s.id === serverId)?.name ?? serverId;
     const queryCount = filteredQueries.length;
     const baseTitle = serverName ? `[${serverName}] MongoDB Query Monitor` : "MongoDB Query Monitor";
     useTitle(queryCount >= 2 ? `(${queryCount}) ${baseTitle}` : baseTitle);
@@ -199,7 +200,7 @@ function Dashboard() {
                                 <Select value={serverId} disabled={serversLoading} onValueChange={handleServerChange}>
                                     <SelectTrigger className="h-8 w-50 border-2 border-border bg-input font-mono text-xs">
                                         <SelectValue placeholder="Select a server">
-                                            {currentServer?.name || serverId}
+                                            {currentServer?.name ?? serverId}
                                         </SelectValue>
                                     </SelectTrigger>
                                     <SelectContent className="border-2 border-border">
@@ -281,7 +282,7 @@ function Dashboard() {
 
             {!data && !error && (
                 <div className="py-24 text-center">
-                    <div className="inline-block h-16 w-16 animate-spin border-4 border-border border-t-primary"></div>
+                    <div className="inline-block h-16 w-16 animate-spin border-4 border-border border-t-primary" />
                     <p className="mt-6 font-mono text-sm tracking-wide text-muted-foreground uppercase">
                         INITIALIZING_MONGODB_CONNECTION
                     </p>

@@ -33,7 +33,7 @@ export class QueryLoggerService {
     /**
      * Save an individual query to disk
      */
-    async saveQuery(serverId: string, query: ProcessedQuery, type: string = "long-running"): Promise<void> {
+    async saveQuery(serverId: string, query: ProcessedQuery, type = "long-running"): Promise<void> {
         const dir = `logs/${serverId}/raw`;
         await this.ensureDirectory(dir);
 
@@ -58,7 +58,7 @@ export class QueryLoggerService {
     /**
      * Read a specific log file
      */
-    async readLog(serverId: string, filename: string): Promise<any> {
+    async readLog(serverId: string, filename: string): Promise<unknown> {
         const content = await fs.readFile(`logs/${serverId}/${filename}`, "utf-8");
         return JSON.parse(content);
     }

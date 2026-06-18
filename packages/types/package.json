@@ -14,7 +14,7 @@
     "scripts": {
         "build": "tsc -p tsconfig.build.json",
         "dev": "tsc -p tsconfig.build.json --watch",
-        "lint": "eslint src --config ../../eslint.config.js"
+        "lint": "eslint \"src/**/*.ts\" --config ../../eslint.config.js"
     },
     "dependencies": {
         "bson": "^6.10.4"

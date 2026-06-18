@@ -154,7 +154,7 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
     };
 
     const handleCopyCommand = async () => {
-        const command = query.query?.command || query.query;
+        const command = query.query?.command ?? query.query;
         await copyCommand(JSON.stringify(command, null, 2));
     };
 
@@ -361,9 +361,9 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                         </div>
                         <div className="bg-card p-4">
                             <JsonView
+                                sortKeys
                                 name={false}
                                 collapsed={6}
-                                sortKeys={true}
                                 src={query.query}
                                 displayDataTypes={false}
                                 displayObjectSize={false}

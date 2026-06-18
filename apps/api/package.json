@@ -7,7 +7,7 @@
         "build": "tsc --build",
         "dev": "NODE_CONFIG_DIR=../../config tsx watch src/server.ts",
         "start": "NODE_CONFIG_DIR=../../config node dist/server.js",
-        "lint": "eslint src --config ../../eslint.config.js"
+        "lint": "eslint \"src/**/*.ts\" --config ../../eslint.config.js"
     },
     "dependencies": {
         "@fastify/cors": "^11.2.0",

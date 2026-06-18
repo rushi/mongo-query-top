@@ -83,7 +83,7 @@ export const useUrlPreferences = () => {
     });
 
     const setIpFilter = useMemoizedFn((ip?: string) => {
-        setPreferences({ ipFilter: ip || null });
+        setPreferences({ ipFilter: ip ?? null });
     });
 
     const resetFilters = useMemoizedFn(() => {

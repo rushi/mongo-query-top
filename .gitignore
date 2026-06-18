@@ -15,6 +15,8 @@ packages/*/dist
 
 git_ignore
 logs/*
+apps/api/logs/*
+apps/web/logs/*
 mongodb-query-top-snapshot-*
 node_modules
 references/*

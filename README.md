@@ -215,7 +215,7 @@ pnpm run format
 
 - **[docs/API.md](docs/API.md)** - Complete API endpoint documentation
 - **[docs/DOCKER.md](docs/DOCKER.md)** - Docker deployment guide with production setup and SSE support
-- **[CLAUDE.md](CLAUDE.md)** - Developer guide with code patterns, architecture details, and customization instructions
+- **[CLAUDE.md](CLAUDE.md)** - AI coding context — project conventions, commands, and code style
 
 ## Query Logging
 

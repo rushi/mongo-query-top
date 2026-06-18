@@ -177,6 +177,11 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             timeoutRiskThreshold?: string;
         };
     }>("/:serverId/stream", async (request, reply) => {
+        // SSE: take over the socket so Fastify never auto-sends a reply.
+        // Without this, the 404 branch below returns reply.raw.end() (a non-undefined
+        // value), which Fastify tries to send after headers are written → FST_ERR_REP_ALREADY_SENT.
+        reply.hijack();
+
         const { serverId } = request.params;
         const {
             minTime = "1000",
@@ -432,6 +437,40 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
         } catch (err) {
             return reply.code(404).send({
                 error: "Log file not found",
+                message: (err as Error).message,
+            });
+        }
+    });
+
+    // POST /api/queries/:serverId/kill/:opid - Kill a running operation
+    fastify.post<{
+        Params: { serverId: string; opid: string };
+    }>("/:serverId/kill/:opid", async (request, reply) => {
+        const { serverId, opid } = request.params;
+
+        const client = request.services.mongoService.getConnection(serverId);
+        if (!client) {
+            return reply.code(404).send({ error: "Server not connected" });
+        }
+
+        const opidNum = Number(opid);
+        if (!Number.isInteger(opidNum) || opidNum <= 0) {
+            return reply.code(400).send({ error: "Invalid opid" });
+        }
+
+        try {
+            const db = client.db("admin");
+            const result = await db.command({ killOp: 1, op: opidNum });
+
+            return {
+                success: true,
+                opid: opidNum,
+                result,
+                timestamp: new Date().toISOString(),
+            };
+        } catch (err) {
+            return reply.code(500).send({
+                error: "Failed to kill operation",
                 message: (err as Error).message,
             });
         }

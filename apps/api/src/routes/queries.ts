@@ -139,7 +139,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             const result = await db.command(
                 { currentOp: 1, secs_running: { $gte: minTimeSeconds } },
                 // currentOp ignores URI readPreference (defaults to primary) — pass it explicitly
-                { readPreference: client.readPreference }
+                { readPreference: client.readPreference },
             );
 
             const queries = request.services.queryService.processQueries(result.inprog, showAll === "true");
@@ -224,7 +224,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                 const result = await db.command(
                     { currentOp: 1, secs_running: { $gte: minTimeSeconds } },
                     // currentOp ignores URI readPreference (defaults to primary) — pass it explicitly
-                    { readPreference: client.readPreference }
+                    { readPreference: client.readPreference },
                 );
 
                 const queries = request.services.queryService.processQueries(result.inprog, showAll === "true");
@@ -344,7 +344,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             const result = await db.command(
                 { currentOp: 1, secs_running: { $gte: minTimeSeconds } },
                 // currentOp ignores URI readPreference (defaults to primary) — pass it explicitly
-                { readPreference: client.readPreference }
+                { readPreference: client.readPreference },
             );
 
             const queries = request.services.queryService.processQueries(result.inprog);
@@ -405,6 +405,40 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
         } catch (err: any) {
             return reply.code(500).send({
                 error: "Failed to list logs",
+                message: err.message,
+            });
+        }
+    });
+
+    // POST /api/queries/:serverId/kill/:opid - Kill a running operation
+    fastify.post<{
+        Params: { serverId: string; opid: string };
+    }>("/:serverId/kill/:opid", async (request, reply) => {
+        const { serverId, opid } = request.params;
+
+        const client = request.services.mongoService.getConnection(serverId);
+        if (!client) {
+            return reply.code(404).send({ error: "Server not connected" });
+        }
+
+        const opidNum = Number(opid);
+        if (!Number.isInteger(opidNum) || opidNum <= 0) {
+            return reply.code(400).send({ error: "Invalid opid" });
+        }
+
+        try {
+            const db = client.db("admin");
+            const result = await db.command({ killOp: 1, op: opidNum });
+
+            return {
+                success: true,
+                opid: opidNum,
+                result,
+                timestamp: new Date().toISOString(),
+            };
+        } catch (err: any) {
+            return reply.code(500).send({
+                error: "Failed to kill operation",
                 message: err.message,
             });
         }

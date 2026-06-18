@@ -7,11 +7,13 @@ Fastify REST API with Server-Sent Events for real-time query streaming. Entry po
 **Authentication**: `X-API-Key` header or `?apiKey=` query param (query param needed for EventSource, which can't set headers). Configured via `API_KEY` env var.
 
 **Service layer** — three singletons injected into request context via `request.services`:
+
 - `MongoConnectionService` — MongoDB connection pool (`src/core/services/MongoConnectionService.ts`)
 - `QueryService` — query processing and summaries (`src/core/services/QueryService.ts`)
 - `QueryLoggerService` — logs queries to disk (`src/core/services/QueryLoggerService.ts`)
 
 **Endpoints**:
+
 ```
 GET  /api/servers                        list servers from config
 POST /api/servers/:serverId/connect      connect to a server
@@ -33,6 +35,7 @@ GET  /health                             no auth required
 ## Adding Server Config
 
 In `config/local.yaml`:
+
 ```yaml
 servers:
     my-server:

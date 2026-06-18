@@ -40,6 +40,7 @@ In code: `config.get<string>("api.apiKey")`, `config.get<Record<string, ServerCo
 ## Environment Variables
 
 **`apps/api/.env`**
+
 ```bash
 API_KEY=dev-key-change-in-production
 FRONTEND_URL=http://localhost:3000
@@ -47,6 +48,7 @@ LOG_LEVEL=info
 ```
 
 **`apps/web/.env`**
+
 ```bash
 VITE_API_URL=http://localhost:9001
 VITE_API_KEY=dev-key-change-in-production

@@ -36,6 +36,7 @@ export interface DefaultFilters {
 
 export interface UiPreferences {
     tableHeight: number;
+    killOpEnabled: boolean;
 }
 
 interface SettingsState {
@@ -85,6 +86,7 @@ const DEFAULT_STATE = {
     },
     uiPreferences: {
         tableHeight: 600,
+        killOpEnabled: false,
     },
     settingsVersion: 0,
 };

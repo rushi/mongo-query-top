@@ -1,7 +1,7 @@
 import JsonView from "@microlink/react-json-view";
 import type { ProcessedQuery } from "@mongo-query-top/types";
-import { CheckIcon, CopyIcon, FloppyDiskIcon } from "@phosphor-icons/react/dist/ssr";
-import { useMemo, useState } from "react";
+import { CheckIcon, CopyIcon, FloppyDiskIcon, ProhibitIcon, WarningIcon } from "@phosphor-icons/react/dist/ssr";
+import { useEffect, useMemo, useState } from "react";
 import { useCopyToClipboard } from "../hooks/useCopyToClipboard";
 import { usePreferences } from "../store/preferences";
 import { useSettings } from "../store/settings";
@@ -105,13 +105,20 @@ const QueryIssuesDisplay = ({ query }: { query: ProcessedQuery }) => {
     );
 };
 
-
 export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) => {
     const { serverId } = usePreferences();
+    const { uiPreferences } = useSettings();
+    const { killOpEnabled } = uiPreferences;
     const [saved, setSaved] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [killStatus, setKillStatus] = useState<"idle" | "killing" | "success" | "error">("idle");
+    const isKilling = killStatus === "killing";
     const { copied: copiedKillOp, copy: copyKillOp } = useCopyToClipboard();
     const { copied: copiedCommand, copy: copyCommand } = useCopyToClipboard();
+
+    useEffect(() => {
+        setKillStatus("idle");
+    }, [query?.opid]);
 
     if (!query) {
         return null;
@@ -135,6 +142,17 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
         await copyKillOp(killOpQuery);
     };
 
+    const handleKillOp = async () => {
+        setKillStatus("killing");
+        try {
+            await apiClient.post(`/queries/${serverId}/kill/${query.opid}`, {});
+            setKillStatus("success");
+        } catch (err) {
+            console.error("Failed to kill operation:", err);
+            setKillStatus("error");
+        }
+    };
+
     const handleCopyCommand = async () => {
         const command = query.query?.command || query.query;
         await copyCommand(JSON.stringify(command, null, 2));
@@ -152,45 +170,73 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                             ▸ OPERATION_ID: {query.opid}
                         </SheetDescription>
                     </div>
-                    <div className="flex gap-2">
-                        <Button
-                            size="sm"
-                            variant={copiedKillOp ? "default" : "outline"}
-                            disabled={copiedKillOp}
-                            className="cursor-copy border-2 font-mono text-xs uppercase"
-                            onClick={handleCopyKillOp}
-                        >
-                            {copiedKillOp ? (
-                                <>
-                                    <CheckIcon weight="bold" className="mr-2 h-3 w-3" />
-                                    COPIED
-                                </>
-                            ) : (
-                                <>
-                                    <CopyIcon weight="bold" className="mr-2 h-3 w-3" />
-                                    COPY KILLOP
-                                </>
+                    <div className="flex flex-col items-end gap-2">
+                        <div className="flex gap-2">
+                            <Button
+                                size="sm"
+                                variant={copiedKillOp ? "default" : "outline"}
+                                disabled={copiedKillOp}
+                                className="cursor-copy border-2 font-mono text-xs uppercase"
+                                onClick={handleCopyKillOp}
+                            >
+                                {copiedKillOp ? (
+                                    <>
+                                        <CheckIcon weight="bold" className="mr-2 h-3 w-3" />
+                                        COPIED
+                                    </>
+                                ) : (
+                                    <>
+                                        <CopyIcon weight="bold" className="mr-2 h-3 w-3" />
+                                        COPY KILLOP
+                                    </>
+                                )}
+                            </Button>
+                            {killOpEnabled && (
+                                <Button
+                                    disabled={isKilling}
+                                    size="sm"
+                                    variant="outline"
+                                    className="cursor-pointer border-2 border-destructive/60 font-mono text-xs text-destructive uppercase hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    onClick={handleKillOp}
+                                >
+                                    <ProhibitIcon weight="bold" className="mr-2 h-3 w-3" />
+                                    {isKilling ? "KILLING..." : "KILL OP"}
+                                </Button>
                             )}
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant={saved ? "default" : "outline"}
-                            disabled={isSaving || saved}
-                            className="cursor-pointer border-2 font-mono text-xs uppercase"
-                            onClick={handleSave}
-                        >
-                            {saved ? (
-                                <>
-                                    <CheckIcon weight="bold" className="mr-2 h-3 w-3" />
-                                    SAVED
-                                </>
-                            ) : (
-                                <>
-                                    <FloppyDiskIcon weight="bold" className="mr-2 h-3 w-3" />
-                                    SAVE
-                                </>
-                            )}
-                        </Button>
+                            <Button
+                                size="sm"
+                                variant={saved ? "default" : "outline"}
+                                disabled={isSaving || saved}
+                                className="cursor-pointer border-2 font-mono text-xs uppercase"
+                                onClick={handleSave}
+                            >
+                                {saved ? (
+                                    <>
+                                        <CheckIcon weight="bold" className="mr-2 h-3 w-3" />
+                                        SAVED
+                                    </>
+                                ) : (
+                                    <>
+                                        <FloppyDiskIcon weight="bold" className="mr-2 h-3 w-3" />
+                                        SAVE
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                        {killStatus === "success" && (
+                            <div className="flex items-center gap-2 rounded border border-primary bg-primary/10 px-3 py-1">
+                                <CheckIcon weight="bold" className="h-3 w-3 text-primary" />
+                                <span className="font-mono text-[10px] text-primary uppercase">
+                                    OP {query.opid} KILLED
+                                </span>
+                            </div>
+                        )}
+                        {killStatus === "error" && (
+                            <div className="flex items-center gap-2 rounded border border-destructive bg-destructive/10 px-3 py-1">
+                                <WarningIcon weight="bold" className="h-3 w-3 text-destructive" />
+                                <span className="font-mono text-[10px] text-destructive uppercase">KILL FAILED</span>
+                            </div>
+                        )}
                     </div>
                 </SheetHeader>
 

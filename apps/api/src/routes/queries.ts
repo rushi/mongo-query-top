@@ -135,10 +135,14 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             // Convert milliseconds to seconds for MongoDB query
             const minTimeSeconds = Number(minTime) / 1000;
             const db = client.db("admin");
-            const result = await db.command({
-                currentOp: 1,
-                secs_running: { $gte: minTimeSeconds },
-            });
+            const result = await db.command(
+                {
+                    currentOp: 1,
+                    secs_running: { $gte: minTimeSeconds },
+                },
+                // currentOp ignores URI readPreference (defaults to primary) — pass it explicitly
+                { readPreference: client.readPreference },
+            );
 
             const queries = request.services.queryService.processQueries(result.inprog, showAll === "true");
             const summary = request.services.queryService.generateSummary(queries);
@@ -218,10 +222,13 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                 // Convert milliseconds to seconds for MongoDB query
                 const minTimeSeconds = Number(minTime) / 1000;
                 const db = client.db("admin");
-                const result = await db.command({
-                    currentOp: 1,
-                    secs_running: { $gte: minTimeSeconds },
-                });
+                const result = await db.command(
+                    {
+                        currentOp: 1,
+                        secs_running: { $gte: minTimeSeconds },
+                    }, // currentOp ignores URI readPreference (defaults to primary) — pass it explicitly
+                    { readPreference: client.readPreference },
+                );
 
                 const queries = request.services.queryService.processQueries(result.inprog, showAll === "true");
                 const summary = request.services.queryService.generateSummary(queries);
@@ -337,10 +344,13 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             // Convert milliseconds to seconds for MongoDB query
             const minTimeSeconds = Number(minTime) / 1000;
             const db = client.db("admin");
-            const result = await db.command({
-                currentOp: 1,
-                secs_running: { $gte: minTimeSeconds },
-            });
+            const result = await db.command(
+                {
+                    currentOp: 1,
+                    secs_running: { $gte: minTimeSeconds },
+                }, // currentOp ignores URI readPreference (defaults to primary) — pass it explicitly
+                { readPreference: client.readPreference },
+            );
 
             const queries = request.services.queryService.processQueries(result.inprog);
             const files = await request.services.loggerService.saveSnapshot(serverId, queries);

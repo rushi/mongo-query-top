@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 export const Settings = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [showAutoSaved, setShowAutoSaved] = useState(false);
-    const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
+    const autoSaveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     const {
         defaultFilters,
@@ -26,27 +26,19 @@ export const Settings = () => {
         resetToDefaults,
     } = useSettings();
 
-    // Show auto-save indicator when settings change
     useEffect(() => {
         if (isOpen) {
-            // Clear existing timeout
             if (autoSaveTimeoutRef.current) {
                 clearTimeout(autoSaveTimeoutRef.current);
             }
 
-            // Show auto-saved indicator
             setShowAutoSaved(true);
 
-            // Hide after 2 seconds
             autoSaveTimeoutRef.current = setTimeout(() => {
                 setShowAutoSaved(false);
             }, 2000);
         }
     }, [defaultFilters, autoSave, issueThresholds, uiPreferences, isOpen]);
-
-    const handleReset = () => {
-        resetToDefaults();
-    };
 
     const handleOpenChange = (open: boolean) => {
         if (!open) {
@@ -98,7 +90,6 @@ export const Settings = () => {
                         </TabsTrigger>
                     </TabsList>
 
-                    {/* DEFAULT FILTERS TAB */}
                     <TabsContent value="defaults" className="space-y-6 pt-4">
                         <div className="space-y-4 border-2 border-border bg-muted/30 p-4">
                             <h3 className="font-mono text-sm font-bold text-primary uppercase">
@@ -172,7 +163,6 @@ export const Settings = () => {
                         </div>
                     </TabsContent>
 
-                    {/* AUTO-SAVE TAB */}
                     <TabsContent value="autosave" className="space-y-6 pt-4">
                         <div className="space-y-4 border-2 border-border bg-muted/30 p-4">
                             <h3 className="font-mono text-sm font-bold text-primary uppercase">
@@ -268,7 +258,6 @@ export const Settings = () => {
                         </div>
                     </TabsContent>
 
-                    {/* ISSUE THRESHOLDS TAB */}
                     <TabsContent value="thresholds" className="space-y-6 pt-4">
                         <div className="space-y-4 border-2 border-border bg-muted/30 p-4">
                             <h3 className="font-mono text-sm font-bold text-primary uppercase">
@@ -399,7 +388,6 @@ export const Settings = () => {
                         </div>
                     </TabsContent>
 
-                    {/* UI PREFERENCES TAB */}
                     <TabsContent value="ui" className="space-y-6 pt-4">
                         <div className="space-y-4 border-2 border-border bg-muted/30 p-4">
                             <h3 className="font-mono text-sm font-bold text-primary uppercase">▸ UI PREFERENCES</h3>
@@ -453,12 +441,11 @@ export const Settings = () => {
                     </TabsContent>
                 </Tabs>
 
-                {/* Footer with actions */}
                 <div className="mt-6 flex items-center justify-between border-t-2 border-border pt-4">
                     <Button
                         variant="outline"
                         className="border-2 font-mono text-xs tracking-wide uppercase"
-                        onClick={handleReset}
+                        onClick={resetToDefaults}
                     >
                         <ArrowCounterClockwiseIcon weight="bold" className="mr-2 h-3.5 w-3.5" />
                         RESET TO DEFAULTS

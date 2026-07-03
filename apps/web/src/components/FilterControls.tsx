@@ -8,6 +8,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
+import { usePreferences } from "../store/preferences";
 import { apiClient } from "../utils/api";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -30,6 +31,7 @@ export const FilterControls = () => {
         setIpFilter,
         resetFilters,
     } = useUrlPreferences();
+    const readPreference = usePreferences((state) => state.readPreferenceByServer[serverId] ?? "primary");
 
     const [isSaving, setIsSaving] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -38,7 +40,7 @@ export const FilterControls = () => {
     const handleSaveAll = async () => {
         setIsSaving(true);
         try {
-            await apiClient.post(`/queries/${serverId}/snapshot?minTime=${minTime}`);
+            await apiClient.post(`/queries/${serverId}/snapshot?minTime=${minTime}&readPreference=${readPreference}`);
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         } catch (err) {

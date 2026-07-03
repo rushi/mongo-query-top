@@ -223,14 +223,14 @@ function Dashboard() {
                                     className="h-8 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
                                     onClick={() => setReadPreference(serverId, "primary")}
                                 >
-                                    Primary
+                                    PRIMARY
                                 </Button>
                                 <Button
                                     variant={readPreference === "secondaryPreferred" ? "default" : "outline"}
                                     className="h-8 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
                                     onClick={() => setReadPreference(serverId, "secondaryPreferred")}
                                 >
-                                    Secondary
+                                    SECONDARY
                                 </Button>
                                 <Settings />
                             </div>

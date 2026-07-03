@@ -94,55 +94,48 @@ export const sanitizeQuery = (q: MongoQuery, full = true): Record<string, unknow
     return query;
 };
 
+interface UserAgentRule {
+    getValue: (q: MongoQuery) => string | null | undefined;
+    pattern: RegExp;
+    label: string;
+}
+
+// Ordered — first match wins. Order matters: appName takes precedence over
+// clientMetadata, and driver/application checks interleave to preserve behavior.
+const USER_AGENT_RULES: UserAgentRule[] = [
+    { getValue: (q) => q.appName, pattern: /nosqlbooster/i, label: "NoSQLBooster" },
+    { getValue: (q) => q.appName, pattern: /mongodb monitoring module/i, label: "Monitoring Module" },
+    { getValue: (q) => q.appName, pattern: /mongodb automation agent/i, label: "Automation Agent" },
+    { getValue: (q) => q.clientMetadata?.driver?.name, pattern: /nodejs\|mongoose/i, label: "Mongoose" },
+    { getValue: (q) => q.clientMetadata?.driver?.name, pattern: /networkinterfacetl/i, label: "NetworkInterfaceTL" },
+    {
+        getValue: (q) => q.clientMetadata?.application?.name,
+        pattern: /mongodb monitoring module/i,
+        label: "Monitoring Module",
+    },
+    {
+        getValue: (q) => q.clientMetadata?.application?.name,
+        pattern: /mongodb automation agent/i,
+        label: "Automation Agent",
+    },
+    { getValue: (q) => q.clientMetadata?.application?.name, pattern: /oplogfetcher/i, label: "OplogFetcher" },
+    { getValue: (q) => q.clientMetadata?.application?.name, pattern: /mongodb cps module/i, label: "CPS Module" },
+    { getValue: (q) => q.clientMetadata?.driver?.name, pattern: /ext-mongodb:PHP/, label: "PHP ext-mongodb" },
+];
+
+const NODE_RE = /node(.js)?\sv\d+/i;
+
 export const formatUserAgent = (q: MongoQuery): string => {
-    const { appName, clientMetadata } = q;
-    if (appName) {
-        if (appName.match(/nosqlbooster/i)) {
-            return "NoSQLBooster";
-        }
-        if (appName.match(/mongodb monitoring module/i)) {
-            return "Monitoring Module";
-        }
-        if (appName.match(/mongodb automation agent/i)) {
-            return "Automation Agent";
-        }
+    const matchedRule = USER_AGENT_RULES.find((rule) => rule.getValue(q)?.match(rule.pattern));
+    if (matchedRule) {
+        return matchedRule.label;
     }
 
-    if (clientMetadata) {
-        if (clientMetadata.driver?.name?.match(/nodejs\|mongoose/i)) {
-            return "Mongoose";
-        }
-
-        if (clientMetadata.driver?.name?.match(/networkinterfacetl/i)) {
-            return "NetworkInterfaceTL";
-        }
-
-        if (clientMetadata.application?.name?.match(/mongodb monitoring module/i)) {
-            return "Monitoring Module";
-        }
-
-        if (clientMetadata.application?.name?.match(/mongodb automation agent/i)) {
-            return "Automation Agent";
-        }
-
-        if (clientMetadata.application?.name?.match(/oplogfetcher/i)) {
-            return "OplogFetcher";
-        }
-
-        if (clientMetadata.application?.name?.match(/mongodb cps module/i)) {
-            return "CPS Module";
-        }
-
-        if (clientMetadata.driver?.name?.match(/ext-mongodb:PHP/)) {
-            return "PHP ext-mongodb";
-        }
-
-        const NODE_RE = /node(.js)?\sv\d+/i;
-        const matches = clientMetadata.platform?.match(NODE_RE);
-        if (matches?.[0]) {
-            return matches[0];
-        }
+    const nodeMatch = q.clientMetadata?.platform?.match(NODE_RE);
+    if (nodeMatch?.[0]) {
+        return nodeMatch[0];
     }
 
+    const { clientMetadata } = q;
     return clientMetadata?.application?.name ?? clientMetadata?.driver?.name ?? beautifyJson(clientMetadata);
 };

@@ -1,3 +1,4 @@
+import type { ReadPreferenceMode } from "@mongo-query-top/types";
 import { create } from "zustand";
 import { persist, subscribeWithSelector } from "zustand/middleware";
 import { settingsHydrated, useSettings } from "./settings";
@@ -9,6 +10,7 @@ interface PreferencesState {
     showAll: boolean;
     isPaused: boolean;
     ipFilter?: string;
+    readPreferenceByServer: Record<string, ReadPreferenceMode>;
 
     setServerId: (id: string) => void;
     setMinTime: (time: number) => void;
@@ -16,6 +18,7 @@ interface PreferencesState {
     toggleShowAll: () => void;
     togglePause: () => void;
     setIpFilter: (ip?: string) => void;
+    setReadPreference: (serverId: string, pref: ReadPreferenceMode) => void;
     resetFilters: () => void;
 }
 
@@ -29,6 +32,7 @@ const getInitialState = () => {
         showAll: defaultFilters.showAll,
         isPaused: false,
         ipFilter: undefined,
+        readPreferenceByServer: {} as Record<string, ReadPreferenceMode>,
     };
 };
 
@@ -60,6 +64,10 @@ export const usePreferences = create<PreferencesState>()(
                 toggleShowAll: () => set((state) => ({ showAll: !state.showAll })),
                 togglePause: () => set((state) => ({ isPaused: !state.isPaused })),
                 setIpFilter: (ip) => set({ ipFilter: ip }),
+                setReadPreference: (serverId, pref) =>
+                    set((state) => ({
+                        readPreferenceByServer: { ...state.readPreferenceByServer, [serverId]: pref },
+                    })),
                 resetFilters: () => {
                     const { defaultFilters } = useSettings.getState();
                     set({
@@ -78,6 +86,7 @@ export const usePreferences = create<PreferencesState>()(
                     serverId: state.serverId,
                     isPaused: state.isPaused,
                     ipFilter: state.ipFilter,
+                    readPreferenceByServer: state.readPreferenceByServer,
                 }),
                 onRehydrateStorage: () => syncWithSettingsDefaults,
             },

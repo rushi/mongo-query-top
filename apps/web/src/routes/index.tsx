@@ -8,10 +8,12 @@ import { QueryTable } from "../components/QueryTable";
 import { Settings } from "../components/Settings";
 import { SummaryStats } from "../components/SummaryStats";
 import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useFetchServers } from "../hooks/useFetchServers";
 import { useServerSentEvents } from "../hooks/useServerSentEvents";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
+import { usePreferences } from "../store/preferences";
 import { apiClient, getApiBaseUrl } from "../utils/api";
 
 // Generate summary from filtered queries
@@ -51,6 +53,9 @@ export const Route = createFileRoute("/")({ component: Dashboard });
 function Dashboard() {
     const { servers, loading: serversLoading } = useFetchServers();
     const { serverId, setServerId, minTime, refreshInterval, showAll, isPaused, ipFilter } = useUrlPreferences();
+    const readPreferenceByServer = usePreferences((state) => state.readPreferenceByServer);
+    const setReadPreference = usePreferences((state) => state.setReadPreference);
+    const readPreference = readPreferenceByServer[serverId] ?? "primary";
 
     const [connectionState, setConnectionState] = useSetState({
         isConnecting: false,
@@ -63,6 +68,7 @@ function Dashboard() {
         minTime,
         refreshInterval,
         showAll,
+        readPreference,
         connectionState.mongoConnected,
         isPaused,
     );
@@ -211,6 +217,21 @@ function Dashboard() {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                <span className="ml-2 text-muted-foreground">READ:</span>
+                                <Button
+                                    variant={readPreference === "primary" ? "default" : "outline"}
+                                    className="h-8 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                                    onClick={() => setReadPreference(serverId, "primary")}
+                                >
+                                    Primary
+                                </Button>
+                                <Button
+                                    variant={readPreference === "secondaryPreferred" ? "default" : "outline"}
+                                    className="h-8 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                                    onClick={() => setReadPreference(serverId, "secondaryPreferred")}
+                                >
+                                    Secondary
+                                </Button>
                                 <Settings />
                             </div>
                             <div className="flex flex-col items-end gap-3">

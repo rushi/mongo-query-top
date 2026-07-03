@@ -34,13 +34,15 @@ GET  /health                             no auth required
 
 ## Adding Server Config
 
+One entry per replica set — don't create separate primary/secondary entries. The dashboard has a Primary/Secondary toggle that sets `readPreference` per-request on `currentOp` calls; leave `readPreference` out of the URI (it's ignored for currentOp and overridden anyway).
+
 In `config/local.yaml`:
 
 ```yaml
 servers:
     my-server:
         name: My Production Server
-        uri: mongodb://user:pass@host:27017/db?authSource=admin
+        uri: mongodb://user:pass@host:27017,host2:27017/db?replicaSet=my-rs&authSource=admin
 ```
 
 ## Backend Style

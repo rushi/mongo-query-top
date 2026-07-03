@@ -5,33 +5,33 @@ import { useSettings } from "../store/settings";
 
 const READ_PREFERENCE_MODES = ["primary", "secondaryPreferred"] as const satisfies readonly ReadPreferenceMode[];
 
-export type SortColumn = "runtime" | "operation" | "namespace" | "client" | "opid";
 export type SortDirection = "asc" | "desc";
+export type SortColumn = "runtime" | "operation" | "namespace" | "client" | "opid";
 
 // Get defaults from settings
 const getDefaults = () => {
     const { defaultFilters } = useSettings.getState();
     return {
-        serverId: "localhost",
-        minTime: defaultFilters.minTimeMs,
-        refreshInterval: defaultFilters.refreshSec,
-        showAll: defaultFilters.showAll,
         isPaused: false,
+        serverId: "localhost",
+        showAll: defaultFilters.showAll,
         sortBy: "runtime" as SortColumn,
+        minTime: defaultFilters.minTimeMs,
         sortDirection: "desc" as SortDirection,
+        refreshInterval: defaultFilters.refreshSec,
     };
 };
 
 // Define parsers for each URL param (no defaults, we'll apply them dynamically)
 const preferenceParsers = {
+    sortBy: parseAsString,
+    ipFilter: parseAsString, // Optional, no default
     serverId: parseAsString,
     minTime: parseAsInteger,
-    refreshInterval: parseAsInteger,
     showAll: parseAsBoolean,
     isPaused: parseAsBoolean,
-    sortBy: parseAsString,
     sortDirection: parseAsString,
-    ipFilter: parseAsString, // Optional, no default
+    refreshInterval: parseAsInteger,
     readPreference: parseAsStringLiteral(READ_PREFERENCE_MODES), // Optional, no default
 };
 
@@ -45,15 +45,15 @@ export const useUrlPreferences = () => {
     const DEFAULTS = getDefaults();
 
     // Extract values with proper typing, applying defaults from settings
-    const serverId = preferences.serverId ?? DEFAULTS.serverId;
-    const minTime = preferences.minTime ?? DEFAULTS.minTime;
-    const refreshInterval = preferences.refreshInterval ?? DEFAULTS.refreshInterval;
-    const showAll = preferences.showAll ?? DEFAULTS.showAll;
-    const isPaused = preferences.isPaused ?? DEFAULTS.isPaused;
-    const sortBy = (preferences.sortBy as SortColumn) ?? DEFAULTS.sortBy;
-    const sortDirection = (preferences.sortDirection as SortDirection) ?? DEFAULTS.sortDirection;
     const ipFilter = preferences.ipFilter ?? undefined;
+    const showAll = preferences.showAll ?? DEFAULTS.showAll;
+    const minTime = preferences.minTime ?? DEFAULTS.minTime;
+    const serverId = preferences.serverId ?? DEFAULTS.serverId;
+    const isPaused = preferences.isPaused ?? DEFAULTS.isPaused;
     const readPreference = preferences.readPreference ?? undefined;
+    const sortBy = (preferences.sortBy as SortColumn) ?? DEFAULTS.sortBy;
+    const refreshInterval = preferences.refreshInterval ?? DEFAULTS.refreshInterval;
+    const sortDirection = (preferences.sortDirection as SortDirection) ?? DEFAULTS.sortDirection;
 
     // Create setter functions with useMemoizedFn (no dependency arrays needed)
     const setServerId = useMemoizedFn((id: string) => {
@@ -98,34 +98,34 @@ export const useUrlPreferences = () => {
     const resetFilters = useMemoizedFn(() => {
         const defaults = getDefaults();
         setPreferences({
+            ipFilter: null,
+            sortBy: defaults.sortBy,
             minTime: defaults.minTime,
-            refreshInterval: defaults.refreshInterval,
             showAll: defaults.showAll,
             isPaused: defaults.isPaused,
-            sortBy: defaults.sortBy,
             sortDirection: defaults.sortDirection,
-            ipFilter: null,
+            refreshInterval: defaults.refreshInterval,
         });
     });
 
     return {
-        serverId,
-        minTime,
-        refreshInterval,
-        showAll,
-        isPaused,
         sortBy,
-        sortDirection,
+        showAll,
+        minTime,
         ipFilter,
+        serverId,
+        isPaused,
+        sortDirection,
+        refreshInterval,
         readPreference,
-        setServerId,
         setMinTime,
-        setRefreshInterval,
-        toggleShowAll,
+        setServerId,
         togglePause,
-        setSortColumn,
         setIpFilter,
-        setReadPreference,
         resetFilters,
+        toggleShowAll,
+        setSortColumn,
+        setReadPreference,
+        setRefreshInterval,
     };
 };

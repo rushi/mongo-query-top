@@ -24,7 +24,7 @@ export const SummaryStats = ({ summary }: SummaryStatsProps) => {
                     <div className="mb-0.5 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
                         TOTAL_QUERIES
                     </div>
-                    <div className="font-mono text-lg text-primary">{summary.totalQueries}</div>
+                    <div className="font-mono text-lg text-primary tabular-nums">{summary.totalQueries}</div>
                 </div>
 
                 {/* Unindexed Queries */}
@@ -34,7 +34,7 @@ export const SummaryStats = ({ summary }: SummaryStatsProps) => {
                     </div>
                     <div
                         className={cn(
-                            "font-mono text-lg",
+                            "font-mono text-lg tabular-nums",
                             summary.unindexedCount > 0 ? "text-warning" : "text-muted-foreground",
                         )}
                     >
@@ -55,7 +55,7 @@ export const SummaryStats = ({ summary }: SummaryStatsProps) => {
                             {operationsEntries.map(([op, count]) => (
                                 <div key={op} className="flex items-center gap-1.5">
                                     <span className="text-primary">▸</span>
-                                    <span className="font-bold text-primary">{count}</span>
+                                    <span className="font-bold text-primary tabular-nums">{count}</span>
                                     <span className="text-foreground uppercase">{op}</span>
                                 </div>
                             ))}
@@ -75,7 +75,7 @@ export const SummaryStats = ({ summary }: SummaryStatsProps) => {
                             {topCollections.map(([coll, count]) => (
                                 <div key={coll} className="flex items-center gap-1.5">
                                     <span className="text-primary">▸</span>
-                                    <span className="font-bold text-primary">{count}</span>
+                                    <span className="font-bold text-primary tabular-nums">{count}</span>
                                     <span className="truncate text-foreground">{coll}</span>
                                 </div>
                             ))}

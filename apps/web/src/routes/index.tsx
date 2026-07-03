@@ -256,7 +256,7 @@ function Dashboard() {
                                 <span className="ml-2 text-muted-foreground">READ:</span>
                                 <Button
                                     variant={readPreference === "primary" ? "default" : "outline"}
-                                    className="h-8 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                                    className="h-8 border-2 font-mono text-xs tracking-wide uppercase"
                                     onClick={() => handleReadPreferenceChange("primary")}
                                 >
                                     PRIMARY
@@ -264,7 +264,7 @@ function Dashboard() {
                                 <Button
                                     variant="outline"
                                     className={cn(
-                                        "h-8 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase",
+                                        "h-8 border-2 font-mono text-xs tracking-wide uppercase",
                                         isSecondary &&
                                             "border-secondary-read bg-secondary-read text-secondary-read-foreground",
                                     )}

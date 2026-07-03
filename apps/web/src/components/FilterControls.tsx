@@ -117,7 +117,7 @@ export const FilterControls = () => {
                                 variant="ghost"
                                 size="icon"
                                 title="Clear IP filter"
-                                className="h-9 w-9 cursor-pointer border-2 border-border hover:border-destructive hover:bg-destructive/10 hover:text-foreground"
+                                className="h-9 w-9 border-2 border-border hover:border-destructive hover:bg-destructive/10 hover:text-foreground"
                                 onClick={() => setIpFilter(undefined)}
                             >
                                 <XIcon weight="bold" className="h-4 w-4" />
@@ -138,7 +138,7 @@ export const FilterControls = () => {
                                     <Button
                                         variant={isPaused ? "default" : "outline"}
                                         title={isPaused ? "Resume updates" : "Pause updates"}
-                                        className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                                        className="h-9 border-2 font-mono text-xs tracking-wide uppercase"
                                         onClick={togglePause}
                                     >
                                         {isPaused ? (
@@ -172,7 +172,7 @@ export const FilterControls = () => {
                                 <TooltipTrigger asChild>
                                     <Button
                                         variant={showAll ? "default" : "outline"}
-                                        className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                                        className="h-9 border-2 font-mono text-xs tracking-wide uppercase"
                                         onClick={toggleShowAll}
                                     >
                                         {showAll ? "● " : "○ "}SHOW_ALL
@@ -197,7 +197,7 @@ export const FilterControls = () => {
                     <Button
                         variant="outline"
                         title="Reset filters to default"
-                        className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                        className="h-9 border-2 font-mono text-xs tracking-wide uppercase"
                         onClick={resetFilters}
                     >
                         <ArrowCounterClockwiseIcon weight="bold" className="mr-2 h-3.5 w-3.5" />
@@ -207,7 +207,7 @@ export const FilterControls = () => {
                     <Button
                         variant={saved ? "default" : "outline"}
                         disabled={isSaveDisabled}
-                        className="h-9 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
+                        className="h-9 border-2 font-mono text-xs tracking-wide uppercase"
                         onClick={handleSaveAll}
                     >
                         {saved ? (

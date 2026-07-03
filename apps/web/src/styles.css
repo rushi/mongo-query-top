@@ -88,6 +88,18 @@ h6 {
     animation-delay: 400ms;
 }
 
+/* Respect reduced-motion: near-zero duration keeps `forwards` fill (elements stay visible) */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
 :root {
     /* Brutalist Terminal Color Palette */
     --background: rgb(10, 10, 10); /* #0a0a0a - Pure black */

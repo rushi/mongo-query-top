@@ -196,7 +196,7 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                                     disabled={isKilling}
                                     size="sm"
                                     variant="outline"
-                                    className="cursor-pointer border-2 border-destructive/60 font-mono text-xs text-destructive uppercase hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    className="border-2 border-destructive/60 font-mono text-xs text-destructive uppercase hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
                                     onClick={handleKillOp}
                                 >
                                     <ProhibitIcon weight="bold" className="mr-2 h-3 w-3" />
@@ -207,7 +207,7 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                                 size="sm"
                                 variant={saved ? "default" : "outline"}
                                 disabled={isSaving || saved}
-                                className="cursor-pointer border-2 font-mono text-xs uppercase"
+                                className="border-2 font-mono text-xs uppercase"
                                 onClick={handleSave}
                             >
                                 {saved ? (

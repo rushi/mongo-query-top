@@ -239,8 +239,10 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                 <div className="flex items-center font-mono text-sm text-muted-foreground tabular-nums">
                                     {query.idx}
                                 </div>
-                                <div className="flex items-center font-mono text-sm text-foreground">{query.opid}</div>
-                                <div className="flex items-center justify-end pr-2 font-mono text-sm font-medium text-primary">
+                                <div className="flex items-center font-mono text-sm text-foreground tabular-nums">
+                                    {query.opid}
+                                </div>
+                                <div className="flex items-center justify-end pr-2 font-mono text-sm font-medium text-primary tabular-nums">
                                     {query.runtime_formatted}
                                 </div>
                                 <div className="flex items-center truncate font-mono text-sm text-muted-foreground uppercase">
@@ -284,7 +286,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         variant="ghost"
                                         size="sm"
                                         title="Filter by IP"
-                                        className="h-6 w-6 cursor-pointer border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
+                                        className="h-6 w-6 border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
                                         onClick={(e) => handleFilterByIp(e, query)}
                                     >
                                         <FunnelIcon weight="bold" className="h-3 w-3" />
@@ -293,7 +295,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         variant="ghost"
                                         size="sm"
                                         title="View Details"
-                                        className="h-6 w-6 cursor-pointer border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
+                                        className="h-6 w-6 border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
                                         onClick={(e) => handleViewDetails(e, query)}
                                     >
                                         <EyeIcon weight="bold" className="h-3 w-3" />
@@ -303,7 +305,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                                         size="sm"
                                         disabled={isSaveDisabled}
                                         title="Save Query"
-                                        className="h-6 w-6 cursor-pointer border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
+                                        className="h-6 w-6 border border-border p-0 hover:border-primary hover:bg-primary/10 hover:text-white"
                                         onClick={async (e) => handleSave(e, query)}
                                     >
                                         {isSaved ? (

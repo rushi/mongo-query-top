@@ -111,6 +111,8 @@ h6 {
     --warning-foreground: rgb(10, 10, 10);
     --success: rgb(212, 255, 0); /* Use lime for success */
     --success-foreground: rgb(10, 10, 10);
+    --secondary-read: rgb(0, 229, 255); /* Electric cyan - flags secondaryPreferred read mode */
+    --secondary-read-foreground: rgb(10, 10, 10);
     --border: rgb(60, 60, 60); /* Dark border */
     --input: rgb(20, 20, 20);
     --ring: rgb(212, 255, 0); /* Lime ring */
@@ -152,6 +154,8 @@ h6 {
     --warning-foreground: rgb(10, 10, 10);
     --success: rgb(212, 255, 0);
     --success-foreground: rgb(10, 10, 10);
+    --secondary-read: rgb(0, 229, 255);
+    --secondary-read-foreground: rgb(10, 10, 10);
     --border: rgb(60, 60, 60);
     --input: rgb(20, 20, 20);
     --ring: rgb(212, 255, 0);
@@ -190,6 +194,8 @@ h6 {
     --color-destructive-foreground: var(--destructive-foreground);
     --color-warning: var(--warning);
     --color-warning-foreground: var(--warning-foreground);
+    --color-secondary-read: var(--secondary-read);
+    --color-secondary-read-foreground: var(--secondary-read-foreground);
     --color-success: var(--success);
     --color-success-foreground: var(--success-foreground);
     --color-border: var(--border);

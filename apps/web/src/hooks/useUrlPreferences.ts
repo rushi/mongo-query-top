@@ -1,7 +1,9 @@
 import type { ReadPreferenceMode } from "@mongo-query-top/types";
 import { useMemoizedFn } from "ahooks";
-import { parseAsBoolean, parseAsInteger, parseAsString, useQueryStates } from "nuqs";
+import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs";
 import { useSettings } from "../store/settings";
+
+const READ_PREFERENCE_MODES = ["primary", "secondaryPreferred"] as const satisfies readonly ReadPreferenceMode[];
 
 export type SortColumn = "runtime" | "operation" | "namespace" | "client" | "opid";
 export type SortDirection = "asc" | "desc";
@@ -30,7 +32,7 @@ const preferenceParsers = {
     sortBy: parseAsString,
     sortDirection: parseAsString,
     ipFilter: parseAsString, // Optional, no default
-    readPreference: parseAsString, // Optional, no default
+    readPreference: parseAsStringLiteral(READ_PREFERENCE_MODES), // Optional, no default
 };
 
 export const useUrlPreferences = () => {
@@ -51,7 +53,7 @@ export const useUrlPreferences = () => {
     const sortBy = (preferences.sortBy as SortColumn) ?? DEFAULTS.sortBy;
     const sortDirection = (preferences.sortDirection as SortDirection) ?? DEFAULTS.sortDirection;
     const ipFilter = preferences.ipFilter ?? undefined;
-    const readPreference = (preferences.readPreference as ReadPreferenceMode | null) ?? undefined;
+    const readPreference = preferences.readPreference ?? undefined;
 
     // Create setter functions with useMemoizedFn (no dependency arrays needed)
     const setServerId = useMemoizedFn((id: string) => {

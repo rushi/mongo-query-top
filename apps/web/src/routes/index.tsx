@@ -74,7 +74,7 @@ function Dashboard() {
     const readPreference = resolveReadPreference(urlReadPreference, readPreferenceByServer[serverId]);
     const isSecondary = readPreference === "secondaryPreferred";
     const accentClass = isSecondary
-        ? { border: "border-warning", text: "text-warning" }
+        ? { border: "border-secondary-read", text: "text-secondary-read" }
         : { border: "border-primary", text: "text-primary" };
 
     const handleReadPreferenceChange = (pref: ReadPreferenceMode) => {
@@ -185,7 +185,7 @@ function Dashboard() {
                     className={cn(
                         "border-2 font-mono text-[10px] uppercase",
                         isSecondary
-                            ? "border-warning bg-warning/20 text-warning"
+                            ? "border-secondary-read bg-secondary-read/20 text-secondary-read"
                             : "border-primary bg-primary/20 text-primary",
                     )}
                 >
@@ -265,7 +265,8 @@ function Dashboard() {
                                     variant="outline"
                                     className={cn(
                                         "h-8 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase",
-                                        isSecondary && "border-warning bg-warning text-warning-foreground",
+                                        isSecondary &&
+                                            "border-secondary-read bg-secondary-read text-secondary-read-foreground",
                                     )}
                                     onClick={() => handleReadPreferenceChange("secondaryPreferred")}
                                 >

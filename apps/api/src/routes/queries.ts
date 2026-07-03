@@ -1,5 +1,6 @@
 import type { MongoQuery, ProcessedQuery } from "@mongo-query-top/types";
 import type { FastifyInstance } from "fastify";
+import { parseReadPreference } from "../core/lib/readPreference.js";
 import { mockQueries } from "../data/mockQueries.js";
 
 export default async function queriesRoutes(fastify: FastifyInstance) {
@@ -121,10 +122,10 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
     // GET /api/queries/:serverId - Get current queries (one-time fetch)
     fastify.get<{
         Params: { serverId: string };
-        Querystring: { minTime?: string; showAll?: string };
+        Querystring: { minTime?: string; showAll?: string; readPreference?: string };
     }>("/:serverId", async (request, reply) => {
         const { serverId } = request.params;
-        const { minTime = "1000", showAll = "false" } = request.query;
+        const { minTime = "1000", showAll = "false", readPreference } = request.query;
 
         const client = request.services.mongoService.getConnection(serverId);
         if (!client) {
@@ -140,8 +141,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                     currentOp: 1,
                     secs_running: { $gte: minTimeSeconds },
                 },
-                // currentOp ignores URI readPreference (defaults to primary) — pass it explicitly
-                { readPreference: client.readPreference },
+                { readPreference: parseReadPreference(readPreference) },
             );
 
             const queries = request.services.queryService.processQueries(result.inprog, showAll === "true");
@@ -175,6 +175,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             autoSaveCollscan?: string;
             autoSaveTimeoutRisk?: string;
             timeoutRiskThreshold?: string;
+            readPreference?: string;
         };
     }>("/:serverId/stream", async (request, reply) => {
         // SSE: take over the socket so Fastify never auto-sends a reply.
@@ -192,6 +193,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             autoSaveCollscan = "true",
             autoSaveTimeoutRisk = "true",
             timeoutRiskThreshold = "300",
+            readPreference,
         } = request.query;
 
         const client = request.services.mongoService.getConnection(serverId);
@@ -231,8 +233,8 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                     {
                         currentOp: 1,
                         secs_running: { $gte: minTimeSeconds },
-                    }, // currentOp ignores URI readPreference (defaults to primary) — pass it explicitly
-                    { readPreference: client.readPreference },
+                    },
+                    { readPreference: parseReadPreference(readPreference) },
                 );
 
                 const queries = request.services.queryService.processQueries(result.inprog, showAll === "true");
@@ -335,10 +337,10 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
     // POST /api/queries/:serverId/snapshot - Save snapshot of current queries
     fastify.post<{
         Params: { serverId: string };
-        Querystring: { minTime?: string };
+        Querystring: { minTime?: string; readPreference?: string };
     }>("/:serverId/snapshot", async (request, reply) => {
         const { serverId } = request.params;
-        const { minTime = "1000" } = request.query;
+        const { minTime = "1000", readPreference } = request.query;
 
         const client = request.services.mongoService.getConnection(serverId);
         if (!client) {
@@ -353,8 +355,8 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                 {
                     currentOp: 1,
                     secs_running: { $gte: minTimeSeconds },
-                }, // currentOp ignores URI readPreference (defaults to primary) — pass it explicitly
-                { readPreference: client.readPreference },
+                },
+                { readPreference: parseReadPreference(readPreference) },
             );
 
             const queries = request.services.queryService.processQueries(result.inprog);

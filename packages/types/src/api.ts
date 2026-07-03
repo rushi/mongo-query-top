@@ -42,6 +42,41 @@ export interface QueryData {
     };
 }
 
+export interface ConnectedClient {
+    connectionId?: number;
+    client: {
+        ip: string;
+        port?: number;
+        geo?: GeoLocation | null;
+    };
+    appName?: string;
+    userAgent: string;
+    effectiveUsers?: Array<{ user: string; db: string }>;
+    active: boolean;
+    currentOp?: string;
+    namespace?: string;
+    secs_running?: number;
+    runtime_formatted?: string;
+}
+
+export interface ClientSummary {
+    totalConnections: number;
+    activeConnections: number;
+    idleConnections: number;
+    byApp: Record<string, number>;
+    byUser: Record<string, number>;
+    byIp: Record<string, number>;
+}
+
+export interface ClientsData {
+    clients: ConnectedClient[];
+    summary: ClientSummary;
+    metadata: {
+        serverId: string;
+        timestamp: string;
+    };
+}
+
 export interface Server {
     id: string;
     name: string;

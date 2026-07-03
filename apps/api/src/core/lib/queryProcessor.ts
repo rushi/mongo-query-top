@@ -2,6 +2,8 @@ import type { MongoQuery } from "@mongo-query-top/types";
 import { omit } from "lodash-es";
 import { beautifyJson } from "./helpers.js";
 
+const INTERNAL_DRIVER_PATTERN = /MongoDB Internal Client|NetworkInterfaceTL/;
+
 export const shouldSkipQuery = (q: MongoQuery): boolean => {
     const { command, clientMetadata, appName } = q;
 
@@ -17,7 +19,7 @@ export const shouldSkipQuery = (q: MongoQuery): boolean => {
     }
 
     if (clientMetadata) {
-        if (clientMetadata.driver?.name?.match(/MongoDB Internal Client|NetworkInterfaceTL/)) {
+        if (clientMetadata.driver?.name?.match(INTERNAL_DRIVER_PATTERN)) {
             return true;
         }
         if (clientMetadata.driver?.name?.match(/ext-mongodb/i)) {
@@ -39,6 +41,32 @@ export const shouldSkipQuery = (q: MongoQuery): boolean => {
     }
 
     if (command["$db"] === "config") {
+        return true;
+    }
+
+    return false;
+};
+
+// Filters internal/system connections from the connected-clients view.
+// Unlike shouldSkipQuery, connections may be idle (no command), so we key off
+// client metadata, agent app names, and the __system auth user instead.
+export const shouldSkipConnection = (c: MongoQuery): boolean => {
+    const { client, clientMetadata, appName, effectiveUsers } = c;
+
+    // No client address means an internal connection (no real user behind it).
+    if (!client) {
+        return true;
+    }
+
+    if (clientMetadata?.driver?.name?.match(INTERNAL_DRIVER_PATTERN)) {
+        return true;
+    }
+
+    if (appName?.match(/mongodb (monitoring module|automation agent|cps module)|mongotune/i)) {
+        return true;
+    }
+
+    if (effectiveUsers?.some((u) => u.user === "__system" || u.user === "mms-mongotune")) {
         return true;
     }
 

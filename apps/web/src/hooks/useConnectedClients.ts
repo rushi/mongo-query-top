@@ -1,0 +1,112 @@
+import { fetchEventSource } from "@microsoft/fetch-event-source";
+import type { ClientsData, ReadPreferenceMode } from "@mongo-query-top/types";
+import { useEffect, useRef, useState } from "react";
+import { API_BASE, API_KEY } from "../utils/api";
+
+const MAX_RETRY_DELAY = 30000; // 30 seconds max
+const INITIAL_RETRY_DELAY = 500; // Start with 0.5 second
+
+export const useConnectedClients = (
+    serverId: string,
+    refreshInterval: number,
+    showAll: boolean,
+    readPreference: ReadPreferenceMode,
+    enabled = true,
+) => {
+    const [data, setData] = useState<ClientsData | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [isConnected, setIsConnected] = useState(false);
+    const [isReconnecting, setIsReconnecting] = useState(false);
+
+    const retryDelayRef = useRef(INITIAL_RETRY_DELAY);
+    const abortControllerRef = useRef<AbortController | null>(null);
+
+    useEffect(() => {
+        if (!enabled) {
+            abortControllerRef.current?.abort();
+            abortControllerRef.current = null;
+            setIsConnected(false);
+            setIsReconnecting(false);
+            return;
+        }
+
+        let isActive = true;
+
+        const connect = async () => {
+            if (!isActive) {
+                return;
+            }
+
+            const abortController = new AbortController();
+            abortControllerRef.current = abortController;
+
+            const params = new URLSearchParams({
+                refreshInterval: String(refreshInterval),
+                showAll: String(showAll),
+                readPreference,
+            });
+            const url = `${API_BASE}/clients/${serverId}/stream?${params.toString()}`;
+
+            try {
+                await fetchEventSource(url, {
+                    signal: abortController.signal,
+                    headers: { "X-API-Key": API_KEY },
+                    async onopen(response) {
+                        if (response.ok) {
+                            setIsConnected(true);
+                            setIsReconnecting(false);
+                            setError(null);
+                            retryDelayRef.current = INITIAL_RETRY_DELAY;
+                        } else {
+                            throw new Error(`Failed to connect: ${response.statusText}`);
+                        }
+                    },
+                    onmessage(event) {
+                        if (event.event === "clients") {
+                            try {
+                                setData(JSON.parse(event.data));
+                                setError(null);
+                            } catch {
+                                setError("Failed to parse client data");
+                            }
+                        }
+                    },
+                    onerror(err) {
+                        setError("Connection lost");
+                        setIsConnected(false);
+
+                        if (!isActive) {
+                            throw err; // Stops reconnection
+                        }
+
+                        // Exponential backoff: double the delay, up to MAX_RETRY_DELAY
+                        setIsReconnecting(true);
+                        retryDelayRef.current = Math.min(retryDelayRef.current * 2, MAX_RETRY_DELAY);
+                        return retryDelayRef.current;
+                    },
+                    onclose() {
+                        setIsConnected(false);
+                    },
+                });
+            } catch (err: unknown) {
+                const errName = err instanceof Error ? err.name : "";
+                if (errName !== "AbortError" && isActive) {
+                    setError(err instanceof Error ? err.message : "Connection failed");
+                    setIsConnected(false);
+                }
+            }
+        };
+
+        connect();
+
+        return () => {
+            isActive = false;
+            abortControllerRef.current?.abort();
+            abortControllerRef.current = null;
+            setIsConnected(false);
+            setIsReconnecting(false);
+        };
+    }, [serverId, refreshInterval, showAll, readPreference, enabled]);
+
+    return { data, error, isConnected, isReconnecting };
+};

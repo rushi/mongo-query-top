@@ -1,0 +1,134 @@
+import type { MongoQuery } from "@mongo-query-top/types";
+import type { FastifyInstance } from "fastify";
+import type { MongoClient } from "mongodb";
+import type { QueryService } from "../core/index.js";
+import { parseReadPreference } from "../core/lib/readPreference.js";
+
+// Lists live connections via $currentOp (includes idle connections), so the
+// view reflects who is connected, not just who is running an operation.
+const CURRENT_OP_PIPELINE = [{ $currentOp: { allUsers: true, idleConnections: true } }];
+
+const buildClientsData = async (
+    mongoClient: MongoClient,
+    queryService: QueryService,
+    serverId: string,
+    showAll: boolean,
+    readPreference?: string,
+) => {
+    const docs = await mongoClient
+        .db("admin")
+        .aggregate(CURRENT_OP_PIPELINE, { readPreference: parseReadPreference(readPreference) })
+        .toArray();
+
+    const clients = queryService.processClients(docs as MongoQuery[], showAll);
+    const summary = queryService.generateClientSummary(clients);
+
+    return { clients, summary, metadata: { serverId, timestamp: new Date().toISOString() } };
+};
+
+export default async function clientsRoutes(fastify: FastifyInstance) {
+    // GET /api/clients/:serverId - Get connected clients (one-time fetch)
+    fastify.get<{
+        Params: { serverId: string };
+        Querystring: { showAll?: string; readPreference?: string };
+    }>("/:serverId", async (request, reply) => {
+        const { serverId } = request.params;
+        const { showAll = "false", readPreference } = request.query;
+
+        const client = request.services.mongoService.getConnection(serverId);
+        if (!client) {
+            return reply.code(404).send({ error: "Server not connected" });
+        }
+
+        try {
+            return await buildClientsData(
+                client,
+                request.services.queryService,
+                serverId,
+                showAll === "true",
+                readPreference,
+            );
+        } catch (err) {
+            return reply.code(500).send({
+                error: "Failed to fetch connected clients",
+                message: (err as Error).message,
+            });
+        }
+    });
+
+    // GET /api/clients/:serverId/stream - Real-time SSE stream of connected clients
+    fastify.get<{
+        Params: { serverId: string };
+        Querystring: { refreshInterval?: string; showAll?: string; readPreference?: string };
+    }>("/:serverId/stream", async (request, reply) => {
+        // SSE: take over the socket so Fastify never auto-sends a reply (see queries.ts).
+        reply.hijack();
+
+        const { serverId } = request.params;
+        const { refreshInterval = "2", showAll = "false", readPreference } = request.query;
+
+        const client = request.services.mongoService.getConnection(serverId);
+        if (!client) {
+            reply.raw.writeHead(404, {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": request.headers.origin ?? "*",
+                "Access-Control-Allow-Credentials": "true",
+            });
+            reply.raw.write(JSON.stringify({ error: "Server not connected" }));
+            return reply.raw.end();
+        }
+
+        reply.raw.writeHead(200, {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+            "X-Accel-Buffering": "no",
+            "Access-Control-Allow-Origin": request.headers.origin ?? "*",
+            "Access-Control-Allow-Credentials": "true",
+        });
+
+        let isActive = true;
+
+        const sendClientUpdate = async () => {
+            if (!isActive) {
+                return;
+            }
+
+            try {
+                const data = await buildClientsData(
+                    client,
+                    request.services.queryService,
+                    serverId,
+                    showAll === "true",
+                    readPreference,
+                );
+                reply.raw.write(`event: clients\ndata: ${JSON.stringify(data)}\n\n`);
+            } catch (err) {
+                if (isActive) {
+                    reply.raw.write(`event: error\ndata: ${JSON.stringify({ error: (err as Error).message })}\n\n`);
+                }
+            }
+        };
+
+        // Send initial data immediately
+        await sendClientUpdate();
+
+        // Setup interval for subsequent updates
+        const intervalId = setInterval(sendClientUpdate, Number(refreshInterval) * 1000);
+
+        // Keep connection alive with heartbeat
+        const heartbeatId = setInterval(() => {
+            if (isActive) {
+                reply.raw.write(`:heartbeat\n\n`);
+            }
+        }, 30000);
+
+        // Cleanup on connection close
+        request.raw.on("close", () => {
+            isActive = false;
+            clearInterval(intervalId);
+            clearInterval(heartbeatId);
+            fastify.log.info(`Clients SSE connection closed for server: ${serverId}`);
+        });
+    });
+}

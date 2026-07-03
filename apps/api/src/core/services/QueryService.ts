@@ -1,7 +1,14 @@
-import type { GeoLocation, MongoQuery, ProcessedQuery, QuerySummary } from "@mongo-query-top/types";
+import type {
+    ClientSummary,
+    ConnectedClient,
+    GeoLocation,
+    MongoQuery,
+    ProcessedQuery,
+    QuerySummary,
+} from "@mongo-query-top/types";
 import geoip from "geoip-lite";
 import shortHumanizeTime from "../lib/helpers.js";
-import { formatUserAgent, sanitizeQuery, shouldSkipQuery } from "../lib/queryProcessor.js";
+import { formatUserAgent, sanitizeQuery, shouldSkipConnection, shouldSkipQuery } from "../lib/queryProcessor.js";
 
 export class QueryService {
     private readonly geoCache: Map<string, GeoLocation | null> = new Map();
@@ -65,6 +72,61 @@ export class QueryService {
             collections,
             clients,
             unindexedCount,
+        };
+    }
+
+    processClients(docs: MongoQuery[], showAll = false): ConnectedClient[] {
+        const filtered = showAll ? docs : docs.filter((c) => !shouldSkipConnection(c));
+
+        return filtered
+            .map((c) => this.toConnectedClient(c))
+            .sort((a, b) => Number(b.active) - Number(a.active) || (b.secs_running ?? 0) - (a.secs_running ?? 0));
+    }
+
+    private toConnectedClient(c: MongoQuery): ConnectedClient {
+        return {
+            connectionId: c.connectionId,
+            client: this.parseClient(c.client),
+            appName: c.appName,
+            userAgent: formatUserAgent(c),
+            effectiveUsers: c.effectiveUsers,
+            active: c.active,
+            currentOp: c.active ? c.op : undefined,
+            namespace: c.active && c.ns ? c.ns : undefined,
+            secs_running: c.secs_running,
+            runtime_formatted: c.secs_running ? this.formatRuntime(c.secs_running) : undefined,
+        };
+    }
+
+    generateClientSummary(clients: ConnectedClient[]): ClientSummary {
+        const byApp: Record<string, number> = {};
+        const byUser: Record<string, number> = {};
+        const byIp: Record<string, number> = {};
+        let activeConnections = 0;
+
+        for (const c of clients) {
+            byApp[c.userAgent] = (byApp[c.userAgent] || 0) + 1;
+            byIp[c.client.ip] = (byIp[c.client.ip] || 0) + 1;
+
+            const users = c.effectiveUsers?.length
+                ? c.effectiveUsers.map((u) => `${u.user}@${u.db}`)
+                : ["unauthenticated"];
+            for (const user of users) {
+                byUser[user] = (byUser[user] || 0) + 1;
+            }
+
+            if (c.active) {
+                activeConnections++;
+            }
+        }
+
+        return {
+            totalConnections: clients.length,
+            activeConnections,
+            idleConnections: clients.length - activeConnections,
+            byApp,
+            byUser,
+            byIp,
         };
     }
 

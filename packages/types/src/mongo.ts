@@ -27,6 +27,7 @@ export interface MongoQuery {
     msg?: string;
     effectiveUsers?: Array<{ user: string; db: string }>;
     waitingForLock?: boolean;
+    connectionId?: number;
 }
 
 export interface UserPreferences {

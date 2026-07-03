@@ -3,6 +3,7 @@ import cors from "@fastify/cors";
 import config from "config";
 import Fastify from "fastify";
 import { MongoConnectionService, QueryLoggerService, QueryService } from "./core/index.js";
+import clientsRoutes from "./routes/clients.js";
 import queriesRoutes from "./routes/queries.js";
 import serversRoutes from "./routes/servers.js";
 
@@ -89,6 +90,7 @@ fastify.addHook("onRequest", async (request) => {
 // Routes
 await fastify.register(serversRoutes, { prefix: "/api/servers" });
 await fastify.register(queriesRoutes, { prefix: "/api/queries" });
+await fastify.register(clientsRoutes, { prefix: "/api/clients" });
 
 // Health check
 fastify.get("/health", async () => {

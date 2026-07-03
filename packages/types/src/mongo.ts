@@ -45,3 +45,5 @@ export interface ServerConfig {
     name: string;
     uri: string;
 }
+
+export type ReadPreferenceMode = "primary" | "secondaryPreferred";

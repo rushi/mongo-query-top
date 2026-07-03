@@ -1,4 +1,4 @@
-import type { ProcessedQuery, QuerySummary } from "@mongo-query-top/types";
+import type { ProcessedQuery, QuerySummary, ReadPreferenceMode } from "@mongo-query-top/types";
 import { createFileRoute } from "@tanstack/react-router";
 import { useBoolean, useSetState, useTitle } from "ahooks";
 import { useEffect, useMemo, useState } from "react";
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useFetchServers } from "../hooks/useFetchServers";
 import { useServerSentEvents } from "../hooks/useServerSentEvents";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
+import { cn } from "../lib/utils";
 import { usePreferences } from "../store/preferences";
 import { apiClient, getApiBaseUrl } from "../utils/api";
 
@@ -48,14 +49,38 @@ const generateSummary = (queries: ProcessedQuery[]): QuerySummary => {
     };
 };
 
+const resolveReadPreference = (
+    urlValue: ReadPreferenceMode | undefined,
+    perServerValue: ReadPreferenceMode | undefined,
+): ReadPreferenceMode => urlValue ?? perServerValue ?? "primary";
+
 export const Route = createFileRoute("/")({ component: Dashboard });
 
 function Dashboard() {
     const { servers, loading: serversLoading } = useFetchServers();
-    const { serverId, setServerId, minTime, refreshInterval, showAll, isPaused, ipFilter } = useUrlPreferences();
+    const {
+        serverId,
+        setServerId,
+        minTime,
+        refreshInterval,
+        showAll,
+        isPaused,
+        ipFilter,
+        readPreference: urlReadPreference,
+        setReadPreference: setUrlReadPreference,
+    } = useUrlPreferences();
     const readPreferenceByServer = usePreferences((state) => state.readPreferenceByServer);
-    const setReadPreference = usePreferences((state) => state.setReadPreference);
-    const readPreference = readPreferenceByServer[serverId] ?? "primary";
+    const setStoredReadPreference = usePreferences((state) => state.setReadPreference);
+    const readPreference = resolveReadPreference(urlReadPreference, readPreferenceByServer[serverId]);
+    const isSecondary = readPreference === "secondaryPreferred";
+    const accentClass = isSecondary
+        ? { border: "border-warning", text: "text-warning" }
+        : { border: "border-primary", text: "text-primary" };
+
+    const handleReadPreferenceChange = (pref: ReadPreferenceMode) => {
+        setUrlReadPreference(pref);
+        setStoredReadPreference(serverId, pref);
+    };
 
     const [connectionState, setConnectionState] = useSetState({
         isConnecting: false,
@@ -129,6 +154,7 @@ function Dashboard() {
 
     const handleServerChange = (newServerId: string) => {
         setServerId(newServerId);
+        setUrlReadPreference(undefined);
         setConnectionState({ mongoConnected: false, connectError: null });
     };
 
@@ -156,7 +182,12 @@ function Dashboard() {
             return (
                 <Badge
                     variant="success"
-                    className="border-2 border-primary bg-primary/20 font-mono text-[10px] text-primary uppercase"
+                    className={cn(
+                        "border-2 font-mono text-[10px] uppercase",
+                        isSecondary
+                            ? "border-warning bg-warning/20 text-warning"
+                            : "border-primary bg-primary/20 text-primary",
+                    )}
                 >
                     ● CONNECTED
                 </Badge>
@@ -181,14 +212,19 @@ function Dashboard() {
     return (
         <div className="min-h-screen space-y-0 bg-background p-6">
             {/* ASCII Header Border */}
-            <div className="animate-reveal mb-4 border-2 border-primary p-4 font-mono text-xs leading-tight opacity-0">
-                <div className="mb-2 text-primary">
+            <div
+                className={cn(
+                    "animate-reveal mb-4 border-2 p-4 font-mono text-xs leading-tight opacity-0",
+                    accentClass.border,
+                )}
+            >
+                <div className={cn("mb-2", accentClass.text)}>
                     ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
                 </div>
                 <header className="space-y-2">
                     <div className="flex items-start justify-between">
                         <div className="space-y-0.5 pl-3">
-                            <h1 className="terminal-cursor text-xl tracking-wider text-primary">
+                            <h1 className={cn("terminal-cursor text-xl tracking-wider", accentClass.text)}>
                                 MONGODB_QUERY_MONITOR
                             </h1>
                             <p className="text-[10px] tracking-wide text-muted-foreground uppercase">
@@ -221,14 +257,17 @@ function Dashboard() {
                                 <Button
                                     variant={readPreference === "primary" ? "default" : "outline"}
                                     className="h-8 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
-                                    onClick={() => setReadPreference(serverId, "primary")}
+                                    onClick={() => handleReadPreferenceChange("primary")}
                                 >
                                     PRIMARY
                                 </Button>
                                 <Button
-                                    variant={readPreference === "secondaryPreferred" ? "default" : "outline"}
-                                    className="h-8 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase"
-                                    onClick={() => setReadPreference(serverId, "secondaryPreferred")}
+                                    variant="outline"
+                                    className={cn(
+                                        "h-8 cursor-pointer border-2 font-mono text-xs tracking-wide uppercase",
+                                        isSecondary && "border-warning bg-warning text-warning-foreground",
+                                    )}
+                                    onClick={() => handleReadPreferenceChange("secondaryPreferred")}
                                 >
                                     SECONDARY
                                 </Button>
@@ -248,7 +287,7 @@ function Dashboard() {
                         </div>
                     </div>
                 </header>
-                <div className="text-primary">
+                <div className={cn(accentClass.text)}>
                     ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
                 </div>
             </div>

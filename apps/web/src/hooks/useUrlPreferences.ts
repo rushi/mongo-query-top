@@ -1,3 +1,4 @@
+import type { ReadPreferenceMode } from "@mongo-query-top/types";
 import { useMemoizedFn } from "ahooks";
 import { parseAsBoolean, parseAsInteger, parseAsString, useQueryStates } from "nuqs";
 import { useSettings } from "../store/settings";
@@ -29,6 +30,7 @@ const preferenceParsers = {
     sortBy: parseAsString,
     sortDirection: parseAsString,
     ipFilter: parseAsString, // Optional, no default
+    readPreference: parseAsString, // Optional, no default
 };
 
 export const useUrlPreferences = () => {
@@ -49,6 +51,7 @@ export const useUrlPreferences = () => {
     const sortBy = (preferences.sortBy as SortColumn) ?? DEFAULTS.sortBy;
     const sortDirection = (preferences.sortDirection as SortDirection) ?? DEFAULTS.sortDirection;
     const ipFilter = preferences.ipFilter ?? undefined;
+    const readPreference = (preferences.readPreference as ReadPreferenceMode | null) ?? undefined;
 
     // Create setter functions with useMemoizedFn (no dependency arrays needed)
     const setServerId = useMemoizedFn((id: string) => {
@@ -86,6 +89,10 @@ export const useUrlPreferences = () => {
         setPreferences({ ipFilter: ip ?? null });
     });
 
+    const setReadPreference = useMemoizedFn((pref?: ReadPreferenceMode) => {
+        setPreferences({ readPreference: pref ?? null });
+    });
+
     const resetFilters = useMemoizedFn(() => {
         const defaults = getDefaults();
         setPreferences({
@@ -108,6 +115,7 @@ export const useUrlPreferences = () => {
         sortBy,
         sortDirection,
         ipFilter,
+        readPreference,
         setServerId,
         setMinTime,
         setRefreshInterval,
@@ -115,6 +123,7 @@ export const useUrlPreferences = () => {
         togglePause,
         setSortColumn,
         setIpFilter,
+        setReadPreference,
         resetFilters,
     };
 };

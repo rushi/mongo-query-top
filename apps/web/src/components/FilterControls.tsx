@@ -53,7 +53,7 @@ export const FilterControls = () => {
     return (
         <Card className="border-2 border-border bg-card p-0">
             {/* Header */}
-            <div className="border-b-2 border-border bg-muted px-4 py-1.5">
+            <div className="flex items-center border-b-2 border-border bg-muted px-4 py-2.5">
                 <span className="font-mono text-xs tracking-wider text-primary uppercase">■ FILTER_CONTROLS</span>
             </div>
 

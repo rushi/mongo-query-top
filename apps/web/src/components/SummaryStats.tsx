@@ -14,7 +14,7 @@ export const SummaryStats = ({ summary }: SummaryStatsProps) => {
     return (
         <div className="mb-4 border-2 border-border bg-card">
             {/* ASCII Divider */}
-            <div className="border-b-2 border-border bg-muted px-4 py-1.5">
+            <div className="flex items-center border-b-2 border-border bg-muted px-4 py-2.5">
                 <span className="font-mono text-xs tracking-wider text-primary uppercase">■ OPERATION_SUMMARY</span>
             </div>
 

@@ -166,7 +166,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
     return (
         <div className="border-2 border-border">
             {/* Table Header Section */}
-            <div className="border-b-2 border-border bg-muted px-4 py-2">
+            <div className="flex items-center border-b-2 border-border bg-muted px-4 py-2.5">
                 <span className="font-mono text-xs tracking-wider text-primary uppercase">■ ACTIVE_QUERIES</span>
             </div>
 

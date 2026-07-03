@@ -1,5 +1,5 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import type { QueryData } from "@mongo-query-top/types";
+import type { QueryData, ReadPreferenceMode } from "@mongo-query-top/types";
 import { useDocumentVisibility, useInterval } from "ahooks";
 import { useEffect, useRef, useState } from "react";
 import { useSettings } from "../store/settings";
@@ -13,6 +13,7 @@ export const useServerSentEvents = (
     minTime: number,
     refreshInterval: number,
     showAll: boolean,
+    readPreference: ReadPreferenceMode,
     enabled = true,
     isPaused = false,
 ) => {
@@ -64,6 +65,7 @@ export const useServerSentEvents = (
                 minTime: String(minTime),
                 refreshInterval: String(refreshInterval),
                 showAll: String(showAll),
+                readPreference,
             });
 
             // Add auto-save settings
@@ -160,7 +162,7 @@ export const useServerSentEvents = (
             setIsConnected(false);
             setIsReconnecting(false);
         };
-    }, [serverId, minTime, refreshInterval, showAll, enabled, isPaused, settingsVersion]);
+    }, [serverId, minTime, refreshInterval, showAll, readPreference, enabled, isPaused, settingsVersion]);
 
     // Check for stale connection (no updates for > 2 seconds)
     // Skip stale detection when page is hidden to avoid false positives

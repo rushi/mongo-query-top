@@ -7,6 +7,9 @@ import viteTsConfigPaths from "vite-tsconfig-paths";
 const config = defineConfig({
     server: {
         port: 9000,
+        watch: {
+            awaitWriteFinish: { stabilityThreshold: Number(process.env.STABILITY_THRESHOLD) || 1000 },
+        },
     },
     plugins: [
         // this is the plugin that enables path aliases

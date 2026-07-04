@@ -48,3 +48,29 @@ export interface ServerConfig {
 }
 
 export type ReadPreferenceMode = "primary" | "secondaryPreferred";
+
+// Raw shape of the MongoDB `top` admin command output.
+// Each metric is time (microseconds) + operation count.
+export interface TopMetric {
+    time: number;
+    count: number;
+}
+
+export interface TopNamespaceStats {
+    total: TopMetric;
+    readLock: TopMetric;
+    writeLock: TopMetric;
+    queries: TopMetric;
+    getmore: TopMetric;
+    insert: TopMetric;
+    update: TopMetric;
+    remove: TopMetric;
+    commands: TopMetric;
+}
+
+// `totals` also contains a non-namespace `note: "all times in microseconds"`
+// string entry, hence the union value type.
+export interface TopCommandResult {
+    totals: Record<string, TopNamespaceStats | string>;
+    ok: number;
+}

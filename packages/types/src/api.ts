@@ -82,3 +82,37 @@ export interface Server {
     name: string;
     connected: boolean;
 }
+
+export type ActivityMode = "diff" | "cumulative";
+
+export interface TopNode {
+    host: string;
+    role: "primary" | "secondary";
+}
+
+export interface ActivityMetric {
+    deltaTime: number;
+    deltaCount: number;
+    cumTime: number;
+    cumCount: number;
+}
+
+export interface CollectionActivity {
+    ns: string;
+    db: string;
+    coll: string;
+    isSystem: boolean;
+    total: ActivityMetric;
+    read: ActivityMetric;
+    write: ActivityMetric;
+}
+
+export interface TopData {
+    collections: CollectionActivity[];
+    metadata: {
+        serverId: string;
+        timestamp: string;
+        intervalMs: number;
+        isMockData?: boolean;
+    };
+}

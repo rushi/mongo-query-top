@@ -26,6 +26,8 @@
     "keywords": [
         "mongo",
         "mongodb",
+        "mongotop",
+        "mongostat",
         "top"
     ],
     "author": "Rushi Vishavadia <rushi@hey.com>",

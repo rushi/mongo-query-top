@@ -83,6 +83,8 @@ export interface Server {
     connected: boolean;
 }
 
+export type ActivityMode = "diff" | "cumulative";
+
 export interface ActivityMetric {
     deltaTime: number;
     deltaCount: number;

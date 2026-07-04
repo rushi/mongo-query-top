@@ -8,6 +8,7 @@ export const Route = createRootRoute({
 const NAV_LINKS = [
     { to: "/", label: "QUERY_MONITOR" },
     { to: "/clients", label: "CONNECTED_CLIENTS" },
+    { to: "/activity", label: "COLLECTION_ACTIVITY" },
 ] as const;
 
 function RootComponent() {

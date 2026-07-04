@@ -12,6 +12,7 @@ export type {
 // API contract types
 export type {
     ActivityMetric,
+    ActivityMode,
     ClientsData,
     ClientSummary,
     CollectionActivity,

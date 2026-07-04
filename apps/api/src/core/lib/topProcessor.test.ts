@@ -1,6 +1,6 @@
 import type { TopCommandResult, TopMetric } from "@mongo-query-top/types";
 import { describe, expect, it } from "vitest";
-import { buildCollectionActivity, shouldSkipNamespace } from "./topProcessor.js";
+import { buildCollectionActivity, isSystemNamespace } from "./topProcessor.js";
 
 const metric = (time: number, count: number): TopMetric => ({ time, count });
 
@@ -19,19 +19,19 @@ const nsStats = (readTime: number, readCount: number, writeTime: number, writeCo
 const result = (totals: Record<string, unknown>): TopCommandResult =>
     ({ totals: { note: "all times in microseconds", ...totals }, ok: 1 }) as TopCommandResult;
 
-describe("shouldSkipNamespace", () => {
+describe("isSystemNamespace", () => {
     it("skips admin/config/local databases", () => {
-        expect(shouldSkipNamespace("admin.system.users")).toBe(true);
-        expect(shouldSkipNamespace("config.transactions")).toBe(true);
-        expect(shouldSkipNamespace("local.oplog.rs")).toBe(true);
+        expect(isSystemNamespace("admin.system.users")).toBe(true);
+        expect(isSystemNamespace("config.transactions")).toBe(true);
+        expect(isSystemNamespace("local.oplog.rs")).toBe(true);
     });
 
     it("skips any *.system.* namespace", () => {
-        expect(shouldSkipNamespace("shop.system.profile")).toBe(true);
+        expect(isSystemNamespace("shop.system.profile")).toBe(true);
     });
 
     it("keeps normal user namespaces", () => {
-        expect(shouldSkipNamespace("shop.orders")).toBe(false);
+        expect(isSystemNamespace("shop.orders")).toBe(false);
     });
 });
 

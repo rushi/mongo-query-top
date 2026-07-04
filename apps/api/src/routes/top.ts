@@ -69,7 +69,6 @@ export default async function topRoutes(fastify: FastifyInstance) {
             return reply.raw.end();
         }
 
-        // Setup SSE headers with CORS
         reply.raw.writeHead(200, {
             "Content-Type": "text/event-stream",
             "Cache-Control": "no-cache",
@@ -112,20 +111,16 @@ export default async function topRoutes(fastify: FastifyInstance) {
             }
         };
 
-        // Send initial data immediately
         await sendTopUpdate();
 
-        // Setup interval for subsequent updates
         const intervalId = setInterval(sendTopUpdate, intervalMs);
 
-        // Keep connection alive with heartbeat
         const heartbeatId = setInterval(() => {
             if (isActive) {
                 reply.raw.write(`:heartbeat\n\n`);
             }
         }, 30000);
 
-        // Cleanup on connection close
         request.raw.on("close", () => {
             isActive = false;
             clearInterval(intervalId);

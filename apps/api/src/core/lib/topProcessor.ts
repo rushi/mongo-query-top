@@ -8,7 +8,7 @@ import type {
 
 const SYSTEM_DB_PATTERN = /^(admin|config|local)\./;
 
-export const shouldSkipNamespace = (ns: string): boolean => {
+export const isSystemNamespace = (ns: string): boolean => {
     if (SYSTEM_DB_PATTERN.test(ns)) {
         return true;
     }
@@ -46,7 +46,7 @@ export const buildCollectionActivity = (
             continue;
         }
 
-        const isSystem = shouldSkipNamespace(ns);
+        const isSystem = isSystemNamespace(ns);
         if (!showAll && isSystem) {
             continue;
         }

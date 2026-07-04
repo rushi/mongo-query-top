@@ -396,28 +396,6 @@ export const Settings = () => {
                             </p>
 
                             <div className="grid gap-4">
-                                <div className="space-y-2">
-                                    <Label
-                                        htmlFor="tableHeight"
-                                        className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase"
-                                    >
-                                        TABLE HEIGHT (Pixels, Default: 600)
-                                    </Label>
-                                    <Input
-                                        type="number"
-                                        id="tableHeight"
-                                        value={uiPreferences.tableHeight}
-                                        min={300}
-                                        max={1200}
-                                        step={50}
-                                        className="h-9 w-full border-2 border-border bg-input font-mono text-sm"
-                                        onChange={(e) => setUiPreferences({ tableHeight: Number(e.target.value) })}
-                                    />
-                                    <p className="font-mono text-[9px] text-muted-foreground">
-                                        Height of the query table viewport
-                                    </p>
-                                </div>
-
                                 <div className="flex items-center justify-between space-x-2 border-2 border-destructive/40 bg-destructive/5 p-3">
                                     <div>
                                         <Label

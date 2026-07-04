@@ -13,22 +13,26 @@ const NAV_LINKS = [
 function RootComponent() {
     return (
         <NuqsAdapter>
-            <nav className="flex items-center gap-1 border-b-2 border-border bg-card px-6 py-2 font-mono text-xs">
-                <span className="mr-3 tracking-wider text-muted-foreground uppercase">▸ MONGO_TOP</span>
-                {NAV_LINKS.map(({ to, label }) => (
-                    <Link
-                        key={to}
-                        to={to}
-                        search={(prev) => prev}
-                        className="border-2 border-transparent px-3 py-1 tracking-wide text-muted-foreground uppercase transition-colors hover:text-foreground"
-                        activeProps={{ className: "border-primary bg-primary/10 text-primary" }}
-                        activeOptions={{ exact: true }}
-                    >
-                        {label}
-                    </Link>
-                ))}
-            </nav>
-            <Outlet />
+            <div className="flex h-screen flex-col overflow-hidden">
+                <nav className="flex shrink-0 items-center gap-1 border-b-2 border-border bg-card px-6 py-2 font-mono text-xs">
+                    <span className="mr-3 tracking-wider text-muted-foreground uppercase">▸ MONGO_TOP</span>
+                    {NAV_LINKS.map(({ to, label }) => (
+                        <Link
+                            key={to}
+                            to={to}
+                            search={(prev) => prev}
+                            className="border-2 border-transparent px-3 py-1 tracking-wide text-muted-foreground uppercase transition-colors hover:text-foreground"
+                            activeProps={{ className: "border-primary bg-primary/10 text-primary" }}
+                            activeOptions={{ exact: true }}
+                        >
+                            {label}
+                        </Link>
+                    ))}
+                </nav>
+                <main className="min-h-0 flex-1 overflow-hidden">
+                    <Outlet />
+                </main>
+            </div>
         </NuqsAdapter>
     );
 }

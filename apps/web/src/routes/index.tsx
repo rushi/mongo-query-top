@@ -221,11 +221,11 @@ function Dashboard() {
     };
 
     return (
-        <div className="min-h-screen space-y-0 bg-background p-6">
+        <div className="flex h-full flex-col overflow-hidden bg-background p-6">
             {/* ASCII Header Border */}
             <div
                 className={cn(
-                    "animate-reveal mb-4 border-2 p-4 font-mono text-xs leading-tight opacity-0",
+                    "animate-reveal mb-4 shrink-0 border-2 p-4 font-mono text-xs leading-tight opacity-0",
                     accentClass.border,
                 )}
             >
@@ -304,7 +304,7 @@ function Dashboard() {
                 </div>
             </div>
 
-            <div className="animate-reveal space-y-4 opacity-0 delay-100">
+            <div className="animate-reveal shrink-0 space-y-4 opacity-0 delay-100">
                 <FilterControls />
 
                 {connectionState.connectError && (
@@ -342,14 +342,16 @@ function Dashboard() {
             </div>
 
             {data && filteredSummary && (
-                <>
-                    <div className="animate-reveal opacity-0 delay-200">
+                <div className="flex min-h-0 flex-1 flex-col">
+                    <div className="animate-reveal shrink-0 opacity-0 delay-200">
                         <SummaryStats summary={filteredSummary} />
                     </div>
-                    <div className="animate-reveal opacity-0 delay-300">
-                        <QueryTable queries={deferredQueries} onQueryClick={handleQueryClick} />
-                    </div>
-                </>
+                    <QueryTable
+                        queries={deferredQueries}
+                        className="animate-reveal min-h-0 flex-1 opacity-0 delay-300"
+                        onQueryClick={handleQueryClick}
+                    />
+                </div>
             )}
 
             {!data && !error && (

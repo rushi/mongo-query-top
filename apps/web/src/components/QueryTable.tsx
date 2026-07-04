@@ -12,13 +12,13 @@ import { useMemo, useRef, useState } from "react";
 import type { SortColumn } from "../hooks/useUrlPreferences";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
 import { cn } from "../lib/utils";
-import { useSettings } from "../store/settings";
 import { apiClient } from "../utils/api";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 
 interface QueryTableProps {
     queries: ProcessedQuery[];
+    className?: string;
     onQueryClick: (query: ProcessedQuery) => void;
 }
 
@@ -52,10 +52,9 @@ const isInternalIp = (ip: string): boolean => {
     return false;
 };
 
-export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
+export const QueryTable = ({ queries, className, onQueryClick }: QueryTableProps) => {
     const parentRef = useRef<HTMLDivElement>(null);
     const { serverId, sortBy: sortColumn, sortDirection, setSortColumn, setIpFilter } = useUrlPreferences();
-    const { uiPreferences } = useSettings();
     const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
     const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
@@ -159,7 +158,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
 
     if (queries.length === 0) {
         return (
-            <div className="border-2 border-border p-12 text-center">
+            <div className={cn("border-2 border-border p-12 text-center", className)}>
                 <div className="mb-3 font-mono text-4xl text-muted-foreground">∅</div>
                 <p className="font-mono text-sm tracking-wide text-muted-foreground uppercase">NO_QUERIES_DETECTED</p>
                 <p className="mt-2 font-mono text-xs text-muted-foreground">
@@ -170,14 +169,14 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
     }
 
     return (
-        <div className="border-2 border-border">
+        <div className={cn("flex flex-col overflow-hidden border-2 border-border", className)}>
             {/* Table Header Section */}
-            <div className="flex items-center border-b-2 border-border bg-muted px-4 py-2.5">
+            <div className="flex shrink-0 items-center border-b-2 border-border bg-muted px-4 py-2.5">
                 <span className="font-mono text-xs tracking-wider text-primary uppercase">■ ACTIVE_QUERIES</span>
             </div>
 
             {/* Column Headers */}
-            <div className="border-b-2 bg-card px-4 py-3">
+            <div className="shrink-0 border-b-2 bg-card px-4 py-3">
                 <div className="grid grid-cols-[40px_80px_100px_120px_minmax(200px,1fr)_140px_150px_110px] gap-4 font-mono text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
                     <div>#</div>
                     <button
@@ -215,7 +214,7 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                 </div>
             </div>
 
-            <div ref={parentRef} style={{ height: `${uiPreferences.tableHeight}px` }} className="overflow-auto">
+            <div ref={parentRef} className="min-h-0 flex-1 overflow-auto">
                 <div style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}>
                     {virtualizer.getVirtualItems().map((virtualRow) => {
                         const query = sortedQueries[virtualRow.index];

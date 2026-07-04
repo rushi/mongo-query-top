@@ -2,7 +2,6 @@ import type { ConnectedClient } from "@mongo-query-top/types";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useMemo, useRef, useState } from "react";
 import { cn } from "../lib/utils";
-import { useSettings } from "../store/settings";
 import { Badge } from "./ui/badge";
 
 type SortKey = "status" | "client" | "app" | "user" | "op" | "runtime";
@@ -44,8 +43,7 @@ const sortValue = (client: ConnectedClient, key: SortKey): string | number => {
     }
 };
 
-export const ClientTable = ({ clients }: { clients: ConnectedClient[] }) => {
-    const { uiPreferences } = useSettings();
+export const ClientTable = ({ clients, className }: { clients: ConnectedClient[]; className?: string }) => {
     const parentRef = useRef<HTMLDivElement>(null);
     const [sortKey, setSortKey] = useState<SortKey | null>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
@@ -90,7 +88,7 @@ export const ClientTable = ({ clients }: { clients: ConnectedClient[] }) => {
 
     if (clients.length === 0) {
         return (
-            <div className="border-2 border-border bg-card py-24 text-center">
+            <div className={cn("border-2 border-border bg-card py-24 text-center", className)}>
                 <div className="mb-3 font-mono text-4xl text-muted-foreground">∅</div>
                 <p className="font-mono text-sm tracking-wide text-muted-foreground uppercase">NO_CONNECTED_CLIENTS</p>
                 <p className="mt-2 font-mono text-xs text-muted-foreground">No client connections match the filter.</p>
@@ -99,13 +97,13 @@ export const ClientTable = ({ clients }: { clients: ConnectedClient[] }) => {
     }
 
     return (
-        <div className="border-2 border-border bg-card">
-            <div className="flex items-center border-b-2 border-border bg-muted px-4 py-2.5">
+        <div className={cn("flex flex-col overflow-hidden border-2 border-border bg-card", className)}>
+            <div className="flex shrink-0 items-center border-b-2 border-border bg-muted px-4 py-2.5">
                 <span className="font-mono text-xs tracking-wider text-primary uppercase">■ CONNECTED_CLIENTS</span>
             </div>
 
             {/* Column headers */}
-            <div className={`grid ${GRID_COLS} gap-3 border-b-2 border-border bg-card px-4 py-3`}>
+            <div className={cn("grid shrink-0 gap-3 border-b-2 border-border bg-card px-4 py-3", GRID_COLS)}>
                 {COLUMNS.map((column) => {
                     const isSorted = sortKey === column.key;
                     return (
@@ -113,7 +111,7 @@ export const ClientTable = ({ clients }: { clients: ConnectedClient[] }) => {
                             key={column.key}
                             type="button"
                             className={cn(
-                                "flex items-center gap-1 font-mono text-[10px] tracking-wide uppercase transition-colors hover:text-foreground",
+                                "flex cursor-pointer items-center gap-1 font-mono text-[10px] tracking-wide uppercase transition-colors hover:text-foreground",
                                 column.key === "runtime" && "justify-end",
                                 isSorted ? "text-primary" : "text-muted-foreground",
                             )}
@@ -129,7 +127,7 @@ export const ClientTable = ({ clients }: { clients: ConnectedClient[] }) => {
             </div>
 
             {/* Rows */}
-            <div ref={parentRef} style={{ height: `${uiPreferences.tableHeight}px` }} className="overflow-auto">
+            <div ref={parentRef} className="min-h-0 flex-1 overflow-auto">
                 <div style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}>
                     {virtualizer.getVirtualItems().map((virtualRow) => {
                         const client = sortedClients[virtualRow.index];
@@ -139,7 +137,10 @@ export const ClientTable = ({ clients }: { clients: ConnectedClient[] }) => {
                                 // across reorders instead of by list position (prevents row-swap jank)
                                 key={`${client.client.ip}-${client.connectionId ?? virtualRow.index}`}
                                 data-index={virtualRow.index}
-                                className={`grid ${GRID_COLS} items-center gap-3 border-b border-border/50 px-4 hover:bg-muted/40`}
+                                className={cn(
+                                    "grid items-center gap-3 border-b border-border/50 px-4 hover:bg-muted/40",
+                                    GRID_COLS,
+                                )}
                                 style={{
                                     position: "absolute",
                                     top: 0,

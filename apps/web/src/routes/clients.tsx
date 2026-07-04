@@ -138,10 +138,10 @@ function ConnectedUsers() {
     };
 
     return (
-        <div className="min-h-screen space-y-0 bg-background p-6">
+        <div className="flex h-full flex-col overflow-hidden bg-background p-6">
             <div
                 className={cn(
-                    "animate-reveal mb-4 border-2 p-4 font-mono text-xs leading-tight opacity-0",
+                    "animate-reveal mb-4 shrink-0 border-2 p-4 font-mono text-xs leading-tight opacity-0",
                     accentClass.border,
                 )}
             >
@@ -208,7 +208,7 @@ function ConnectedUsers() {
             </div>
 
             {connectionState.connectError && (
-                <div className="mb-4 border-2 border-destructive bg-destructive/10 p-4">
+                <div className="mb-4 shrink-0 border-2 border-destructive bg-destructive/10 p-4">
                     <div className="mb-2 flex items-center gap-2">
                         <span className="text-lg">▼</span>
                         <h4 className="font-mono text-xs font-bold text-destructive uppercase">CONNECTION_ERROR</h4>
@@ -218,7 +218,7 @@ function ConnectedUsers() {
             )}
 
             {error && !isReconnecting && (
-                <div className="mb-4 border-2 border-destructive bg-destructive/10 p-6">
+                <div className="mb-4 shrink-0 border-2 border-destructive bg-destructive/10 p-6">
                     <div className="mb-2 flex items-center gap-2">
                         <span className="text-xl">▼</span>
                         <p className="font-mono text-sm font-bold text-destructive uppercase">STREAM_ERROR</p>
@@ -229,9 +229,11 @@ function ConnectedUsers() {
             )}
 
             {data ? (
-                <div className="animate-reveal space-y-4 opacity-0 delay-100">
-                    <ClientSummary summary={data.summary} />
-                    <ClientTable clients={deferredClients} />
+                <div className="animate-reveal flex min-h-0 flex-1 flex-col space-y-4 opacity-0 delay-100">
+                    <div className="shrink-0">
+                        <ClientSummary summary={data.summary} />
+                    </div>
+                    <ClientTable clients={deferredClients} className="min-h-0 flex-1" />
                 </div>
             ) : (
                 !error && (

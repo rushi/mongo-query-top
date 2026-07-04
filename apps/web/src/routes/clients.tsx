@@ -1,9 +1,9 @@
 import type { ConnectedClient, ReadPreferenceMode } from "@mongo-query-top/types";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSetState, useTitle } from "ahooks";
-import { useDeferredValue, useEffect } from "react";
+import { useDeferredValue, useEffect, useMemo } from "react";
 import { ClientSummary } from "../components/ClientSummary";
-import { ClientTable } from "../components/ClientTable";
+import { ClientTable, getClientUserKeys } from "../components/ClientTable";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
@@ -31,6 +31,10 @@ function ConnectedUsers() {
         setServerId,
         refreshInterval,
         showAll,
+        appFilter,
+        userFilter,
+        setAppFilter,
+        setUserFilter,
         readPreference: urlReadPreference,
         setReadPreference: setUrlReadPreference,
     } = useUrlPreferences();
@@ -60,6 +64,26 @@ function ConnectedUsers() {
     // Defer the client list feeding the virtualized table so a burst of connections
     // can't block scroll — sort + render run at low priority
     const deferredClients = useDeferredValue(data?.clients ?? EMPTY_CLIENTS);
+
+    const filteredClients = useMemo(() => {
+        return deferredClients.filter((client) => {
+            if (appFilter && client.userAgent !== appFilter) {
+                return false;
+            }
+            if (userFilter && !getClientUserKeys(client).includes(userFilter)) {
+                return false;
+            }
+            return true;
+        });
+    }, [deferredClients, appFilter, userFilter]);
+
+    const handleAppSelect = (app: string) => {
+        setAppFilter(appFilter === app ? undefined : app);
+    };
+
+    const handleUserSelect = (user: string) => {
+        setUserFilter(userFilter === user ? undefined : user);
+    };
 
     // Auto-connect to MongoDB on mount / server change
     useEffect(() => {
@@ -231,9 +255,15 @@ function ConnectedUsers() {
             {data ? (
                 <div className="animate-reveal flex min-h-0 flex-1 flex-col space-y-4 opacity-0 delay-100">
                     <div className="shrink-0">
-                        <ClientSummary summary={data.summary} />
+                        <ClientSummary
+                            summary={data.summary}
+                            appFilter={appFilter}
+                            userFilter={userFilter}
+                            onAppSelect={handleAppSelect}
+                            onUserSelect={handleUserSelect}
+                        />
                     </div>
-                    <ClientTable clients={deferredClients} className="min-h-0 flex-1" />
+                    <ClientTable clients={filteredClients} className="min-h-0 flex-1" />
                 </div>
             ) : (
                 !error && (

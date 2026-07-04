@@ -26,6 +26,8 @@ const getDefaults = () => {
 const preferenceParsers = {
     sortBy: parseAsString,
     ipFilter: parseAsString, // Optional, no default
+    appFilter: parseAsString, // Optional, no default
+    userFilter: parseAsString, // Optional, no default
     serverId: parseAsString,
     minTime: parseAsInteger,
     showAll: parseAsBoolean,
@@ -46,6 +48,8 @@ export const useUrlPreferences = () => {
 
     // Extract values with proper typing, applying defaults from settings
     const ipFilter = preferences.ipFilter ?? undefined;
+    const appFilter = preferences.appFilter ?? undefined;
+    const userFilter = preferences.userFilter ?? undefined;
     const showAll = preferences.showAll ?? DEFAULTS.showAll;
     const minTime = preferences.minTime ?? DEFAULTS.minTime;
     const serverId = preferences.serverId ?? DEFAULTS.serverId;
@@ -91,6 +95,14 @@ export const useUrlPreferences = () => {
         setPreferences({ ipFilter: ip ?? null });
     });
 
+    const setAppFilter = useMemoizedFn((app?: string) => {
+        setPreferences({ appFilter: app ?? null });
+    });
+
+    const setUserFilter = useMemoizedFn((user?: string) => {
+        setPreferences({ userFilter: user ?? null });
+    });
+
     const setReadPreference = useMemoizedFn((pref?: ReadPreferenceMode) => {
         setPreferences({ readPreference: pref ?? null });
     });
@@ -99,6 +111,8 @@ export const useUrlPreferences = () => {
         const defaults = getDefaults();
         setPreferences({
             ipFilter: null,
+            appFilter: null,
+            userFilter: null,
             sortBy: defaults.sortBy,
             minTime: defaults.minTime,
             showAll: defaults.showAll,
@@ -113,6 +127,8 @@ export const useUrlPreferences = () => {
         showAll,
         minTime,
         ipFilter,
+        appFilter,
+        userFilter,
         serverId,
         isPaused,
         sortDirection,
@@ -122,6 +138,8 @@ export const useUrlPreferences = () => {
         setServerId,
         togglePause,
         setIpFilter,
+        setAppFilter,
+        setUserFilter,
         resetFilters,
         toggleShowAll,
         setSortColumn,

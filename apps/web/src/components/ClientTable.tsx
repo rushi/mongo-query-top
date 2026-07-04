@@ -19,11 +19,18 @@ const COLUMNS: { key: SortKey; label: string; numeric: boolean }[] = [
     { key: "runtime", label: "RUNTIME", numeric: true },
 ];
 
+export const getClientUserKeys = (client: ConnectedClient): string[] => {
+    if (!client.effectiveUsers?.length) {
+        return ["unauthenticated"];
+    }
+    return client.effectiveUsers.map((u) => `${u.user}@${u.db}`);
+};
+
 const formatUsers = (client: ConnectedClient): string => {
     if (!client.effectiveUsers?.length) {
         return "—";
     }
-    return client.effectiveUsers.map((u) => `${u.user}@${u.db}`).join(", ");
+    return getClientUserKeys(client).join(", ");
 };
 
 const sortValue = (client: ConnectedClient, key: SortKey): string | number => {

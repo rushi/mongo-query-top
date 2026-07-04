@@ -1,6 +1,13 @@
 import type { ClientSummary as ClientSummaryType } from "@mongo-query-top/types";
+import { cn } from "../lib/utils";
 
-const renderBreakdown = (entries: [string, number][]) => {
+interface BreakdownListProps {
+    entries: [string, number][];
+    activeValue: string | undefined;
+    onSelect: (value: string) => void;
+}
+
+const BreakdownList = ({ entries, activeValue, onSelect }: BreakdownListProps) => {
     if (entries.length === 0) {
         return <div className="font-mono text-xs text-muted-foreground">NO_DATA</div>;
     }
@@ -8,17 +15,32 @@ const renderBreakdown = (entries: [string, number][]) => {
     return (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs">
             {entries.map(([label, count]) => (
-                <div key={label} className="flex items-center gap-1.5">
+                <button
+                    key={label}
+                    type="button"
+                    className="flex cursor-pointer items-center gap-1.5 transition-colors hover:text-primary"
+                    onClick={() => onSelect(label)}
+                >
                     <span className="text-primary">▸</span>
                     <span className="font-bold text-primary tabular-nums">{count}</span>
-                    <span className="truncate text-foreground">{label}</span>
-                </div>
+                    <span className={cn("truncate", activeValue === label ? "text-primary" : "text-foreground")}>
+                        {label}
+                    </span>
+                </button>
             ))}
         </div>
     );
 };
 
-export const ClientSummary = ({ summary }: { summary: ClientSummaryType }) => {
+interface ClientSummaryProps {
+    summary: ClientSummaryType;
+    appFilter?: string;
+    userFilter?: string;
+    onAppSelect: (app: string) => void;
+    onUserSelect: (user: string) => void;
+}
+
+export const ClientSummary = ({ summary, appFilter, userFilter, onAppSelect, onUserSelect }: ClientSummaryProps) => {
     const appEntries = Object.entries(summary.byApp)
         .sort(([, a], [, b]) => b - a)
         .slice(0, 6);
@@ -57,14 +79,14 @@ export const ClientSummary = ({ summary }: { summary: ClientSummaryType }) => {
                     <div className="mb-1.5 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
                         CLIENTS
                     </div>
-                    {renderBreakdown(appEntries)}
+                    <BreakdownList entries={appEntries} activeValue={appFilter} onSelect={onAppSelect} />
                 </div>
 
                 <div className="p-3">
                     <div className="mb-1.5 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
                         USERS
                     </div>
-                    {renderBreakdown(userEntries)}
+                    <BreakdownList entries={userEntries} activeValue={userFilter} onSelect={onUserSelect} />
                 </div>
             </div>
         </div>

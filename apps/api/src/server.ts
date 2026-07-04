@@ -6,6 +6,7 @@ import { MongoConnectionService, QueryLoggerService, QueryService } from "./core
 import clientsRoutes from "./routes/clients.js";
 import queriesRoutes from "./routes/queries.js";
 import serversRoutes from "./routes/servers.js";
+import topRoutes from "./routes/top.js";
 
 // Extend Fastify types to include services
 declare module "fastify" {
@@ -91,6 +92,7 @@ fastify.addHook("onRequest", async (request) => {
 await fastify.register(serversRoutes, { prefix: "/api/servers" });
 await fastify.register(queriesRoutes, { prefix: "/api/queries" });
 await fastify.register(clientsRoutes, { prefix: "/api/clients" });
+await fastify.register(topRoutes, { prefix: "/api/top" });
 
 // Health check
 fastify.get("/health", async () => {

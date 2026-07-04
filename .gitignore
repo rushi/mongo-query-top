@@ -27,3 +27,4 @@ apps/web/src/config.ts
 /.claude/worktrees
 /.playwright-mcp
 docs/superpowers
+/.superpowers

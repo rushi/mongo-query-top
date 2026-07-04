@@ -25,3 +25,4 @@ references/*
 apps/web/src/config.ts
 /.serena
 /.claude/worktrees
+/.playwright-mcp

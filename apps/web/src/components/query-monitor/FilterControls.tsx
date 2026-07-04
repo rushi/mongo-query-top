@@ -7,14 +7,14 @@ import {
     XIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
-import { useUrlPreferences } from "../hooks/useUrlPreferences";
-import { usePreferences } from "../store/preferences";
-import { apiClient } from "../utils/api";
-import { Button } from "./ui/button";
-import { Card } from "./ui/card";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { useUrlPreferences } from "../../hooks/useUrlPreferences";
+import { usePreferences } from "../../store/preferences";
+import { apiClient } from "../../utils/api";
+import { Button } from "../ui/button";
+import { Card } from "../ui/card";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 export const FilterControls = () => {
     const {

@@ -2,9 +2,9 @@ import type { ConnectedClient, ReadPreferenceMode } from "@mongo-query-top/types
 import { createFileRoute } from "@tanstack/react-router";
 import { useSetState, useTitle } from "ahooks";
 import { useDeferredValue, useEffect, useMemo } from "react";
-import { ClientSummary } from "../components/ClientSummary";
-import { ClientTable, getClientUserKeys } from "../components/ClientTable";
-import { Badge } from "../components/ui/badge";
+import { ClientSummary } from "../components/connected-clients/ClientSummary";
+import { ClientTable, getClientUserKeys } from "../components/connected-clients/ClientTable";
+import { ConnectionBadge } from "../components/shared/ConnectionBadge";
 import { Button } from "../components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useConnectedClients } from "../hooks/useConnectedClients";
@@ -120,47 +120,6 @@ function ConnectedUsers() {
         setConnectionState({ mongoConnected: false, connectError: null });
     };
 
-    const getConnectionBadge = () => {
-        if (connectionState.isConnecting) {
-            return (
-                <Badge variant="secondary" className="gap-1.5 border-2 font-mono text-[10px] uppercase">
-                    <div className="h-2 w-2 animate-spin border border-muted-foreground/20 border-t-muted-foreground" />
-                    CONNECTING
-                </Badge>
-            );
-        }
-
-        if (isConnected) {
-            return (
-                <Badge
-                    variant="success"
-                    className={cn(
-                        "border-2 font-mono text-[10px] uppercase",
-                        isSecondary
-                            ? "border-secondary-read bg-secondary-read/20 text-secondary-read"
-                            : "border-primary bg-primary/20 text-primary",
-                    )}
-                >
-                    ● CONNECTED
-                </Badge>
-            );
-        }
-
-        if (isReconnecting) {
-            return (
-                <Badge variant="secondary" className="border-2 font-mono text-[10px] uppercase">
-                    ⟳ RECONNECTING
-                </Badge>
-            );
-        }
-
-        return (
-            <Badge variant="destructive" className="border-2 font-mono text-[10px] uppercase">
-                ○ DISCONNECTED
-            </Badge>
-        );
-    };
-
     return (
         <div className="flex h-full flex-col overflow-hidden bg-background p-6">
             <div
@@ -222,7 +181,14 @@ function ConnectedUsers() {
                                     SECONDARY
                                 </Button>
                             </div>
-                            <div>{getConnectionBadge()}</div>
+                            <div>
+                                <ConnectionBadge
+                                    isConnecting={connectionState.isConnecting}
+                                    isConnected={isConnected}
+                                    isReconnecting={isReconnecting}
+                                    isSecondary={isSecondary}
+                                />
+                            </div>
                         </div>
                     </div>
                 </header>

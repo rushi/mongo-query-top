@@ -2,14 +2,14 @@ import JsonView from "@microlink/react-json-view";
 import type { ProcessedQuery } from "@mongo-query-top/types";
 import { CheckIcon, CopyIcon, FloppyDiskIcon, ProhibitIcon, WarningIcon } from "@phosphor-icons/react/dist/ssr";
 import { useEffect, useMemo, useState } from "react";
-import { useCopyToClipboard } from "../hooks/useCopyToClipboard";
-import { usePreferences } from "../store/preferences";
-import { useSettings } from "../store/settings";
-import { apiClient } from "../utils/api";
-import { convertSettingsToThresholds, detectQueryIssues, getSeverityClasses } from "../utils/queryIssueDetector";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "./ui/sheet";
+import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
+import { usePreferences } from "../../store/preferences";
+import { useSettings } from "../../store/settings";
+import { apiClient } from "../../utils/api";
+import { convertSettingsToThresholds, detectQueryIssues, getSeverityClasses } from "../../utils/queryIssueDetector";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "../ui/sheet";
 
 interface QueryDetailsProps {
     query: ProcessedQuery | null;

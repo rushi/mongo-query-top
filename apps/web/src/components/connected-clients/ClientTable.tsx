@@ -1,8 +1,9 @@
 import type { ConnectedClient } from "@mongo-query-top/types";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useMemo, useRef, useState } from "react";
-import { cn } from "../lib/utils";
-import { Badge } from "./ui/badge";
+import { cn } from "../../lib/utils";
+import { SortableColumnHeader } from "../shared/SortableColumnHeader";
+import { Badge } from "../ui/badge";
 
 type SortKey = "status" | "client" | "app" | "user" | "op" | "runtime";
 type SortDirection = "asc" | "desc";
@@ -111,26 +112,16 @@ export const ClientTable = ({ clients, className }: { clients: ConnectedClient[]
 
             {/* Column headers */}
             <div className={cn("grid shrink-0 gap-3 border-b-2 border-border bg-card px-4 py-3", GRID_COLS)}>
-                {COLUMNS.map((column) => {
-                    const isSorted = sortKey === column.key;
-                    return (
-                        <button
-                            key={column.key}
-                            type="button"
-                            className={cn(
-                                "flex cursor-pointer items-center gap-1 font-mono text-[10px] tracking-wide uppercase transition-colors hover:text-foreground",
-                                column.key === "runtime" && "justify-end",
-                                isSorted ? "text-primary" : "text-muted-foreground",
-                            )}
-                            onClick={() => handleSort(column)}
-                        >
-                            <span>{column.label}</span>
-                            <span className={cn(!isSorted && "text-muted-foreground/40")}>
-                                {isSorted ? (sortDirection === "asc" ? "▲" : "▼") : "↕"}
-                            </span>
-                        </button>
-                    );
-                })}
+                {COLUMNS.map((column) => (
+                    <SortableColumnHeader
+                        key={column.key}
+                        label={column.label}
+                        isSorted={sortKey === column.key}
+                        sortDirection={sortDirection}
+                        align={column.key === "runtime" ? "end" : "start"}
+                        onClick={() => handleSort(column)}
+                    />
+                ))}
             </div>
 
             {/* Rows */}

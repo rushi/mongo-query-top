@@ -1,5 +1,5 @@
 import type { ClientSummary as ClientSummaryType } from "@mongo-query-top/types";
-import { cn } from "../lib/utils";
+import { cn } from "../../lib/utils";
 
 interface BreakdownListProps {
     entries: [string, number][];

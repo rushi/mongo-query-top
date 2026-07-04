@@ -2,11 +2,12 @@ import type { ProcessedQuery, QuerySummary, ReadPreferenceMode } from "@mongo-qu
 import { createFileRoute } from "@tanstack/react-router";
 import { useBoolean, useSetState, useTitle } from "ahooks";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { FilterControls } from "../components/FilterControls";
-import { QueryDetails } from "../components/QueryDetails";
-import { QueryTable } from "../components/QueryTable";
-import { Settings } from "../components/Settings";
-import { SummaryStats } from "../components/SummaryStats";
+import { FilterControls } from "../components/query-monitor/FilterControls";
+import { QueryDetails } from "../components/query-monitor/QueryDetails";
+import { QueryTable } from "../components/query-monitor/QueryTable";
+import { SummaryStats } from "../components/query-monitor/SummaryStats";
+import { Settings } from "../components/settings/Settings";
+import { ConnectionBadge } from "../components/shared/ConnectionBadge";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
@@ -171,55 +172,6 @@ function Dashboard() {
 
     const currentServer = servers.find((s) => s.id === serverId);
 
-    const getConnectionBadge = () => {
-        if (connectionState.isConnecting) {
-            return (
-                <Badge variant="secondary" className="gap-1.5 border-2 font-mono text-[10px] uppercase">
-                    <div className="h-2 w-2 animate-spin border border-muted-foreground/20 border-t-muted-foreground" />
-                    CONNECTING
-                </Badge>
-            );
-        }
-
-        if (isConnected && isStale) {
-            return (
-                <Badge variant="secondary" className="border-2 border-warning font-mono text-[10px] uppercase">
-                    ⏱ STALE
-                </Badge>
-            );
-        }
-
-        if (isConnected) {
-            return (
-                <Badge
-                    variant="success"
-                    className={cn(
-                        "border-2 font-mono text-[10px] uppercase",
-                        isSecondary
-                            ? "border-secondary-read bg-secondary-read/20 text-secondary-read"
-                            : "border-primary bg-primary/20 text-primary",
-                    )}
-                >
-                    ● CONNECTED
-                </Badge>
-            );
-        }
-
-        if (isReconnecting) {
-            return (
-                <Badge variant="secondary" className="border-2 font-mono text-[10px] uppercase">
-                    ⟳ RECONNECTING
-                </Badge>
-            );
-        }
-
-        return (
-            <Badge variant="destructive" className="border-2 font-mono text-[10px] uppercase">
-                ○ DISCONNECTED
-            </Badge>
-        );
-    };
-
     return (
         <div className="flex h-full flex-col overflow-hidden bg-background p-6">
             {/* ASCII Header Border */}
@@ -286,7 +238,15 @@ function Dashboard() {
                                 <Settings />
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div>{getConnectionBadge()}</div>
+                                <div>
+                                    <ConnectionBadge
+                                        isConnecting={connectionState.isConnecting}
+                                        isStale={isStale}
+                                        isConnected={isConnected}
+                                        isReconnecting={isReconnecting}
+                                        isSecondary={isSecondary}
+                                    />
+                                </div>
                                 {data?.metadata?.isMockData && (
                                     <Badge
                                         variant="outline"

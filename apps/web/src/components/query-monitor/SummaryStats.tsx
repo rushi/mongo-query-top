@@ -1,5 +1,5 @@
 import type { QuerySummary } from "@mongo-query-top/types";
-import { cn } from "../lib/utils";
+import { cn } from "../../lib/utils";
 
 interface SummaryStatsProps {
     summary: QuerySummary;

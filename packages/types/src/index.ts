@@ -22,6 +22,7 @@ export type {
     QuerySummary,
     Server,
     TopData,
+    TopNode,
 } from "./api";
 
 // Shared types

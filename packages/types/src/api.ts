@@ -85,6 +85,11 @@ export interface Server {
 
 export type ActivityMode = "diff" | "cumulative";
 
+export interface TopNode {
+    host: string;
+    role: "primary" | "secondary";
+}
+
 export interface ActivityMetric {
     deltaTime: number;
     deltaCount: number;

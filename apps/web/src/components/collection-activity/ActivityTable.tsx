@@ -92,6 +92,13 @@ export const ActivityTable = ({ collections, history, mode, className }: Activit
         return new Set(ranked);
     }, [collections, mode]);
 
+    // Dim idle rows only when something is active this interval — never dim the whole
+    // table (a fresh stream or a genuinely idle server would otherwise gray out entirely).
+    const dimIdle = useMemo(
+        () => mode === "diff" && collections.some((activity) => activity.total.deltaTime > 0),
+        [collections, mode],
+    );
+
     const virtualizer = useVirtualizer({
         count: sorted.length,
         getScrollElement: () => parentRef.current,
@@ -147,6 +154,7 @@ export const ActivityTable = ({ collections, history, mode, className }: Activit
                                 history={history.get(activity.ns) ?? []}
                                 mode={mode}
                                 isHot={hotNamespaces.has(activity.ns)}
+                                dimIdle={dimIdle}
                                 gridCols={GRID_COLS}
                                 height={ROW_HEIGHT}
                                 style={{

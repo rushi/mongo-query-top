@@ -4,20 +4,15 @@ import { useSetState, useTitle } from "ahooks";
 import { useEffect, useState } from "react";
 import { ActivityControls } from "../components/collection-activity/ActivityControls";
 import { ActivityTable } from "../components/collection-activity/ActivityTable";
+import { NodePicker } from "../components/collection-activity/NodePicker";
 import { ConnectionBadge } from "../components/shared/ConnectionBadge";
-import { Button } from "../components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useCollectionActivity } from "../hooks/useCollectionActivity";
 import { useFetchServers } from "../hooks/useFetchServers";
+import { useTopNodes } from "../hooks/useTopNodes";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
 import { cn } from "../lib/utils";
-import { usePreferences } from "../store/preferences";
 import { apiClient, getApiBaseUrl } from "../utils/api";
-
-const resolveReadPreference = (
-    urlValue: ReadPreferenceMode | undefined,
-    perServerValue: ReadPreferenceMode | undefined,
-): ReadPreferenceMode => urlValue ?? perServerValue ?? "primary";
 
 export const Route = createFileRoute("/activity")({ component: CollectionActivityPage });
 
@@ -27,33 +22,52 @@ function CollectionActivityPage() {
         serverId,
         setServerId,
         refreshInterval,
+        setRefreshInterval,
         showAll,
         toggleShowAll,
-        readPreference: urlReadPreference,
-        setReadPreference: setUrlReadPreference,
+        isPaused,
+        togglePause,
     } = useUrlPreferences();
 
-    const readPreferenceByServer = usePreferences((state) => state.readPreferenceByServer);
-    const setStoredReadPreference = usePreferences((state) => state.setReadPreference);
-    const readPreference = resolveReadPreference(urlReadPreference, readPreferenceByServer[serverId]);
-    const isSecondary = readPreference === "secondaryPreferred";
-    const accentClass = isSecondary
-        ? { border: "border-secondary-read", text: "text-secondary-read" }
-        : { border: "border-primary", text: "text-primary" };
-
     const [mode, setMode] = useState<ActivityMode>("diff");
+    const [selectedNode, setSelectedNode] = useState<string>();
     const [connectionState, setConnectionState] = useSetState({
         isConnecting: false,
         mongoConnected: false,
         connectError: null as string | null,
     });
 
+    const nodes = useTopNodes(serverId, connectionState.mongoConnected);
+    const selectedRole = nodes.find((node) => node.host === selectedNode)?.role ?? "primary";
+    const isSecondary = selectedRole === "secondary";
+    const readPreference: ReadPreferenceMode = isSecondary ? "secondaryPreferred" : "primary";
+    const accentClass = isSecondary
+        ? { border: "border-secondary-read", text: "text-secondary-read" }
+        : { border: "border-primary", text: "text-primary" };
+
+    // Default the node picker to the primary once the member list loads (or when the
+    // current selection no longer belongs to the selected server).
+    useEffect(() => {
+        if (nodes.length === 0) {
+            return;
+        }
+
+        const isStillValid = selectedNode && nodes.some((node) => node.host === selectedNode);
+        if (isStillValid) {
+            return;
+        }
+
+        const primary = nodes.find((node) => node.role === "primary");
+        setSelectedNode((primary ?? nodes[0]).host);
+    }, [nodes, selectedNode]);
+
     const { data, error, isConnected, isReconnecting, history } = useCollectionActivity(
         serverId,
         refreshInterval,
         showAll,
         readPreference,
-        connectionState.mongoConnected,
+        selectedNode,
+        connectionState.mongoConnected && !isPaused,
     );
 
     // Auto-connect to MongoDB on mount / server change
@@ -75,19 +89,14 @@ function CollectionActivityPage() {
         connectToMongo();
     }, [serverId, setConnectionState]);
 
-    const currentServer = servers.find((s) => s.id === serverId);
+    const currentServer = servers.find((server) => server.id === serverId);
     const serverName = currentServer?.name ?? serverId;
     const collectionCount = data?.collections.length ?? 0;
     useTitle(`[${serverName}] Collection Activity`);
 
-    const handleReadPreferenceChange = (pref: ReadPreferenceMode) => {
-        setUrlReadPreference(pref);
-        setStoredReadPreference(serverId, pref);
-    };
-
     const handleServerChange = (newServerId: string) => {
         setServerId(newServerId);
-        setUrlReadPreference(undefined);
+        setSelectedNode(undefined);
         setConnectionState({ mongoConnected: false, connectError: null });
     };
 
@@ -129,25 +138,13 @@ function CollectionActivityPage() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <span className="ml-2 text-muted-foreground">READ:</span>
-                            <Button
-                                variant={readPreference === "primary" ? "default" : "outline"}
-                                className="h-8 border-2 font-mono text-xs tracking-wide uppercase"
-                                onClick={() => handleReadPreferenceChange("primary")}
-                            >
-                                PRIMARY
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className={cn(
-                                    "h-8 border-2 font-mono text-xs tracking-wide uppercase",
-                                    isSecondary &&
-                                        "border-secondary-read bg-secondary-read text-secondary-read-foreground",
-                                )}
-                                onClick={() => handleReadPreferenceChange("secondaryPreferred")}
-                            >
-                                SECONDARY
-                            </Button>
+                            <span className="ml-2 text-muted-foreground">NODE:</span>
+                            <NodePicker
+                                isSecondary={isSecondary}
+                                nodes={nodes}
+                                value={selectedNode}
+                                onChange={setSelectedNode}
+                            />
                         </div>
                         <ConnectionBadge
                             isConnecting={connectionState.isConnecting}
@@ -159,11 +156,15 @@ function CollectionActivityPage() {
                 </header>
             </div>
 
-            <div className="mb-4 flex shrink-0 items-center justify-between">
+            <div className="mb-4 shrink-0">
                 <ActivityControls
+                    isPaused={isPaused}
                     showAll={showAll}
                     mode={mode}
+                    refreshInterval={refreshInterval}
                     onModeChange={setMode}
+                    onRefreshIntervalChange={setRefreshInterval}
+                    onTogglePause={togglePause}
                     onToggleShowAll={toggleShowAll}
                 />
             </div>

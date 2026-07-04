@@ -1,6 +1,10 @@
 import type { ActivityMode } from "@mongo-query-top/types";
-import { cn } from "../../lib/utils";
+import { InfoIcon, PauseIcon, PlayIcon } from "@phosphor-icons/react";
 import { Button } from "../ui/button";
+import { Card } from "../ui/card";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 const MODES: { value: ActivityMode; label: string }[] = [
     { value: "diff", label: "PER_INTERVAL" },
@@ -8,38 +12,125 @@ const MODES: { value: ActivityMode; label: string }[] = [
 ];
 
 interface ActivityControlsProps {
+    isPaused: boolean;
     showAll: boolean;
     mode: ActivityMode;
+    refreshInterval: number;
     onModeChange: (mode: ActivityMode) => void;
+    onRefreshIntervalChange: (seconds: number) => void;
+    onTogglePause: () => void;
     onToggleShowAll: () => void;
 }
 
-export const ActivityControls = ({ showAll, mode, onModeChange, onToggleShowAll }: ActivityControlsProps) => {
+export const ActivityControls = ({
+    isPaused,
+    showAll,
+    mode,
+    refreshInterval,
+    onModeChange,
+    onRefreshIntervalChange,
+    onTogglePause,
+    onToggleShowAll,
+}: ActivityControlsProps) => {
     return (
-        <div className="flex items-center gap-4 font-mono text-xs">
-            <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">VIEW:</span>
-                {MODES.map(({ value, label }) => (
-                    <Button
-                        key={value}
-                        variant={mode === value ? "default" : "outline"}
-                        className="h-8 border-2 font-mono text-xs tracking-wide uppercase"
-                        onClick={() => onModeChange(value)}
-                    >
-                        {label}
-                    </Button>
-                ))}
+        <Card className="border-2 border-border bg-card p-0">
+            <div className="flex items-center border-b-2 border-border bg-muted px-4 py-2.5">
+                <span className="font-mono text-xs tracking-wider text-primary uppercase">■ FILTER_CONTROLS</span>
             </div>
-            <Button
-                variant="outline"
-                className={cn(
-                    "h-8 border-2 font-mono text-xs tracking-wide uppercase",
-                    showAll && "border-primary text-primary",
-                )}
-                onClick={onToggleShowAll}
-            >
-                {showAll ? "☑" : "☐"} SHOW_SYSTEM
-            </Button>
-        </div>
+
+            <div className="flex flex-wrap items-end gap-4 p-4">
+                <div className="space-y-1">
+                    <Label
+                        htmlFor="refresh"
+                        className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase"
+                    >
+                        REFRESH_SEC
+                    </Label>
+                    <Input
+                        id="refresh"
+                        type="number"
+                        value={refreshInterval}
+                        min={1}
+                        className="h-9 w-24 border-2 border-border bg-input font-mono text-sm"
+                        onChange={(e) => onRefreshIntervalChange(Number(e.target.value))}
+                    />
+                </div>
+
+                <div className="space-y-1">
+                    <Label className="flex items-center gap-1 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
+                        VIEW
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span className="cursor-help">
+                                        <InfoIcon weight="bold" className="h-3 w-3" />
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-md border-2 border-border bg-popover p-3">
+                                    <p className="font-mono text-xs font-bold text-muted-foreground uppercase">
+                                        VIEW_MODE
+                                    </p>
+                                    <p className="mt-2 font-mono text-[10px] leading-relaxed text-foreground">
+                                        <span className="text-primary">PER_INTERVAL</span>: activity in the last refresh
+                                        (current minus previous sample), like mongotop. Shows what is hot right now;
+                                        idle collections drop to 0.
+                                    </p>
+                                    <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-foreground">
+                                        <span className="text-primary">CUMULATIVE</span>: raw totals since server start.
+                                        Numbers only grow; best for all-time workload. Sparklines and hot-row highlight
+                                        are per-interval only.
+                                    </p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </Label>
+                    <div className="flex gap-2">
+                        {MODES.map(({ value, label }) => (
+                            <Button
+                                key={value}
+                                variant={mode === value ? "default" : "outline"}
+                                className="h-9 border-2 font-mono text-xs tracking-wide uppercase"
+                                onClick={() => onModeChange(value)}
+                            >
+                                {label}
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="space-y-1">
+                    <Label className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
+                        OPTIONS
+                    </Label>
+                    <div className="flex gap-2">
+                        <Button
+                            variant={isPaused ? "default" : "outline"}
+                            title={isPaused ? "Resume updates" : "Pause updates"}
+                            className="h-9 border-2 font-mono text-xs tracking-wide uppercase"
+                            onClick={onTogglePause}
+                        >
+                            {isPaused ? (
+                                <>
+                                    <PlayIcon weight="fill" className="mr-1.5 h-3.5 w-3.5" />
+                                    PAUSED
+                                </>
+                            ) : (
+                                <>
+                                    <PauseIcon weight="fill" className="mr-1.5 h-3.5 w-3.5" />
+                                    LIVE
+                                </>
+                            )}
+                        </Button>
+                        <Button
+                            variant={showAll ? "default" : "outline"}
+                            className="h-9 border-2 font-mono text-xs tracking-wide uppercase"
+                            onClick={onToggleShowAll}
+                        >
+                            {showAll ? "● " : "○ "}SHOW_SYSTEM
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </Card>
     );
 };

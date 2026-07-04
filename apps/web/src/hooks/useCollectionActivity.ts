@@ -12,6 +12,7 @@ export const useCollectionActivity = (
     refreshInterval: number,
     showAll: boolean,
     readPreference: ReadPreferenceMode,
+    node: string | undefined,
     enabled = true,
 ) => {
     const [data, setData] = useState<TopData | null>(null);
@@ -48,12 +49,19 @@ export const useCollectionActivity = (
                 showAll: String(showAll),
                 readPreference,
             });
+            if (node) {
+                params.set("node", node);
+            }
             const url = `${API_BASE}/top/${serverId}/stream?${params.toString()}`;
 
             try {
                 await fetchEventSource(url, {
                     signal: abortController.signal,
                     headers: { "X-API-Key": API_KEY },
+                    // Keep streaming while the tab is backgrounded. Default (false) closes
+                    // on hide and reopens on focus — that reconnect resets the server's
+                    // previous sample, emitting an all-zero diff frame that dims the table.
+                    openWhenHidden: true,
                     async onopen(response) {
                         if (response.ok) {
                             setIsConnected(true);
@@ -125,7 +133,7 @@ export const useCollectionActivity = (
             setIsConnected(false);
             setIsReconnecting(false);
         };
-    }, [serverId, refreshInterval, showAll, readPreference, enabled]);
+    }, [serverId, refreshInterval, showAll, readPreference, node, enabled]);
 
     return { data, error, isConnected, isReconnecting, history: historyRef.current };
 };

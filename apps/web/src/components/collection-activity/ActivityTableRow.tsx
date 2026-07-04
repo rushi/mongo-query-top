@@ -7,6 +7,7 @@ import { Sparkline } from "./Sparkline";
 
 interface ActivityTableRowProps {
     isHot: boolean;
+    dimIdle: boolean;
     activity: CollectionActivity;
     history: number[];
     mode: ActivityMode;
@@ -34,6 +35,7 @@ const MetricCell = ({ metric, mode }: { metric: ActivityMetric; mode: ActivityMo
 
 const ActivityTableRowComponent = ({
     isHot,
+    dimIdle,
     activity,
     history,
     mode,
@@ -43,7 +45,7 @@ const ActivityTableRowComponent = ({
 }: ActivityTableRowProps) => {
     const { total, read, write } = activity;
     const time = metricTime(total, mode);
-    const isIdle = mode === "diff" && time <= 0;
+    const isIdle = dimIdle && time <= 0;
     const avgLatency = avgLatencyMicros(metricTime(total, mode), metricCount(total, mode));
 
     return (

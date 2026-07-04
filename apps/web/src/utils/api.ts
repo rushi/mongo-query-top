@@ -27,8 +27,9 @@ const axiosInstance = axios.create({
 // Response interceptor for error handling
 axiosInstance.interceptors.response.use(
     (response) => response,
-    (error: { response?: { data?: { message?: string } }; message?: string }) => {
-        const errorMessage = error.response?.data?.message ?? error.message ?? "API request failed";
+    (error: { response?: { data?: { message?: string; error?: string } }; message?: string }) => {
+        const data = error.response?.data;
+        const errorMessage = data?.message ?? data?.error ?? error.message ?? "API request failed";
         throw new Error(errorMessage);
     },
 );

@@ -3,6 +3,7 @@ import cors from "@fastify/cors";
 import config from "config";
 import Fastify from "fastify";
 import { MongoConnectionService, QueryLoggerService, QueryService } from "./core/index.js";
+import { closePinnedClients } from "./core/lib/pinnedClient.js";
 import clientsRoutes from "./routes/clients.js";
 import queriesRoutes from "./routes/queries.js";
 import serversRoutes from "./routes/servers.js";
@@ -107,6 +108,7 @@ fastify.get("/health", async () => {
 process.on("SIGINT", async () => {
     fastify.log.info("Shutting down gracefully...");
     await mongoService.disconnectAll();
+    await closePinnedClients();
     await fastify.close();
     process.exit(0);
 });
@@ -114,6 +116,7 @@ process.on("SIGINT", async () => {
 process.on("SIGTERM", async () => {
     fastify.log.info("Shutting down gracefully...");
     await mongoService.disconnectAll();
+    await closePinnedClients();
     await fastify.close();
     process.exit(0);
 });

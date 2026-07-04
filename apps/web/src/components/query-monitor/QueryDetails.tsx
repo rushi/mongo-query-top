@@ -3,7 +3,7 @@ import type { ProcessedQuery } from "@mongo-query-top/types";
 import { CheckIcon, CopyIcon, FloppyDiskIcon, ProhibitIcon, WarningIcon } from "@phosphor-icons/react/dist/ssr";
 import { useEffect, useMemo, useState } from "react";
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
-import { usePreferences } from "../../store/preferences";
+import { useUrlPreferences } from "../../hooks/useUrlPreferences";
 import { useSettings } from "../../store/settings";
 import { apiClient } from "../../utils/api";
 import { convertSettingsToThresholds, detectQueryIssues, getSeverityClasses } from "../../utils/queryIssueDetector";
@@ -106,18 +106,21 @@ const QueryIssuesDisplay = ({ query }: { query: ProcessedQuery }) => {
 };
 
 export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) => {
-    const { serverId } = usePreferences();
+    const { serverId } = useUrlPreferences();
     const { uiPreferences } = useSettings();
     const { killOpEnabled } = uiPreferences;
     const [saved, setSaved] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+
     const [killStatus, setKillStatus] = useState<"idle" | "killing" | "success" | "error">("idle");
+    const [killError, setKillError] = useState<string | null>(null);
     const isKilling = killStatus === "killing";
     const { copied: copiedKillOp, copy: copyKillOp } = useCopyToClipboard();
     const { copied: copiedCommand, copy: copyCommand } = useCopyToClipboard();
 
     useEffect(() => {
         setKillStatus("idle");
+        setKillError(null);
     }, [query?.opid]);
 
     if (!query) {
@@ -144,11 +147,13 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
 
     const handleKillOp = async () => {
         setKillStatus("killing");
+        setKillError(null);
         try {
             await apiClient.post(`/queries/${serverId}/kill/${query.opid}`, {});
             setKillStatus("success");
         } catch (err) {
             console.error("Failed to kill operation:", err);
+            setKillError(err instanceof Error ? err.message : "Unknown error");
             setKillStatus("error");
         }
     };
@@ -232,9 +237,18 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                             </div>
                         )}
                         {killStatus === "error" && (
-                            <div className="flex items-center gap-2 rounded border border-destructive bg-destructive/10 px-3 py-1">
-                                <WarningIcon weight="bold" className="h-3 w-3 text-destructive" />
-                                <span className="font-mono text-[10px] text-destructive uppercase">KILL FAILED</span>
+                            <div className="flex items-start gap-2 rounded border border-destructive bg-destructive/10 px-3 py-1">
+                                <WarningIcon weight="bold" className="mt-0.5 h-3 w-3 shrink-0 text-destructive" />
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="font-mono text-[10px] text-destructive uppercase">
+                                        KILL FAILED
+                                    </span>
+                                    {killError && (
+                                        <span className="font-mono text-[10px] break-all text-destructive/80">
+                                            {killError}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>

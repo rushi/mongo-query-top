@@ -1,5 +1,6 @@
 import type { TopNode } from "@mongo-query-top/types";
 import { memo } from "react";
+import { getNodeRole } from "../../lib/formatActivity";
 import { cn } from "../../lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
@@ -13,7 +14,7 @@ interface NodePickerProps {
 // Memoized so the streaming table's per-tick re-renders don't re-render the open
 // Select — re-rendering an open Radix popover makes it flicker and reflow.
 const NodePickerComponent = ({ isSecondary, nodes, value, onChange }: NodePickerProps) => {
-    const selectedRole = nodes.find((node) => node.host === value)?.role ?? "primary";
+    const selectedRole = getNodeRole(nodes, value);
 
     return (
         <Select value={value ?? ""} disabled={nodes.length === 0} onValueChange={onChange}>

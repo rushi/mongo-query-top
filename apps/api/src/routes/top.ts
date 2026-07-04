@@ -1,4 +1,4 @@
-import type { ServerConfig, TopCommandResult, TopNode } from "@mongo-query-top/types";
+import type { CollectionActivity, ServerConfig, TopCommandResult, TopNode } from "@mongo-query-top/types";
 import config from "config";
 import type { FastifyInstance } from "fastify";
 import type { MongoClient } from "mongodb";
@@ -9,12 +9,29 @@ import { nextMockTop } from "../data/mockTop.js";
 
 const serverConfigs = config.get<Record<string, ServerConfig>>("servers");
 
+const parseBoolQuery = (value: string | undefined): boolean => value === "true";
+
 const fetchRawTop = async (client: MongoClient, readPreference?: string): Promise<TopCommandResult> => {
     const result = await client
         .db("admin")
         .command({ top: 1 }, { readPreference: parseReadPreference(readPreference) });
     return result as TopCommandResult;
 };
+
+const buildTopResponse = (
+    serverId: string,
+    collections: CollectionActivity[],
+    intervalMs: number,
+    isMock: boolean,
+) => ({
+    collections,
+    metadata: {
+        serverId,
+        timestamp: new Date().toISOString(),
+        intervalMs,
+        ...(isMock ? { isMockData: true } : {}),
+    },
+});
 
 // Resolves the sampling client for a stream. When a specific node is requested,
 // pins to it via a directConnection client so consecutive samples hit the same
@@ -47,14 +64,12 @@ export default async function topRoutes(fastify: FastifyInstance) {
         Querystring: { showAll?: string; readPreference?: string };
     }>("/:serverId", async (request, reply) => {
         const { serverId } = request.params;
-        const { showAll = "false", readPreference } = request.query;
+        const showAll = parseBoolQuery(request.query.showAll);
+        const { readPreference } = request.query;
 
         if (serverId === "mock") {
-            const collections = buildCollectionActivity(nextMockTop(), undefined, showAll === "true");
-            return {
-                collections,
-                metadata: { serverId, timestamp: new Date().toISOString(), intervalMs: 0, isMockData: true },
-            };
+            const collections = buildCollectionActivity(nextMockTop(), undefined, showAll);
+            return buildTopResponse(serverId, collections, 0, true);
         }
 
         const client = request.services.mongoService.getConnection(serverId);
@@ -64,8 +79,8 @@ export default async function topRoutes(fastify: FastifyInstance) {
 
         try {
             const current = await fetchRawTop(client, readPreference);
-            const collections = buildCollectionActivity(current, undefined, showAll === "true");
-            return { collections, metadata: { serverId, timestamp: new Date().toISOString(), intervalMs: 0 } };
+            const collections = buildCollectionActivity(current, undefined, showAll);
+            return buildTopResponse(serverId, collections, 0, false);
         } catch (err) {
             return reply.code(500).send({
                 error: "Failed to fetch collection activity",
@@ -112,7 +127,8 @@ export default async function topRoutes(fastify: FastifyInstance) {
         reply.hijack();
 
         const { serverId } = request.params;
-        const { refreshInterval = "2", showAll = "false", readPreference, node } = request.query;
+        const { refreshInterval = "2", readPreference, node } = request.query;
+        const showAll = parseBoolQuery(request.query.showAll);
         const isMock = serverId === "mock";
 
         const client = request.services.mongoService.getConnection(serverId);
@@ -158,18 +174,10 @@ export default async function topRoutes(fastify: FastifyInstance) {
                 const current = isMock
                     ? nextMockTop(previousSample)
                     : await fetchRawTop(sampleClient!, effectiveReadPreference);
-                const collections = buildCollectionActivity(current, previousSample, showAll === "true");
+                const collections = buildCollectionActivity(current, previousSample, showAll);
                 previousSample = current;
 
-                const data = {
-                    collections,
-                    metadata: {
-                        serverId,
-                        timestamp: new Date().toISOString(),
-                        intervalMs,
-                        ...(isMock ? { isMockData: true } : {}),
-                    },
-                };
+                const data = buildTopResponse(serverId, collections, intervalMs, isMock);
                 reply.raw.write(`event: top\ndata: ${JSON.stringify(data)}\n\n`);
             } catch (err) {
                 if (isActive) {

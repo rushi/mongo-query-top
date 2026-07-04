@@ -1,7 +1,7 @@
 import type { ActivityMode, CollectionActivity } from "@mongo-query-top/types";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useMemo, useRef, useState } from "react";
-import { avgLatencyMicros } from "../../lib/formatActivity";
+import { avgLatencyMicros, metricTime } from "../../lib/formatActivity";
 import { cn } from "../../lib/utils";
 import { SortableColumnHeader } from "../shared/SortableColumnHeader";
 import { ActivityTableRow } from "./ActivityTableRow";
@@ -30,7 +30,7 @@ interface ActivityTableProps {
 }
 
 const timeFor = (activity: CollectionActivity, mode: ActivityMode, key: "total" | "read" | "write"): number =>
-    mode === "diff" ? activity[key].deltaTime : activity[key].cumTime;
+    metricTime(activity[key], mode);
 
 const sortValue = (activity: CollectionActivity, key: SortKey, mode: ActivityMode): string | number => {
     switch (key) {

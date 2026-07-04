@@ -1,3 +1,5 @@
+import type { ActivityMetric, ActivityMode, TopNode } from "@mongo-query-top/types";
+
 export const formatMicros = (micros: number): string => {
     if (micros <= 0) {
         return "0";
@@ -17,6 +19,15 @@ export const avgLatencyMicros = (time: number, count: number): number => {
     }
     return time / count;
 };
+
+export const metricTime = (metric: ActivityMetric, mode: ActivityMode): number =>
+    mode === "diff" ? metric.deltaTime : metric.cumTime;
+
+export const metricCount = (metric: ActivityMetric, mode: ActivityMode): number =>
+    mode === "diff" ? metric.deltaCount : metric.cumCount;
+
+export const getNodeRole = (nodes: TopNode[], host: string | undefined): TopNode["role"] =>
+    nodes.find((node) => node.host === host)?.role ?? "primary";
 
 const COUNT_FORMAT = new Intl.NumberFormat();
 

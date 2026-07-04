@@ -1,6 +1,6 @@
 import type { ActivityMetric, ActivityMode, CollectionActivity } from "@mongo-query-top/types";
 import { memo } from "react";
-import { avgLatencyMicros, formatCount, formatMicros } from "../../lib/formatActivity";
+import { avgLatencyMicros, formatCount, formatMicros, metricCount, metricTime } from "../../lib/formatActivity";
 import { cn } from "../../lib/utils";
 import { ReadWriteDonut } from "./ReadWriteDonut";
 import { Sparkline } from "./Sparkline";
@@ -15,12 +15,6 @@ interface ActivityTableRowProps {
     height: number;
     style: React.CSSProperties;
 }
-
-const metricTime = (metric: ActivityMetric, mode: ActivityMode): number =>
-    mode === "diff" ? metric.deltaTime : metric.cumTime;
-
-const metricCount = (metric: ActivityMetric, mode: ActivityMode): number =>
-    mode === "diff" ? metric.deltaCount : metric.cumCount;
 
 const MetricCell = ({ metric, mode }: { metric: ActivityMetric; mode: ActivityMode }) => {
     const time = metricTime(metric, mode);

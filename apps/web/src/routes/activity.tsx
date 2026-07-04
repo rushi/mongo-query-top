@@ -11,6 +11,7 @@ import { useCollectionActivity } from "../hooks/useCollectionActivity";
 import { useFetchServers } from "../hooks/useFetchServers";
 import { useTopNodes } from "../hooks/useTopNodes";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
+import { getNodeRole } from "../lib/formatActivity";
 import { cn } from "../lib/utils";
 import { apiClient, getApiBaseUrl } from "../utils/api";
 
@@ -38,7 +39,7 @@ function CollectionActivityPage() {
     });
 
     const nodes = useTopNodes(serverId, connectionState.mongoConnected);
-    const selectedRole = nodes.find((node) => node.host === selectedNode)?.role ?? "primary";
+    const selectedRole = getNodeRole(nodes, selectedNode);
     const isSecondary = selectedRole === "secondary";
     const readPreference: ReadPreferenceMode = isSecondary ? "secondaryPreferred" : "primary";
     const accentClass = isSecondary

@@ -1,12 +1,15 @@
 import type { ConnectedClient } from "@mongo-query-top/types";
-import { useMemo, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useMemo, useRef, useState } from "react";
 import { cn } from "../lib/utils";
+import { useSettings } from "../store/settings";
 import { Badge } from "./ui/badge";
 
 type SortKey = "status" | "client" | "app" | "user" | "op" | "runtime";
 type SortDirection = "asc" | "desc";
 
 const GRID_COLS = "grid-cols-[70px_minmax(150px,1fr)_minmax(120px,1fr)_minmax(140px,1fr)_minmax(160px,1.5fr)_90px]";
+const ROW_HEIGHT = 46;
 
 const COLUMNS: { key: SortKey; label: string; numeric: boolean }[] = [
     { key: "status", label: "STATUS", numeric: true },
@@ -42,6 +45,8 @@ const sortValue = (client: ConnectedClient, key: SortKey): string | number => {
 };
 
 export const ClientTable = ({ clients }: { clients: ConnectedClient[] }) => {
+    const { uiPreferences } = useSettings();
+    const parentRef = useRef<HTMLDivElement>(null);
     const [sortKey, setSortKey] = useState<SortKey | null>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
@@ -71,9 +76,17 @@ export const ClientTable = ({ clients }: { clients: ConnectedClient[] }) => {
             if (aValue > bValue) {
                 return direction;
             }
-            return 0;
+            // Deterministic tiebreak keeps equal-value rows from reshuffling between ticks
+            return (a.connectionId ?? 0) - (b.connectionId ?? 0);
         });
     }, [clients, sortKey, sortDirection]);
+
+    const virtualizer = useVirtualizer({
+        count: sortedClients.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => ROW_HEIGHT,
+        overscan: 8,
+    });
 
     if (clients.length === 0) {
         return (
@@ -116,57 +129,75 @@ export const ClientTable = ({ clients }: { clients: ConnectedClient[] }) => {
             </div>
 
             {/* Rows */}
-            <div>
-                {sortedClients.map((client, idx) => (
-                    <div
-                        key={`${client.client.ip}-${client.connectionId ?? idx}`}
-                        className={`grid ${GRID_COLS} items-center gap-3 border-b border-border/50 px-4 py-2.5 last:border-b-0 hover:bg-muted/40`}
-                    >
-                        <div>
-                            {client.active ? (
-                                <Badge
-                                    variant="success"
-                                    className="border border-primary bg-primary/20 font-mono text-[10px] text-primary uppercase"
-                                >
-                                    ● ACTIVE
-                                </Badge>
-                            ) : (
-                                <Badge
-                                    variant="secondary"
-                                    className="border border-border font-mono text-[10px] text-muted-foreground uppercase"
-                                >
-                                    ○ IDLE
-                                </Badge>
-                            )}
-                        </div>
+            <div ref={parentRef} style={{ height: `${uiPreferences.tableHeight}px` }} className="overflow-auto">
+                <div style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}>
+                    {virtualizer.getVirtualItems().map((virtualRow) => {
+                        const client = sortedClients[virtualRow.index];
+                        return (
+                            <div
+                                // Key by connection so React reconciles a client to the same DOM node
+                                // across reorders instead of by list position (prevents row-swap jank)
+                                key={`${client.client.ip}-${client.connectionId ?? virtualRow.index}`}
+                                data-index={virtualRow.index}
+                                className={`grid ${GRID_COLS} items-center gap-3 border-b border-border/50 px-4 hover:bg-muted/40`}
+                                style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    width: "100%",
+                                    height: ROW_HEIGHT,
+                                    transform: `translateY(${virtualRow.start}px)`,
+                                }}
+                            >
+                                <div>
+                                    {client.active ? (
+                                        <Badge
+                                            variant="success"
+                                            className="border border-primary bg-primary/20 font-mono text-[10px] text-primary uppercase"
+                                        >
+                                            ● ACTIVE
+                                        </Badge>
+                                    ) : (
+                                        <Badge
+                                            variant="secondary"
+                                            className="border border-border font-mono text-[10px] text-muted-foreground uppercase"
+                                        >
+                                            ○ IDLE
+                                        </Badge>
+                                    )}
+                                </div>
 
-                        <div className="flex items-center gap-1.5 truncate font-mono text-sm text-foreground">
-                            {client.client.geo?.country && (
-                                <span className="text-muted-foreground">{client.client.geo.country}</span>
-                            )}
-                            <span className="truncate">{client.client.ip}</span>
-                        </div>
+                                <div className="flex items-center gap-1.5 truncate font-mono text-sm text-foreground">
+                                    {client.client.geo?.country && (
+                                        <span className="text-muted-foreground">{client.client.geo.country}</span>
+                                    )}
+                                    <span className="truncate">{client.client.ip}</span>
+                                </div>
 
-                        <div className="truncate font-mono text-sm text-foreground">{client.userAgent}</div>
+                                <div className="truncate font-mono text-sm text-foreground">{client.userAgent}</div>
 
-                        <div className="truncate font-mono text-sm text-muted-foreground">{formatUsers(client)}</div>
+                                <div className="truncate font-mono text-sm text-muted-foreground">
+                                    {formatUsers(client)}
+                                </div>
 
-                        <div className="truncate font-mono text-sm text-muted-foreground">
-                            {client.currentOp ? (
-                                <>
-                                    <span className="text-foreground uppercase">{client.currentOp}</span>
-                                    {client.namespace && <span className="ml-1.5">{client.namespace}</span>}
-                                </>
-                            ) : (
-                                "—"
-                            )}
-                        </div>
+                                <div className="truncate font-mono text-sm text-muted-foreground">
+                                    {client.currentOp ? (
+                                        <>
+                                            <span className="text-foreground uppercase">{client.currentOp}</span>
+                                            {client.namespace && <span className="ml-1.5">{client.namespace}</span>}
+                                        </>
+                                    ) : (
+                                        "—"
+                                    )}
+                                </div>
 
-                        <div className="text-right font-mono text-sm text-muted-foreground tabular-nums">
-                            {client.active ? (client.runtime_formatted ?? "—") : "—"}
-                        </div>
-                    </div>
-                ))}
+                                <div className="text-right font-mono text-sm text-muted-foreground tabular-nums">
+                                    {client.active ? (client.runtime_formatted ?? "—") : "—"}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );

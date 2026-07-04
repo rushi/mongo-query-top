@@ -22,6 +22,8 @@ interface QueryTableProps {
     onQueryClick: (query: ProcessedQuery) => void;
 }
 
+const ROW_HEIGHT = 60;
+
 const isInternalIp = (ip: string): boolean => {
     const parts = ip.split(".");
     if (parts.length !== 4) {
@@ -88,11 +90,15 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
                     bValue = b.secs_running;
             }
 
+            let cmp: number;
             if (typeof aValue === "string" && typeof bValue === "string") {
-                return sortDirection === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+                cmp = sortDirection === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+            } else {
+                cmp = sortDirection === "asc" ? Number(aValue) - Number(bValue) : Number(bValue) - Number(aValue);
             }
 
-            return sortDirection === "asc" ? Number(aValue) - Number(bValue) : Number(bValue) - Number(aValue);
+            // Deterministic tiebreak keeps equal-value rows from reshuffling between SSE ticks
+            return cmp === 0 ? a.opid.localeCompare(b.opid) : cmp;
         });
 
         return sorted;
@@ -101,8 +107,8 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
     const virtualizer = useVirtualizer({
         count: sortedQueries.length,
         getScrollElement: () => parentRef.current,
-        estimateSize: () => 60,
-        overscan: 5,
+        estimateSize: () => ROW_HEIGHT,
+        overscan: 8,
     });
 
     const handleFilterByIp = (e: React.MouseEvent, query: ProcessedQuery) => {
@@ -220,14 +226,16 @@ export const QueryTable = ({ queries, onQueryClick }: QueryTableProps) => {
 
                         return (
                             <div
-                                key={virtualRow.key}
+                                // Key by opid so React reconciles a query to the same DOM node
+                                // across reorders instead of by list position (prevents row-swap jank)
+                                key={query.opid}
                                 data-index={virtualRow.index}
-                                ref={virtualizer.measureElement}
                                 style={{
                                     position: "absolute",
                                     top: 0,
                                     left: 0,
                                     width: "100%",
+                                    height: ROW_HEIGHT,
                                     transform: `translateY(${virtualRow.start}px)`,
                                 }}
                                 className={cn(

@@ -1,7 +1,7 @@
 import type { ProcessedQuery, QuerySummary, ReadPreferenceMode } from "@mongo-query-top/types";
 import { createFileRoute } from "@tanstack/react-router";
 import { useBoolean, useSetState, useTitle } from "ahooks";
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { FilterControls } from "../components/FilterControls";
 import { QueryDetails } from "../components/QueryDetails";
 import { QueryTable } from "../components/QueryTable";
@@ -101,11 +101,22 @@ function Dashboard() {
     const [isDialogOpen, { setTrue: openDialog, setFalse: closeDialog }] = useBoolean(false);
     const [selectedQuery, setSelectedQuery] = useState<ProcessedQuery | null>(null);
 
-    // Filter queries by IP if ipFilter is set
-    const filteredQueries = useMemo(
-        () => data?.queries.filter((query) => (ipFilter ? query.client.ip === ipFilter : true)) ?? [],
-        [data?.queries, ipFilter],
-    );
+    const filteredQueries = useMemo(() => {
+        if (!data?.queries) {
+            return [];
+        }
+
+        // Common path (no filter): reuse the source array, skip a full copy every SSE tick
+        if (!ipFilter) {
+            return data.queries;
+        }
+
+        return data.queries.filter((query) => query.client.ip === ipFilter);
+    }, [data?.queries, ipFilter]);
+
+    // Defer the list feeding the virtualized table so a burst of incoming
+    // queries can't block scroll/hover — sort + render run at low priority
+    const deferredQueries = useDeferredValue(filteredQueries);
 
     // Generate summary from filtered queries
     const filteredSummary = useMemo(() => {
@@ -336,7 +347,7 @@ function Dashboard() {
                         <SummaryStats summary={filteredSummary} />
                     </div>
                     <div className="animate-reveal opacity-0 delay-300">
-                        <QueryTable queries={filteredQueries} onQueryClick={handleQueryClick} />
+                        <QueryTable queries={deferredQueries} onQueryClick={handleQueryClick} />
                     </div>
                 </>
             )}

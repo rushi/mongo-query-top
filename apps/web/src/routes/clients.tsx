@@ -1,7 +1,7 @@
-import type { ReadPreferenceMode } from "@mongo-query-top/types";
+import type { ConnectedClient, ReadPreferenceMode } from "@mongo-query-top/types";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSetState, useTitle } from "ahooks";
-import { useEffect } from "react";
+import { useDeferredValue, useEffect } from "react";
 import { ClientSummary } from "../components/ClientSummary";
 import { ClientTable } from "../components/ClientTable";
 import { Badge } from "../components/ui/badge";
@@ -18,6 +18,9 @@ const resolveReadPreference = (
     urlValue: ReadPreferenceMode | undefined,
     perServerValue: ReadPreferenceMode | undefined,
 ): ReadPreferenceMode => urlValue ?? perServerValue ?? "primary";
+
+// Stable empty reference so useDeferredValue doesn't churn before data arrives
+const EMPTY_CLIENTS: ConnectedClient[] = [];
 
 export const Route = createFileRoute("/clients")({ component: ConnectedUsers });
 
@@ -53,6 +56,10 @@ function ConnectedUsers() {
         readPreference,
         connectionState.mongoConnected,
     );
+
+    // Defer the client list feeding the virtualized table so a burst of connections
+    // can't block scroll — sort + render run at low priority
+    const deferredClients = useDeferredValue(data?.clients ?? EMPTY_CLIENTS);
 
     // Auto-connect to MongoDB on mount / server change
     useEffect(() => {
@@ -224,7 +231,7 @@ function ConnectedUsers() {
             {data ? (
                 <div className="animate-reveal space-y-4 opacity-0 delay-100">
                     <ClientSummary summary={data.summary} />
-                    <ClientTable clients={data.clients} />
+                    <ClientTable clients={deferredClients} />
                 </div>
             ) : (
                 !error && (

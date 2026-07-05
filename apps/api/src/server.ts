@@ -27,7 +27,7 @@ const fastify = Fastify({
 });
 
 // Services - singleton instances
-const mongoService = new MongoConnectionService();
+const mongoService = new MongoConnectionService(config.get<number>("api.idleDisconnectMs"), fastify.log);
 const queryService = new QueryService();
 const loggerService = new QueryLoggerService();
 

@@ -1,7 +1,20 @@
 import { Db, MongoClient } from "mongodb";
 
+interface Logger {
+    info: (message: string) => void;
+}
+
 export class MongoConnectionService {
     private readonly connections: Map<string, MongoClient> = new Map();
+    private readonly activeStreamCounts: Map<string, number> = new Map();
+    private readonly idleTimers: Map<string, NodeJS.Timeout> = new Map();
+
+    // idleDisconnectMs comes from config/default.yaml (api.idleDisconnectMs) — no local default,
+    // config is the single source of truth so the two values can't drift.
+    constructor(
+        private readonly idleDisconnectMs: number,
+        private readonly logger: Logger = console,
+    ) {}
 
     async connect(serverId: string, uri: string): Promise<MongoClient> {
         if (this.connections.has(serverId)) {
@@ -20,6 +33,9 @@ export class MongoConnectionService {
     }
 
     async disconnect(serverId: string): Promise<void> {
+        this.clearIdleTimer(serverId);
+        this.activeStreamCounts.delete(serverId);
+
         const client = this.connections.get(serverId);
         if (client) {
             await client.close();
@@ -28,9 +44,57 @@ export class MongoConnectionService {
     }
 
     async disconnectAll(): Promise<void> {
+        for (const serverId of this.idleTimers.keys()) {
+            this.clearIdleTimer(serverId);
+        }
+        this.activeStreamCounts.clear();
+
         const closePromises = Array.from(this.connections.values()).map(async (client) => client.close());
         await Promise.all(closePromises);
         this.connections.clear();
+    }
+
+    // Call when an SSE stream for serverId starts. Cancels any pending idle disconnect.
+    registerStream(serverId: string): void {
+        this.clearIdleTimer(serverId);
+        const count = this.activeStreamCounts.get(serverId) ?? 0;
+        this.activeStreamCounts.set(serverId, count + 1);
+    }
+
+    // Call when an SSE stream for serverId ends. Once the last viewer leaves,
+    // starts a grace-period timer before disconnecting the underlying MongoClient.
+    unregisterStream(serverId: string): void {
+        const count = (this.activeStreamCounts.get(serverId) ?? 1) - 1;
+
+        if (count > 0) {
+            this.activeStreamCounts.set(serverId, count);
+            return;
+        }
+
+        this.activeStreamCounts.delete(serverId);
+        this.clearIdleTimer(serverId);
+
+        const timer = setTimeout(() => {
+            this.idleTimers.delete(serverId);
+            if (this.activeStreamCounts.has(serverId) || !this.connections.has(serverId)) {
+                return;
+            }
+
+            this.logger.info(
+                `Idle disconnect: no viewers for server "${serverId}" in ${this.idleDisconnectMs}ms, closing MongoDB connection`,
+            );
+            void this.disconnect(serverId);
+        }, this.idleDisconnectMs);
+
+        this.idleTimers.set(serverId, timer);
+    }
+
+    private clearIdleTimer(serverId: string): void {
+        const timer = this.idleTimers.get(serverId);
+        if (timer) {
+            clearTimeout(timer);
+            this.idleTimers.delete(serverId);
+        }
     }
 
     getConnection(serverId: string): MongoClient | undefined {

@@ -10,6 +10,8 @@ api:
   host: 0.0.0.0
   logLevel: info
   apiKey: dev-key-change-in-production
+  # Idle time (ms) with no active SSE viewers before a MongoDB connection is closed
+  idleDisconnectMs: 300000
   cors:
     origins:
       - http://localhost:9000 # Vite dev server (preferred)

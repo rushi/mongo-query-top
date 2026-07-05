@@ -25,6 +25,8 @@ GET  /health                             no auth required
 
 **SSE stream** emits `queries` events. Cleans up automatically on client disconnect.
 
+**Idle disconnect**: `MongoConnectionService` ref-counts active SSE streams per `serverId`. When the last viewer for a server disconnects, a grace-period timer (`api.idleDisconnectMs`, default 5 min) starts; if nobody reconnects before it fires, the underlying `MongoClient` is closed and logged (`Idle disconnect: no viewers for server "..."`). A new stream opening cancels the pending timer.
+
 ## Query Processing (`src/core/lib/queryProcessor.ts`)
 
 - **`shouldSkipQuery(q)`** — filters system/internal queries. Always shows indexing ops and PHP ext queries. Skips monitoring agents, hello/ismaster commands. **Modify here to add/remove filters.**

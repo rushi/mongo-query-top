@@ -217,6 +217,8 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             "Access-Control-Allow-Credentials": "true",
         });
 
+        request.services.mongoService.registerStream(serverId);
+
         let isActive = true;
         const savedQueryIds = new Set<string>();
 
@@ -319,6 +321,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             isActive = false;
             clearInterval(intervalId);
             savedQueryIds.clear();
+            request.services.mongoService.unregisterStream(serverId);
             fastify.log.info(`SSE connection closed for server: ${serverId}`);
         });
 

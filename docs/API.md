@@ -5,7 +5,7 @@ Complete API reference for the mongo-query-top REST API server.
 ## Base URL
 
 ```
-http://localhost:9001
+http://localhost:7001
 ```
 
 Configurable via `api.port` in `config/default.yaml` or `config/local.yaml`.
@@ -281,7 +281,7 @@ data: {"queries":[...],"summary":{...}}
 
 ```javascript
 const eventSource = new EventSource(
-    `http://localhost:9001/api/queries/localhost/stream?apiKey=dev-key&minTime=1&refreshInterval=2`,
+    `http://localhost:7001/api/queries/localhost/stream?apiKey=dev-key&minTime=1&refreshInterval=2`,
 );
 
 eventSource.addEventListener("queries", (event) => {
@@ -610,34 +610,34 @@ export API_KEY="dev-key-change-in-production"
 
 # List servers
 curl -H "X-API-Key: $API_KEY" \
-  http://localhost:9001/api/servers
+  http://localhost:7001/api/servers
 
 # Connect to a server
 curl -X POST -H "X-API-Key: $API_KEY" \
-  http://localhost:9001/api/servers/localhost/connect
+  http://localhost:7001/api/servers/localhost/connect
 
 # Get current queries
 curl -H "X-API-Key: $API_KEY" \
-  http://localhost:9001/api/queries/localhost?minTime=2
+  http://localhost:7001/api/queries/localhost?minTime=2
 
 # Stream real-time updates (SSE)
 curl -H "X-API-Key: $API_KEY" \
-  http://localhost:9001/api/queries/localhost/stream
+  http://localhost:7001/api/queries/localhost/stream
 
 # Or with query parameter for authentication
-curl "http://localhost:9001/api/queries/localhost/stream?apiKey=$API_KEY"
+curl "http://localhost:7001/api/queries/localhost/stream?apiKey=$API_KEY"
 
 # Save snapshot
 curl -X POST -H "X-API-Key: $API_KEY" \
-  http://localhost:9001/api/queries/localhost/snapshot
+  http://localhost:7001/api/queries/localhost/snapshot
 
 # List saved logs
 curl -H "X-API-Key: $API_KEY" \
-  http://localhost:9001/api/queries/localhost/logs
+  http://localhost:7001/api/queries/localhost/logs
 
 # Read specific log file
 curl -H "X-API-Key: $API_KEY" \
-  http://localhost:9001/api/queries/localhost/logs/queries-sanitized-1704283200000.json
+  http://localhost:7001/api/queries/localhost/logs/queries-sanitized-1704283200000.json
 ```
 
 ### Using JavaScript/TypeScript
@@ -646,7 +646,7 @@ curl -H "X-API-Key: $API_KEY" \
 import axios from "axios";
 
 const apiClient = axios.create({
-    baseURL: "http://localhost:9001",
+    baseURL: "http://localhost:7001",
     headers: {
         "X-API-Key": "dev-key-change-in-production",
     },
@@ -696,9 +696,8 @@ All error responses follow this format:
 
 CORS is enabled for the following origins by default:
 
-- `http://localhost:9000` (Vite dev server - preferred)
-- `http://localhost:3000` (Vite dev server - legacy)
-- `http://localhost:9173` (Vite preview server)
+- `http://localhost:7000` (Vite dev server)
+- `http://localhost:7010` (production build, added via `config/production.yaml`)
 
 Configure additional origins in `config/local.yaml`:
 
@@ -706,7 +705,7 @@ Configure additional origins in `config/local.yaml`:
 api:
     cors:
         origins:
-            - http://localhost:9000
+            - http://localhost:7000
             - https://my-dashboard.example.com
         credentials: true
 ```
@@ -788,7 +787,7 @@ Build and run in production:
 pnpm run build
 
 # Start API server
-NODE_CONFIG_DIR=./config node apps/api/dist/server.js
+NODE_CONFIG_DIR=./config NODE_ENV=production node apps/api/dist/server.js
 
 # Or use npm script
 pnpm run start:api
@@ -796,7 +795,7 @@ pnpm run start:api
 
 **Environment Variables:**
 
-The API server uses `config` module which reads from `config/default.yaml` and `config/local.yaml`. No environment variables are needed.
+The API server uses `config` module which reads from `config/default.yaml`, `config/production.yaml` (when `NODE_ENV=production`), and `config/local.yaml`. No other environment variables are needed.
 
 **Reverse Proxy:**
 
@@ -808,7 +807,7 @@ server {
   server_name api.example.com;
 
   location / {
-    proxy_pass http://localhost:9001;
+    proxy_pass http://localhost:7011;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection 'upgrade';

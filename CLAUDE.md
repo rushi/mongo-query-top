@@ -5,8 +5,8 @@ Real-time MongoDB operation monitor (like Unix `top`) — Turborepo monorepo wit
 ## Monorepo Layout
 
 ```
-apps/api/        Fastify REST API + SSE server (port 9001)
-apps/web/        React dashboard — Vite + TanStack Router (port 9000)
+apps/api/        Fastify REST API + SSE server (port 7001 dev / 7011 prod)
+apps/web/        React dashboard — Vite + TanStack Router (port 7000 dev / 7010 prod)
 packages/types/  Shared TypeScript types (API contracts, MongoDB types)
 config/          YAML config (default.yaml checked in, local.yaml gitignored)
 ```
@@ -31,9 +31,11 @@ servers:
         uri: mongodb://user:pass@host:27017/db
 
 api:
-    port: 9001
+    port: 7001
     apiKey: dev-key-change-in-production
 ```
+
+`config/production.yaml` overrides `api.port` to `7011` and `frontend.url` to `http://localhost:7010` when `NODE_ENV=production` (Docker sets this automatically).
 
 In code: `config.get<string>("api.apiKey")`, `config.get<Record<string, ServerConfig>>("servers")`
 
@@ -50,7 +52,7 @@ LOG_LEVEL=info
 **`apps/web/.env`**
 
 ```bash
-VITE_API_URL=http://localhost:9001
+VITE_API_URL=http://localhost:7001
 VITE_API_KEY=dev-key-change-in-production
 ```
 

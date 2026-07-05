@@ -66,14 +66,14 @@ pnpm run build
 pnpm run start
 ```
 
-- Web UI: http://localhost:9000
-- API: http://localhost:9001
+- Web UI: http://localhost:7010
+- API: http://localhost:7011
 
 Run them separately if needed:
 
 ```bash
-pnpm run start:api   # API only (port 9001)
-pnpm run start:web   # Web only — vite preview (port 9000)
+pnpm run start:api   # API only (port 7011)
+pnpm run start:web   # Web only — vite preview (port 7010)
 ```
 
 ## Docker Setup
@@ -91,7 +91,7 @@ pnpm docker:build
 docker compose up -d
 ```
 
-**Access:** Web UI at http://localhost:9000, API at http://localhost:9001
+**Access:** Web UI at http://localhost:7010, API at http://localhost:7011
 
 **Production:** `pnpm docker:build https://api.yourdomain.com`
 
@@ -105,7 +105,7 @@ See **[docs/DOCKER.md](docs/DOCKER.md)** for complete documentation including pr
 pnpm run dev:web
 ```
 
-Opens **http://localhost:9000** with:
+Opens **http://localhost:7000** with:
 
 - Real-time query monitoring
 - Interactive table with virtualization
@@ -116,7 +116,7 @@ Opens **http://localhost:9000** with:
 ### API Server
 
 ```bash
-# Start API only on http://localhost:9001
+# Start API only on http://localhost:7001
 pnpm run dev:api
 ```
 
@@ -135,15 +135,24 @@ servers:
         uri: mongodb://localhost:27017
 
 api:
-    port: 9001
+    port: 7001
     host: 0.0.0.0
     logLevel: info
     apiKey: dev-key-change-in-production
     idleDisconnectMs: 300000 # close a server's MongoDB connection after this long with no viewers
     cors:
         origins:
-            - http://localhost:9000
+            - http://localhost:7000
         credentials: true
+```
+
+**config/production.yaml** (checked into git — port/URL overrides for `NODE_ENV=production`):
+
+```yaml
+api:
+    port: 7011
+frontend:
+    url: http://localhost:7010
 ```
 
 **config/local.yaml** (gitignored - your servers):

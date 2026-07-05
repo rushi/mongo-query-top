@@ -23,9 +23,9 @@ Real-time MongoDB query monitoring dashboard built with Tanstack Start, ShadCN U
 
 ### Prerequisites
 
-- Node.js >= 20
+- Node.js >= 24
 - pnpm package manager
-- Backend API server running on port 9001
+- Backend API server running on port 7001
 
 ### Installation
 
@@ -47,7 +47,7 @@ Create a `.env` file:
 
 ```bash
 VITE_API_KEY=dev-key-change-in-production
-VITE_API_URL=http://localhost:9001
+VITE_API_URL=http://localhost:7001
 ```
 
 ### Building For Production
@@ -83,7 +83,7 @@ frontend/
 
 ## Usage
 
-1. Ensure the backend API is running on port 9001
+1. Ensure the backend API is running on port 7001
 2. Start the frontend dev server
 3. Open http://localhost:3000 in your browser
 4. The dashboard will automatically connect to MongoDB and stream queries

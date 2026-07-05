@@ -23,7 +23,7 @@ servers:
 
 api:
     apiKey: your-secure-api-key-here
-    port: 9001
+    port: 7011
     host: 0.0.0.0
     logLevel: info
 ```
@@ -55,8 +55,8 @@ docker compose down
 
 **Access the Application:**
 
-- Web UI: http://localhost:9000
-- API: http://localhost:9001
+- Web UI: http://localhost:7010
+- API: http://localhost:7011
 
 **How It Works:**
 
@@ -70,8 +70,8 @@ docker compose down
 
 **Services:**
 
-- **api**: Fastify REST API + SSE server (port 9001)
-- **web**: React frontend served with nginx (port 9000)
+- **api**: Fastify REST API + SSE server (port 7011)
+- **web**: React frontend served with nginx (port 7010)
 
 **Volumes:**
 
@@ -165,10 +165,10 @@ docker compose up -d
 
 ```bash
 # API health
-curl http://localhost:9001/health
+curl http://localhost:7011/health
 
 # Web health
-curl http://localhost:9000/health
+curl http://localhost:7010/health
 
 # Check service status
 docker compose ps
@@ -221,7 +221,7 @@ docker compose logs -f api web
 
 ### API Container
 
-- **Base image**: node:22-alpine
+- **Base image**: node:24-alpine
 - **Build**: Multi-stage build with pnpm
 - **Runtime**: Node.js with production dependencies only
 - **Config**: Reads from mounted `config/` directory
@@ -246,7 +246,7 @@ Edit `docker-compose.yml` to change exposed ports:
 services:
     api:
         ports:
-            - "8001:9001" # External:Internal
+            - "8001:7011" # External:Internal
 
     web:
         ports:
@@ -315,7 +315,7 @@ server {
 
     # General proxy settings
     location / {
-        proxy_pass http://localhost:9001;
+        proxy_pass http://localhost:7011;
         proxy_http_version 1.1;
 
         # Essential headers
@@ -332,7 +332,7 @@ server {
 
     # SSE-specific configuration for streaming endpoints
     location ~ ^/api/queries/.*/stream$ {
-        proxy_pass http://localhost:9001;
+        proxy_pass http://localhost:7011;
         proxy_http_version 1.1;
 
         # Essential for SSE
@@ -371,7 +371,7 @@ server {
     ssl_prefer_server_ciphers on;
 
     location / {
-        proxy_pass http://localhost:9000;
+        proxy_pass http://localhost:7010;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -433,13 +433,13 @@ docker compose logs -f --tail=100
 
 ```bash
 # API health endpoint
-curl http://localhost:9001/health
+curl http://localhost:7011/health
 
 # Web health endpoint
-curl http://localhost:9000/health
+curl http://localhost:7010/health
 
 # Test MongoDB connection
-curl -H "X-API-Key: your-key" http://localhost:9001/api/servers
+curl -H "X-API-Key: your-key" http://localhost:7011/api/servers
 ```
 
 ## Backup and Restore

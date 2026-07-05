@@ -1,6 +1,6 @@
 import { log } from "evlog";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, subscribeWithSelector } from "zustand/middleware";
 
 /**
  * Application settings store with persistent localStorage
@@ -64,6 +64,13 @@ interface SettingsState {
     resetToDefaults: () => void;
 }
 
+const onSettingsRehydrated = (state: SettingsState | undefined, error: unknown) => {
+    if (!error) {
+        log.debug({ settings: { event: "hydrated", defaultFilters: state?.defaultFilters } });
+        settingsHydratedResolve();
+    }
+};
+
 const DEFAULT_STATE = {
     defaultFilters: {
         minTimeMs: 1000,
@@ -90,49 +97,43 @@ const DEFAULT_STATE = {
     settingsVersion: 0,
 };
 
-const onSettingsRehydrated = (state: SettingsState | undefined, error: unknown) => {
-    if (!error) {
-        log.debug({ settings: { event: "hydrated", defaultFilters: state?.defaultFilters } });
-        // Resolve the hydration promise
-        settingsHydratedResolve();
-    }
-};
-
 export const useSettings = create<SettingsState>()(
-    persist(
-        (set) => ({
-            ...DEFAULT_STATE,
+    subscribeWithSelector(
+        persist(
+            (set) => ({
+                ...DEFAULT_STATE,
 
-            setDefaultFilters: (filters) =>
-                set((state) => ({
-                    defaultFilters: { ...state.defaultFilters, ...filters },
-                })),
+                setDefaultFilters: (filters) =>
+                    set((state) => ({
+                        defaultFilters: { ...state.defaultFilters, ...filters },
+                    })),
 
-            setAutoSave: (autoSave) =>
-                set((state) => ({
-                    autoSave: { ...state.autoSave, ...autoSave },
-                })),
+                setAutoSave: (autoSave) =>
+                    set((state) => ({
+                        autoSave: { ...state.autoSave, ...autoSave },
+                    })),
 
-            setIssueThresholds: (thresholds) =>
-                set((state) => ({
-                    issueThresholds: { ...state.issueThresholds, ...thresholds },
-                })),
+                setIssueThresholds: (thresholds) =>
+                    set((state) => ({
+                        issueThresholds: { ...state.issueThresholds, ...thresholds },
+                    })),
 
-            setUiPreferences: (preferences) =>
-                set((state) => ({
-                    uiPreferences: { ...state.uiPreferences, ...preferences },
-                })),
+                setUiPreferences: (preferences) =>
+                    set((state) => ({
+                        uiPreferences: { ...state.uiPreferences, ...preferences },
+                    })),
 
-            applySettings: () =>
-                set((state) => ({
-                    settingsVersion: state.settingsVersion + 1,
-                })),
+                applySettings: () =>
+                    set((state) => ({
+                        settingsVersion: state.settingsVersion + 1,
+                    })),
 
-            resetToDefaults: () => set(DEFAULT_STATE),
-        }),
-        {
-            name: "mongo-query-top-settings",
-            onRehydrateStorage: () => onSettingsRehydrated,
-        },
+                resetToDefaults: () => set(DEFAULT_STATE),
+            }),
+            {
+                name: "mongo-query-top-settings",
+                onRehydrateStorage: () => onSettingsRehydrated,
+            },
+        ),
     ),
 );

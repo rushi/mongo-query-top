@@ -13,7 +13,7 @@ const durationParts = (totalMs: number) => ({
     seconds: Math.floor((totalMs % MS_PER_MINUTE) / MS_PER_SECOND),
 });
 
-export const formatMicros = (micros: number): string => {
+export const formatMicros = (micros: number) => {
     if (micros <= 0) {
         return "0";
     }
@@ -39,27 +39,27 @@ export const formatMicros = (micros: number): string => {
     return `${minutes}m ${seconds}s`;
 };
 
-export const avgLatencyMicros = (time: number, count: number): number => {
+export const avgLatencyMicros = (time: number, count: number) => {
     if (count <= 0) {
         return 0;
     }
     return time / count;
 };
 
-export const metricTime = (metric: ActivityMetric, mode: ActivityMode): number =>
+export const metricTime = (metric: ActivityMetric, mode: ActivityMode) =>
     mode === "diff" ? metric.deltaTime : metric.cumTime;
 
-export const metricCount = (metric: ActivityMetric, mode: ActivityMode): number =>
+export const metricCount = (metric: ActivityMetric, mode: ActivityMode) =>
     mode === "diff" ? metric.deltaCount : metric.cumCount;
 
-export const getNodeRole = (nodes: TopNode[], host: string | undefined): TopNode["role"] =>
+export const getNodeRole = (nodes: TopNode[], host: string | undefined) =>
     nodes.find((node) => node.host === host)?.role ?? "primary";
 
 const COUNT_FORMAT = new Intl.NumberFormat();
 
-export const formatCount = (count: number): string => COUNT_FORMAT.format(count);
+export const formatCount = (count: number) => COUNT_FORMAT.format(count);
 
-export const formatUptime = (startedAt: string): string => {
+export const formatUptime = (startedAt: string) => {
     const { days, hours, minutes } = durationParts(dayjs().diff(dayjs(startedAt)));
 
     const parts: string[] = [];

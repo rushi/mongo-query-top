@@ -1,10 +1,10 @@
-import axios from "axios";
+import axios, { type AxiosError } from "axios";
 import { createEvlogError, parseError } from "evlog";
 import config from "../config";
 
 // Dynamically determine API URL based on config
 // If config.apiUrl is set, use it. Otherwise, use same hostname as web app with the dev API port
-export const getApiBaseUrl = (): string => {
+export const getApiBaseUrl = () => {
     if (config.apiUrl) {
         return config.apiUrl;
     }
@@ -26,10 +26,9 @@ const axiosInstance = axios.create({
     },
 });
 
-// Response interceptor for error handling
 axiosInstance.interceptors.response.use(
     (response) => response,
-    (error: { response?: { data?: unknown }; message?: string }) => {
+    (error: AxiosError) => {
         // The API sends structured errors ({ message, why, fix, link }). Normalize whatever
         // we got and re-throw as an EvlogError so callers keep `.message` and gain `.why`/`.fix`.
         const parsed = parseError(error.response?.data ?? error);

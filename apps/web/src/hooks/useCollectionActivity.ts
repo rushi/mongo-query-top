@@ -16,8 +16,8 @@ export const useCollectionActivity = (
     node: string | undefined,
     enabled = true,
 ) => {
-    const [data, setData] = useState<TopData | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [data, setData] = useState<TopData>();
+    const [error, setError] = useState<string>();
     const [isConnected, setIsConnected] = useState(false);
     const [isReconnecting, setIsReconnecting] = useState(false);
 
@@ -27,11 +27,16 @@ export const useCollectionActivity = (
     const historyRef = useRef<Map<string, number[]>>(new Map());
 
     useEffect(() => {
-        if (!enabled) {
+        const cleanup = () => {
             abortControllerRef.current?.abort();
             abortControllerRef.current = null;
+            historyRef.current.clear();
             setIsConnected(false);
             setIsReconnecting(false);
+        };
+
+        if (!enabled) {
+            cleanup();
             return;
         }
 
@@ -103,13 +108,12 @@ export const useCollectionActivity = (
                         }
                     },
                     onerror(err) {
-                        setError("Connection lost");
-                        setIsConnected(false);
-
                         if (!isActive) {
                             throw err; // Stops reconnection
                         }
 
+                        setError("Connection lost");
+                        setIsConnected(false);
                         setIsReconnecting(true);
                         retryDelayRef.current = Math.min(retryDelayRef.current * 2, MAX_RETRY_DELAY);
                         return retryDelayRef.current;
@@ -119,8 +123,8 @@ export const useCollectionActivity = (
                     },
                 });
             } catch (err: unknown) {
-                const errName = err instanceof Error ? err.name : "";
-                if (errName !== "AbortError" && isActive) {
+                const isAbort = err instanceof Error && err.name === "AbortError";
+                if (!isAbort && isActive) {
                     setError(err instanceof Error ? err.message : "Connection failed");
                     setIsConnected(false);
                 }
@@ -131,11 +135,7 @@ export const useCollectionActivity = (
 
         return () => {
             isActive = false;
-            abortControllerRef.current?.abort();
-            abortControllerRef.current = null;
-            historyRef.current.clear();
-            setIsConnected(false);
-            setIsReconnecting(false);
+            cleanup();
         };
     }, [serverId, refreshInterval, showAll, readPreference, node, enabled]);
 

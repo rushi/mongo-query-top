@@ -3,6 +3,8 @@ import { omit } from "lodash-es";
 import { beautifyJson } from "./helpers.js";
 
 const INTERNAL_DRIVER_PATTERN = /MongoDB Internal Client|NetworkInterfaceTL/;
+const PHP_EXT_DRIVER_PATTERN = /ext-mongodb/i;
+const MONITORING_OR_AUTOMATION_APP_PATTERN = /mongodb (monitoring module|automation)/i;
 
 export const shouldSkipQuery = (q: MongoQuery): boolean => {
     const { command, clientMetadata, appName } = q;
@@ -22,13 +24,13 @@ export const shouldSkipQuery = (q: MongoQuery): boolean => {
         if (clientMetadata.driver?.name?.match(INTERNAL_DRIVER_PATTERN)) {
             return true;
         }
-        if (clientMetadata.driver?.name?.match(/ext-mongodb/i)) {
+        if (clientMetadata.driver?.name?.match(PHP_EXT_DRIVER_PATTERN)) {
             // This is from our PHP MongoDB extension - always show this
             return false;
         }
     }
 
-    if (appName?.match(/mongodb (monitoring module|automation)/i)) {
+    if (appName?.match(MONITORING_OR_AUTOMATION_APP_PATTERN)) {
         return true;
     }
 
@@ -47,6 +49,8 @@ export const shouldSkipQuery = (q: MongoQuery): boolean => {
     return false;
 };
 
+const MONITORING_AGENT_APP_PATTERN = /mongodb (monitoring module|automation agent|cps module)|mongotune/i;
+
 // Filters internal/system connections from the connected-clients view.
 // Unlike shouldSkipQuery, connections may be idle (no command), so we key off
 // client metadata, agent app names, and the __system auth user instead.
@@ -62,7 +66,7 @@ export const shouldSkipConnection = (c: MongoQuery): boolean => {
         return true;
     }
 
-    if (appName?.match(/mongodb (monitoring module|automation agent|cps module)|mongotune/i)) {
+    if (appName?.match(MONITORING_AGENT_APP_PATTERN)) {
         return true;
     }
 
@@ -74,6 +78,8 @@ export const shouldSkipConnection = (c: MongoQuery): boolean => {
 };
 
 export const sanitizeQuery = (q: MongoQuery, full = true): Record<string, unknown> => {
+    // omit() strips fields not modeled on MongoQuery (e.g. "type"), so the result is
+    // cast once here rather than re-cast at every mutation site below.
     let query = omit(q, [
         "active",
         "client",
@@ -96,7 +102,7 @@ export const sanitizeQuery = (q: MongoQuery, full = true): Record<string, unknow
         "waitingForFlowControl",
         "waitingForLatch",
         "planSummary", // TODO: Better way to show this
-    ]);
+    ]) as Record<string, unknown>;
 
     if (q.appName?.match(/nosqlbooster/i)) {
         query = omit(query, ["clientMetadata"]);
@@ -107,16 +113,16 @@ export const sanitizeQuery = (q: MongoQuery, full = true): Record<string, unknow
     }
 
     if ((q as unknown as Record<string, unknown>).type === "op") {
-        delete (query as unknown as Record<string, unknown>).type;
+        delete query.type;
     }
 
     if (q.waitingForLock === false) {
-        delete (query as unknown as Record<string, unknown>).waitingForLock;
+        delete query.waitingForLock;
     }
 
-    if (Object.keys(query).length === 1 && (query as unknown as Record<string, unknown>).command) {
+    if (Object.keys(query).length === 1 && query.command) {
         // The query is the only thing left after filtering
-        return (query as unknown as Record<string, unknown>).command as Record<string, unknown>;
+        return query.command as Record<string, unknown>;
     }
 
     return query;

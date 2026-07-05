@@ -19,8 +19,8 @@ export const useServerSentEvents = (
     isPaused = false,
 ) => {
     const settingsVersion = useSettings((state) => state.settingsVersion);
-    const [error, setError] = useState<string | null>(null);
-    const [data, setData] = useState<QueryData | null>(null);
+    const [error, setError] = useState<string>();
+    const [data, setData] = useState<QueryData>();
 
     const [isStale, setIsStale] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
@@ -43,7 +43,7 @@ export const useServerSentEvents = (
             setIsConnected(false);
             setIsReconnecting(false);
             if (isPaused) {
-                setError(null); // Clear error when paused
+                setError(undefined); // Clear error when paused
             }
             return;
         }
@@ -90,7 +90,7 @@ export const useServerSentEvents = (
                             log.info({ connection: { event: "established", url } });
                             setIsConnected(true);
                             setIsReconnecting(false);
-                            setError(null);
+                            setError(undefined);
                             retryDelayRef.current = INITIAL_RETRY_DELAY;
                             reconnectAttemptsRef.current = 0;
                         } else {
@@ -112,7 +112,7 @@ export const useServerSentEvents = (
                             try {
                                 const parsedData = JSON.parse(event.data);
                                 setData(parsedData);
-                                setError(null);
+                                setError(undefined);
                                 lastUpdateTimeRef.current = Date.now();
                                 setIsStale(false);
                             } catch (err) {
@@ -165,7 +165,7 @@ export const useServerSentEvents = (
                 const errName = err instanceof Error ? err.name : "";
                 log.warn({ connection: { event: "error", name: errName }, error: errMessage });
                 if (errName !== "AbortError" && isActive) {
-                    setError(errMessage ?? "Connection failed");
+                    setError(errMessage);
                     setIsConnected(false);
                 }
             }

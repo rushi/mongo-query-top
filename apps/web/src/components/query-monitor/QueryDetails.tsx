@@ -1,6 +1,7 @@
 import JsonView from "@microlink/react-json-view";
 import type { ProcessedQuery } from "@mongo-query-top/types";
 import { CheckIcon, CopyIcon, FloppyDiskIcon, ProhibitIcon, WarningIcon } from "@phosphor-icons/react/dist/ssr";
+import { useTimeout } from "ahooks";
 import { log } from "evlog";
 import { useEffect, useMemo, useState } from "react";
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
@@ -114,15 +115,19 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
     const [isSaving, setIsSaving] = useState(false);
 
     const [killStatus, setKillStatus] = useState<"idle" | "killing" | "success" | "error">("idle");
-    const [killError, setKillError] = useState<string | null>(null);
+    const [killError, setKillError] = useState<string>();
     const isKilling = killStatus === "killing";
     const { copied: copiedKillOp, copy: copyKillOp } = useCopyToClipboard();
     const { copied: copiedCommand, copy: copyCommand } = useCopyToClipboard();
 
     useEffect(() => {
         setKillStatus("idle");
-        setKillError(null);
+        setKillError(undefined);
     }, [query?.opid]);
+
+    // Self-cleaning reset: only arms the timeout while `saved` is true, avoiding a
+    // state update after unmount if the dialog closes right after saving.
+    useTimeout(() => setSaved(false), saved ? 500 : undefined);
 
     if (!query) {
         return null;
@@ -133,7 +138,6 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
         try {
             await apiClient.post(`/queries/${serverId}/save`, { query });
             setSaved(true);
-            setTimeout(() => setSaved(false), 500);
         } catch (err) {
             log.error({
                 action: "save_query",
@@ -152,7 +156,7 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
 
     const handleKillOp = async () => {
         setKillStatus("killing");
-        setKillError(null);
+        setKillError(undefined);
         try {
             await apiClient.post(`/queries/${serverId}/kill/${query.opid}`, {});
             setKillStatus("success");

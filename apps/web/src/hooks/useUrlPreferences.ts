@@ -9,7 +9,6 @@ const ACTIVITY_MODES = ["diff", "cumulative"] as const satisfies readonly Activi
 export type SortDirection = "asc" | "desc";
 export type SortColumn = "runtime" | "operation" | "namespace" | "client" | "opid";
 
-// Get defaults from settings
 const getDefaults = () => {
     const { defaultFilters } = useSettings.getState();
     return {
@@ -24,19 +23,20 @@ const getDefaults = () => {
     };
 };
 
-// Define parsers for each URL param (no defaults, we'll apply them dynamically)
+// Parsers carry no defaults here — defaults are applied dynamically from settings below,
+// since they can change at runtime independent of the URL.
 const preferenceParsers = {
     sortBy: parseAsString,
-    ipFilter: parseAsString, // Optional, no default
-    appFilter: parseAsString, // Optional, no default
-    userFilter: parseAsString, // Optional, no default
+    ipFilter: parseAsString,
+    appFilter: parseAsString,
+    userFilter: parseAsString,
     serverId: parseAsString,
     minTime: parseAsInteger,
     showAll: parseAsBoolean,
     isPaused: parseAsBoolean,
     sortDirection: parseAsString,
     refreshInterval: parseAsInteger,
-    readPreference: parseAsStringLiteral(READ_PREFERENCE_MODES), // Optional, no default
+    readPreference: parseAsStringLiteral(READ_PREFERENCE_MODES),
     mode: parseAsStringLiteral(ACTIVITY_MODES),
 };
 
@@ -46,24 +46,21 @@ export const useUrlPreferences = () => {
         shallow: false, // Allow full page navigation if needed
     });
 
-    // Get defaults from settings
     const DEFAULTS = getDefaults();
 
-    // Extract values with proper typing, applying defaults from settings
-    const ipFilter = preferences.ipFilter ?? undefined;
-    const appFilter = preferences.appFilter ?? undefined;
-    const userFilter = preferences.userFilter ?? undefined;
+    const mode = preferences.mode ?? DEFAULTS.mode;
     const showAll = preferences.showAll ?? DEFAULTS.showAll;
     const minTime = preferences.minTime ?? DEFAULTS.minTime;
     const serverId = preferences.serverId ?? DEFAULTS.serverId;
     const isPaused = preferences.isPaused ?? DEFAULTS.isPaused;
-    const readPreference = preferences.readPreference ?? undefined;
-    const mode = preferences.mode ?? DEFAULTS.mode;
+    const ipFilter = preferences.ipFilter ?? undefined;
+    const appFilter = preferences.appFilter ?? undefined;
+    const userFilter = preferences.userFilter ?? undefined;
     const sortBy = (preferences.sortBy as SortColumn) ?? DEFAULTS.sortBy;
+    const readPreference = preferences.readPreference ?? undefined;
     const refreshInterval = preferences.refreshInterval ?? DEFAULTS.refreshInterval;
     const sortDirection = (preferences.sortDirection as SortDirection) ?? DEFAULTS.sortDirection;
 
-    // Create setter functions with useMemoizedFn (no dependency arrays needed)
     const setServerId = useMemoizedFn((id: string) => {
         setPreferences({ serverId: id });
     });

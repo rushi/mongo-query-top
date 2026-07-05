@@ -6,6 +6,7 @@ import {
     PlayIcon,
     XIcon,
 } from "@phosphor-icons/react/dist/ssr";
+import { useTimeout } from "ahooks";
 import { log } from "evlog";
 import { useState } from "react";
 import { useUrlPreferences } from "../../hooks/useUrlPreferences";
@@ -36,14 +37,15 @@ export const FilterControls = () => {
 
     const [isSaving, setIsSaving] = useState(false);
     const [saved, setSaved] = useState(false);
-    const isSaveDisabled = [isSaving, saved].some(Boolean);
+    const isSaveDisabled = isSaving || saved;
+
+    useTimeout(() => setSaved(false), saved ? 2000 : undefined);
 
     const handleSaveAll = async () => {
         setIsSaving(true);
         try {
             await apiClient.post(`/queries/${serverId}/snapshot?minTime=${minTime}&readPreference=${readPreference}`);
             setSaved(true);
-            setTimeout(() => setSaved(false), 2000);
         } catch (err) {
             log.error({
                 action: "save_snapshot",

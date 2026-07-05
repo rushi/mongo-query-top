@@ -4,8 +4,8 @@ import { createEvlogError } from "evlog";
 import { useEffect, useRef, useState } from "react";
 import { API_BASE, API_KEY } from "../utils/api";
 
-const MAX_RETRY_DELAY = 30000; // 30 seconds max
-const INITIAL_RETRY_DELAY = 500; // Start with 0.5 second
+const MAX_RETRY_DELAY = 30000;
+const INITIAL_RETRY_DELAY = 500;
 
 export const useConnectedClients = (
     serverId: string,
@@ -23,11 +23,15 @@ export const useConnectedClients = (
     const abortControllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
-        if (!enabled) {
+        const resetConnection = () => {
             abortControllerRef.current?.abort();
             abortControllerRef.current = null;
             setIsConnected(false);
             setIsReconnecting(false);
+        };
+
+        if (!enabled) {
+            resetConnection();
             return;
         }
 
@@ -86,6 +90,8 @@ export const useConnectedClients = (
                         // Exponential backoff: double the delay, up to MAX_RETRY_DELAY
                         setIsReconnecting(true);
                         retryDelayRef.current = Math.min(retryDelayRef.current * 2, MAX_RETRY_DELAY);
+
+                        // fetchEventSource schedules the next retry after this many ms
                         return retryDelayRef.current;
                     },
                     onclose() {
@@ -105,10 +111,7 @@ export const useConnectedClients = (
 
         return () => {
             isActive = false;
-            abortControllerRef.current?.abort();
-            abortControllerRef.current = null;
-            setIsConnected(false);
-            setIsReconnecting(false);
+            resetConnection();
         };
     }, [serverId, refreshInterval, showAll, readPreference, enabled]);
 

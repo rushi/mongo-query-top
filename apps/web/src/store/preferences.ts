@@ -37,19 +37,23 @@ const getInitialState = () => {
     };
 };
 
+// Shared by rehydration sync and the settings-modal-closed sync below
+const applySettingsDefaults = () => {
+    const { defaultFilters } = useSettings.getState();
+    usePreferences.setState({
+        minTime: defaultFilters.minTimeMs,
+        refreshInterval: defaultFilters.refreshSec,
+        showAll: defaultFilters.showAll,
+    });
+};
+
 const syncWithSettingsDefaults = async (state: PreferencesState | undefined, error: unknown) => {
     if (!error && state) {
         // Wait for settings to hydrate
         await settingsHydrated;
 
-        // Now sync with settings defaults
-        const { defaultFilters } = useSettings.getState();
-        log.debug({ preferences: { event: "sync_with_settings_defaults", defaultFilters } });
-        usePreferences.setState({
-            minTime: defaultFilters.minTimeMs,
-            refreshInterval: defaultFilters.refreshSec,
-            showAll: defaultFilters.showAll,
-        });
+        log.debug({ preferences: { event: "sync_with_settings_defaults" } });
+        applySettingsDefaults();
     }
 };
 
@@ -96,14 +100,4 @@ export const usePreferences = create<PreferencesState>()(
 );
 
 // Sync preferences with settings defaults only when settings are applied (modal closes)
-useSettings.subscribe(
-    (state) => state.settingsVersion,
-    (_settingsVersion) => {
-        const { defaultFilters } = useSettings.getState();
-        usePreferences.setState({
-            minTime: defaultFilters.minTimeMs,
-            refreshInterval: defaultFilters.refreshSec,
-            showAll: defaultFilters.showAll,
-        });
-    },
-);
+useSettings.subscribe((state) => state.settingsVersion, applySettingsDefaults);

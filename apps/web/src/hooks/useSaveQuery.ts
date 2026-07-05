@@ -1,6 +1,7 @@
 import type { ProcessedQuery } from "@mongo-query-top/types";
+import { useUnmount } from "ahooks";
 import { log } from "evlog";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { apiClient } from "../utils/api";
 
 export const useSaveQuery = (serverId: string) => {
@@ -8,10 +9,9 @@ export const useSaveQuery = (serverId: string) => {
     const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
     const clearSavedTimeouts = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
-    useEffect(() => {
-        const timeouts = clearSavedTimeouts.current;
-        return () => timeouts.forEach(clearTimeout);
-    }, []);
+    useUnmount(() => {
+        clearSavedTimeouts.current.forEach(clearTimeout);
+    });
 
     const handleSave = useCallback(
         async (query: ProcessedQuery) => {

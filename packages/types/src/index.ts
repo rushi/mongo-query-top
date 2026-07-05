@@ -20,7 +20,6 @@ export type {
     ProcessedQuery,
     QueryData,
     QuerySummary,
-    Server,
     TopData,
     TopNode,
 } from "./api";

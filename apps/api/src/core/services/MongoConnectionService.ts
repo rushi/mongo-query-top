@@ -11,8 +11,9 @@ export class MongoConnectionService {
     constructor(private readonly idleDisconnectMs: number) {}
 
     async connect(serverId: string, uri: string): Promise<MongoClient> {
-        if (this.connections.has(serverId)) {
-            return this.connections.get(serverId)!;
+        const existing = this.connections.get(serverId);
+        if (existing) {
+            return existing;
         }
 
         const client = new MongoClient(uri, {
@@ -44,8 +45,7 @@ export class MongoConnectionService {
         }
         this.activeStreamCounts.clear();
 
-        const closePromises = Array.from(this.connections.values()).map(async (client) => client.close());
-        await Promise.all(closePromises);
+        await Promise.all(Array.from(this.connections.values()).map(async (client) => client.close()));
         this.connections.clear();
     }
 

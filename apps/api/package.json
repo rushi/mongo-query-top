@@ -28,7 +28,7 @@
         "@types/geoip-lite": "^1.4.4",
         "@types/humanize-duration": "^3.27.4",
         "@types/lodash-es": "^4.17.12",
-        "@types/node": "^25.9.4",
+        "@types/node": "^24.13.2",
         "tsx": "^4.23.0",
         "typescript": "^5.9.3",
         "vitest": "^3.2.6"

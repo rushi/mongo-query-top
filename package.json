@@ -6,6 +6,9 @@
     "description": "Show the current operations on a MongoDB instance in an easy to read table",
     "type": "module",
     "packageManager": "pnpm@10.8.0",
+    "engines": {
+        "node": ">=24.0.0"
+    },
     "workspaces": [
         "apps/*",
         "packages/*"
@@ -37,7 +40,7 @@
     },
     "devDependencies": {
         "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
-        "@types/node": "^25.9.4",
+        "@types/node": "^24.13.2",
         "@typescript-eslint/eslint-plugin": "^8.62.1",
         "@typescript-eslint/parser": "^8.62.1",
         "concurrently": "^9.2.3",

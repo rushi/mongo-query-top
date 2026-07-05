@@ -28,3 +28,5 @@ apps/web/src/config.ts
 /.playwright-mcp
 docs/superpowers
 /.superpowers
+/.codegraph
+.tokensave

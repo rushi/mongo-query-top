@@ -159,11 +159,18 @@ export const formatUserAgent = (q: MongoQuery): string => {
         return matchedRule.label;
     }
 
+    // Custom appName (set via MongoClient `appName` option) takes precedence over the
+    // generic "Node.js vXX" platform label, otherwise every custom-named client would
+    // be indistinguishable from a plain Node client.
+    const customAppName = q.appName ?? q.clientMetadata?.application?.name;
+    if (customAppName) {
+        return customAppName;
+    }
+
     const nodeMatch = q.clientMetadata?.platform?.match(NODE_RE);
     if (nodeMatch?.[0]) {
         return nodeMatch[0];
     }
 
-    const { clientMetadata } = q;
-    return clientMetadata?.application?.name ?? clientMetadata?.driver?.name ?? beautifyJson(clientMetadata);
+    return q.clientMetadata?.driver?.name ?? beautifyJson(q.clientMetadata);
 };

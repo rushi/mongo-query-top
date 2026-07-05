@@ -3,7 +3,7 @@ import { useMemoizedFn } from "ahooks";
 import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs";
 import { useSettings } from "../store/settings";
 
-const READ_PREFERENCE_MODES = ["primary", "secondaryPreferred"] as const satisfies readonly ReadPreferenceMode[];
+export const READ_PREFERENCE_MODES = ["primary", "secondaryPreferred"] as const satisfies readonly ReadPreferenceMode[];
 const ACTIVITY_MODES = ["diff", "cumulative"] as const satisfies readonly ActivityMode[];
 
 export type SortDirection = "asc" | "desc";

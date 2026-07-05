@@ -113,6 +113,7 @@ export interface TopData {
         serverId: string;
         timestamp: string;
         intervalMs: number;
+        serverStartedAt: string;
         isMockData?: boolean;
     };
 }

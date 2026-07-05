@@ -1,16 +1,42 @@
 import type { ActivityMetric, ActivityMode, TopNode } from "@mongo-query-top/types";
+import dayjs from "dayjs";
+
+const MS_PER_SECOND = 1_000;
+const MS_PER_MINUTE = 60 * MS_PER_SECOND;
+const MS_PER_HOUR = 60 * MS_PER_MINUTE;
+const MS_PER_DAY = 24 * MS_PER_HOUR;
+
+const durationParts = (totalMs: number) => ({
+    days: Math.floor(totalMs / MS_PER_DAY),
+    hours: Math.floor((totalMs % MS_PER_DAY) / MS_PER_HOUR),
+    minutes: Math.floor((totalMs % MS_PER_HOUR) / MS_PER_MINUTE),
+    seconds: Math.floor((totalMs % MS_PER_MINUTE) / MS_PER_SECOND),
+});
 
 export const formatMicros = (micros: number): string => {
     if (micros <= 0) {
         return "0";
     }
-    if (micros >= 1_000_000) {
-        return `${(micros / 1_000_000).toFixed(2)}s`;
+    if (micros < 1_000) {
+        return `${Math.round(micros)}µs`;
     }
-    if (micros >= 1_000) {
+    if (micros < MS_PER_SECOND * 1_000) {
         return `${(micros / 1_000).toFixed(1)}ms`;
     }
-    return `${Math.round(micros)}µs`;
+
+    const totalMs = micros / 1_000;
+    if (totalMs < MS_PER_MINUTE) {
+        return `${(totalMs / MS_PER_SECOND).toFixed(2)}s`;
+    }
+
+    const { days, hours, minutes, seconds } = durationParts(totalMs);
+    if (days > 0) {
+        return `${days}d ${hours}h`;
+    }
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m ${seconds}s`;
 };
 
 export const avgLatencyMicros = (time: number, count: number): number => {
@@ -32,3 +58,18 @@ export const getNodeRole = (nodes: TopNode[], host: string | undefined): TopNode
 const COUNT_FORMAT = new Intl.NumberFormat();
 
 export const formatCount = (count: number): string => COUNT_FORMAT.format(count);
+
+export const formatUptime = (startedAt: string): string => {
+    const { days, hours, minutes } = durationParts(dayjs().diff(dayjs(startedAt)));
+
+    const parts: string[] = [];
+    if (days > 0) {
+        parts.push(`${days}d`);
+    }
+    if (days > 0 || hours > 0) {
+        parts.push(`${hours}h`);
+    }
+    parts.push(`${minutes}m`);
+
+    return parts.join(" ");
+};

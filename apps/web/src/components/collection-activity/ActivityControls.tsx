@@ -1,5 +1,6 @@
 import type { ActivityMode } from "@mongo-query-top/types";
 import { InfoIcon, PauseIcon, PlayIcon } from "@phosphor-icons/react";
+import { formatUptime } from "../../lib/formatActivity";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
@@ -16,6 +17,7 @@ interface ActivityControlsProps {
     showAll: boolean;
     mode: ActivityMode;
     refreshInterval: number;
+    serverStartedAt: string | undefined;
     onModeChange: (mode: ActivityMode) => void;
     onRefreshIntervalChange: (seconds: number) => void;
     onTogglePause: () => void;
@@ -27,6 +29,7 @@ export const ActivityControls = ({
     showAll,
     mode,
     refreshInterval,
+    serverStartedAt,
     onModeChange,
     onRefreshIntervalChange,
     onTogglePause,
@@ -66,7 +69,7 @@ export const ActivityControls = ({
                                         <InfoIcon weight="bold" className="h-3 w-3" />
                                     </span>
                                 </TooltipTrigger>
-                                <TooltipContent className="max-w-md border-2 border-border bg-popover p-3">
+                                <TooltipContent className="max-w-md border-2 border-border bg-popover p-3 text-pretty">
                                     <p className="font-mono text-xs font-bold text-muted-foreground uppercase">
                                         VIEW_MODE
                                     </p>
@@ -76,9 +79,10 @@ export const ActivityControls = ({
                                         idle collections drop to 0.
                                     </p>
                                     <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-foreground">
-                                        <span className="text-primary">CUMULATIVE</span>: raw totals since server start.
-                                        Numbers only grow; best for all-time workload. Sparklines and hot-row highlight
-                                        are per-interval only.
+                                        <span className="text-primary">CUMULATIVE</span>: raw totals since server start
+                                        {serverStartedAt && ` (${formatUptime(serverStartedAt)})`}. Numbers only grow;
+                                        best for all-time workload. Sparklines and hot-row highlight are per-interval
+                                        only.
                                     </p>
                                 </TooltipContent>
                             </Tooltip>
@@ -130,6 +134,15 @@ export const ActivityControls = ({
                         </Button>
                     </div>
                 </div>
+
+                {serverStartedAt && (
+                    <div className="ml-auto space-y-1">
+                        <Label className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
+                            SERVER_UPTIME
+                        </Label>
+                        <p className="font-mono text-sm text-foreground">{formatUptime(serverStartedAt)}</p>
+                    </div>
+                )}
             </div>
         </Card>
     );

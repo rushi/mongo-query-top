@@ -1,9 +1,10 @@
-import type { ReadPreferenceMode } from "@mongo-query-top/types";
+import type { ActivityMode, ReadPreferenceMode } from "@mongo-query-top/types";
 import { useMemoizedFn } from "ahooks";
 import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs";
 import { useSettings } from "../store/settings";
 
 const READ_PREFERENCE_MODES = ["primary", "secondaryPreferred"] as const satisfies readonly ReadPreferenceMode[];
+const ACTIVITY_MODES = ["diff", "cumulative"] as const satisfies readonly ActivityMode[];
 
 export type SortDirection = "asc" | "desc";
 export type SortColumn = "runtime" | "operation" | "namespace" | "client" | "opid";
@@ -17,6 +18,7 @@ const getDefaults = () => {
         showAll: defaultFilters.showAll,
         sortBy: "runtime" as SortColumn,
         minTime: defaultFilters.minTimeMs,
+        mode: "diff" as ActivityMode,
         sortDirection: "desc" as SortDirection,
         refreshInterval: defaultFilters.refreshSec,
     };
@@ -35,6 +37,7 @@ const preferenceParsers = {
     sortDirection: parseAsString,
     refreshInterval: parseAsInteger,
     readPreference: parseAsStringLiteral(READ_PREFERENCE_MODES), // Optional, no default
+    mode: parseAsStringLiteral(ACTIVITY_MODES),
 };
 
 export const useUrlPreferences = () => {
@@ -55,6 +58,7 @@ export const useUrlPreferences = () => {
     const serverId = preferences.serverId ?? DEFAULTS.serverId;
     const isPaused = preferences.isPaused ?? DEFAULTS.isPaused;
     const readPreference = preferences.readPreference ?? undefined;
+    const mode = preferences.mode ?? DEFAULTS.mode;
     const sortBy = (preferences.sortBy as SortColumn) ?? DEFAULTS.sortBy;
     const refreshInterval = preferences.refreshInterval ?? DEFAULTS.refreshInterval;
     const sortDirection = (preferences.sortDirection as SortDirection) ?? DEFAULTS.sortDirection;
@@ -107,6 +111,10 @@ export const useUrlPreferences = () => {
         setPreferences({ readPreference: pref ?? null });
     });
 
+    const setMode = useMemoizedFn((newMode: ActivityMode) => {
+        setPreferences({ mode: newMode });
+    });
+
     const resetFilters = useMemoizedFn(() => {
         const defaults = getDefaults();
         setPreferences({
@@ -117,6 +125,7 @@ export const useUrlPreferences = () => {
             minTime: defaults.minTime,
             showAll: defaults.showAll,
             isPaused: defaults.isPaused,
+            mode: defaults.mode,
             sortDirection: defaults.sortDirection,
             refreshInterval: defaults.refreshInterval,
         });
@@ -131,6 +140,7 @@ export const useUrlPreferences = () => {
         userFilter,
         serverId,
         isPaused,
+        mode,
         sortDirection,
         refreshInterval,
         readPreference,
@@ -145,5 +155,6 @@ export const useUrlPreferences = () => {
         setSortColumn,
         setReadPreference,
         setRefreshInterval,
+        setMode,
     };
 };

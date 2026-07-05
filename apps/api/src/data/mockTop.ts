@@ -1,4 +1,5 @@
 import type { TopCommandResult, TopMetric, TopNamespaceStats } from "@mongo-query-top/types";
+import dayjs from "dayjs";
 
 const NAMESPACES = ["shop.orders", "shop.products", "shop.customers", "analytics.events", "admin.system.users"];
 
@@ -17,6 +18,10 @@ const makeStats = (readTime: number, readCount: number, writeTime: number, write
 });
 
 const randInc = (max: number): number => Math.floor(Math.random() * max);
+
+export const MOCK_SERVER_STARTED_AT = dayjs()
+    .subtract(2 * 24 * 60 + 63, "minute")
+    .toISOString();
 
 // Returns a fresh cumulative snapshot advanced from `previous` (or a baseline
 // when there is none), so consecutive calls produce non-zero diffs. Callers own

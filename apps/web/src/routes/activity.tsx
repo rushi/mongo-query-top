@@ -1,4 +1,4 @@
-import type { ActivityMode, ReadPreferenceMode } from "@mongo-query-top/types";
+import type { ReadPreferenceMode } from "@mongo-query-top/types";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSetState, useTitle } from "ahooks";
 import { useEffect, useState } from "react";
@@ -28,9 +28,10 @@ function CollectionActivityPage() {
         toggleShowAll,
         isPaused,
         togglePause,
+        mode,
+        setMode,
     } = useUrlPreferences();
 
-    const [mode, setMode] = useState<ActivityMode>("diff");
     const [selectedNode, setSelectedNode] = useState<string>();
     const [connectionState, setConnectionState] = useSetState({
         isConnecting: false,
@@ -163,6 +164,7 @@ function CollectionActivityPage() {
                     showAll={showAll}
                     mode={mode}
                     refreshInterval={refreshInterval}
+                    serverStartedAt={data?.metadata.serverStartedAt}
                     onModeChange={setMode}
                     onRefreshIntervalChange={setRefreshInterval}
                     onTogglePause={togglePause}

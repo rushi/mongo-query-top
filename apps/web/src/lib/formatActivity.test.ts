@@ -18,6 +18,18 @@ describe("formatMicros", () => {
     it("renders second-scale values", () => {
         expect(formatMicros(2_500_000)).toBe("2.50s");
     });
+
+    it("renders minute-scale values", () => {
+        expect(formatMicros(125_000_000)).toBe("2m 5s");
+    });
+
+    it("renders hour-scale values", () => {
+        expect(formatMicros(2 * 3_600_000_000 + 5 * 60_000_000)).toBe("2h 5m");
+    });
+
+    it("renders day-scale values", () => {
+        expect(formatMicros(3 * 86_400_000_000 + 4 * 3_600_000_000)).toBe("3d 4h");
+    });
 });
 
 describe("avgLatencyMicros", () => {

@@ -1,11 +1,12 @@
 import type { CollectionActivity, ServerConfig, TopCommandResult, TopNode } from "@mongo-query-top/types";
 import config from "config";
+import dayjs from "dayjs";
 import type { FastifyInstance } from "fastify";
 import type { MongoClient } from "mongodb";
 import { getPinnedClient } from "../core/lib/pinnedClient.js";
 import { parseReadPreference } from "../core/lib/readPreference.js";
 import { buildCollectionActivity } from "../core/lib/topProcessor.js";
-import { nextMockTop } from "../data/mockTop.js";
+import { MOCK_SERVER_STARTED_AT, nextMockTop } from "../data/mockTop.js";
 
 const serverConfigs = config.get<Record<string, ServerConfig>>("servers");
 
@@ -18,17 +19,26 @@ const fetchRawTop = async (client: MongoClient, readPreference?: string): Promis
     return result as TopCommandResult;
 };
 
-const buildTopResponse = (
-    serverId: string,
-    collections: CollectionActivity[],
-    intervalMs: number,
-    isMock: boolean,
-) => ({
+const fetchServerStartedAt = async (client: MongoClient): Promise<string> => {
+    const { uptime } = await client.db("admin").command({ serverStatus: 1 });
+    return dayjs().subtract(uptime, "second").toISOString();
+};
+
+interface TopResponseOptions {
+    serverId: string;
+    collections: CollectionActivity[];
+    intervalMs: number;
+    serverStartedAt: string;
+    isMock: boolean;
+}
+
+const buildTopResponse = ({ serverId, collections, intervalMs, serverStartedAt, isMock }: TopResponseOptions) => ({
     collections,
     metadata: {
         serverId,
-        timestamp: new Date().toISOString(),
+        timestamp: dayjs().toISOString(),
         intervalMs,
+        serverStartedAt,
         ...(isMock ? { isMockData: true } : {}),
     },
 });
@@ -69,7 +79,13 @@ export default async function topRoutes(fastify: FastifyInstance) {
 
         if (serverId === "mock") {
             const collections = buildCollectionActivity(nextMockTop(), undefined, showAll);
-            return buildTopResponse(serverId, collections, 0, true);
+            return buildTopResponse({
+                serverId,
+                collections,
+                intervalMs: 0,
+                serverStartedAt: MOCK_SERVER_STARTED_AT,
+                isMock: true,
+            });
         }
 
         const client = request.services.mongoService.getConnection(serverId);
@@ -78,9 +94,12 @@ export default async function topRoutes(fastify: FastifyInstance) {
         }
 
         try {
-            const current = await fetchRawTop(client, readPreference);
+            const [current, serverStartedAt] = await Promise.all([
+                fetchRawTop(client, readPreference),
+                fetchServerStartedAt(client),
+            ]);
             const collections = buildCollectionActivity(current, undefined, showAll);
-            return buildTopResponse(serverId, collections, 0, false);
+            return buildTopResponse({ serverId, collections, intervalMs: 0, serverStartedAt, isMock: false });
         } catch (err) {
             return reply.code(500).send({
                 error: "Failed to fetch collection activity",
@@ -160,6 +179,7 @@ export default async function topRoutes(fastify: FastifyInstance) {
             ? { client, pinned: false }
             : await resolveSampleClient(fastify, client!, serverId, node);
         const effectiveReadPreference = pinned ? "secondaryPreferred" : readPreference;
+        const serverStartedAt = isMock ? MOCK_SERVER_STARTED_AT : await fetchServerStartedAt(sampleClient!);
 
         // Per-stream previous sample keeps diffs correct even with multiple clients
         // streaming the same server (no shared service state).
@@ -177,7 +197,7 @@ export default async function topRoutes(fastify: FastifyInstance) {
                 const collections = buildCollectionActivity(current, previousSample, showAll);
                 previousSample = current;
 
-                const data = buildTopResponse(serverId, collections, intervalMs, isMock);
+                const data = buildTopResponse({ serverId, collections, intervalMs, serverStartedAt, isMock });
                 reply.raw.write(`event: top\ndata: ${JSON.stringify(data)}\n\n`);
             } catch (err) {
                 if (isActive) {

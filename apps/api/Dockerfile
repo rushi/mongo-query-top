@@ -50,9 +50,9 @@ RUN pnpm install --prod --frozen-lockfile
 
 # Set environment
 ENV NODE_ENV=production
-ENV API_PORT=9001
+ENV API_PORT=7011
 ENV API_HOST=0.0.0.0
 
-EXPOSE 9001
+EXPOSE 7011
 
 CMD ["node", "apps/api/dist/server.js"]

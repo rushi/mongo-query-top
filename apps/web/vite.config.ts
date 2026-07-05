@@ -7,7 +7,7 @@ import viteTsConfigPaths from "vite-tsconfig-paths";
 
 const config = defineConfig({
     server: {
-        port: 9000,
+        port: 7000,
         watch: {
             awaitWriteFinish: { stabilityThreshold: Number(process.env.STABILITY_THRESHOLD) || 1000 },
         },

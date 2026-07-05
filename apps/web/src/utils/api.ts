@@ -3,16 +3,17 @@ import { createEvlogError, parseError } from "evlog";
 import config from "../config";
 
 // Dynamically determine API URL based on config
-// If config.apiUrl is set, use it. Otherwise, use same hostname as web app with port 9001
+// If config.apiUrl is set, use it. Otherwise, use same hostname as web app with the dev API port
 export const getApiBaseUrl = (): string => {
     if (config.apiUrl) {
         return config.apiUrl;
     }
 
-    // Fallback: Use current hostname but with API port 9001
+    // Fallback: Use current hostname but with dev API port (7001). config.apiUrl is always
+    // set by generate-web-config.js in practice, so this rarely triggers.
     const protocol = window.location.protocol;
     const hostname = window.location.hostname;
-    return `${protocol}//${hostname}:9001`;
+    return `${protocol}//${hostname}:7001`;
 };
 
 export const API_BASE = `${getApiBaseUrl()}/api`;

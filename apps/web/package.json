@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev --port 9000",
+    "dev": "vite dev --port 7000",
     "build": "vite build",
-    "start": "vite preview --port 9000",
+    "start": "vite preview --port 7010",
     "preview": "vite preview",
     "test": "vitest run",
     "format": "prettier --write -l src",

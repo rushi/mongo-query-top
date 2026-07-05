@@ -5,7 +5,7 @@ services:
       dockerfile: apps/api/Dockerfile
     container_name: mongo-query-top-api
     ports:
-      - "9001:9001"
+      - "7011:7011"
     environment:
       - NODE_ENV=production
     volumes:
@@ -17,7 +17,7 @@ services:
     networks:
       - mongo-query-top-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:9001/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:7011/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -33,7 +33,7 @@ services:
         - API_URL=${API_URL:-}
     container_name: mongo-query-top-web
     ports:
-      - "9000:80"
+      - "7010:80"
     depends_on:
       api:
         condition: service_healthy

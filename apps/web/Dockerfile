@@ -24,10 +24,12 @@ COPY . .
 ARG API_URL
 
 # Generate web config from YAML files (no environment variables!)
+# NODE_ENV=production selects config/production.yaml so the fallback API URL
+# (used when API_URL isn't passed) picks up the production port, not the dev one.
 RUN if [ -n "$API_URL" ]; then \
-        node scripts/generate-web-config.js "$API_URL"; \
+        NODE_ENV=production node scripts/generate-web-config.js "$API_URL"; \
     else \
-        node scripts/generate-web-config.js; \
+        NODE_ENV=production node scripts/generate-web-config.js; \
     fi
 
 RUN pnpm run build --filter=@mongo-query-top/web

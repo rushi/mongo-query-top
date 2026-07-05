@@ -14,10 +14,10 @@ servers:
 
 # Override API settings for local development
 # api:
-#   port: 9002
+#   port: 7002
 #   apiKey: your-secure-api-key-here
 #   logLevel: debug
 
 # Override frontend URL if needed
 # frontend:
-#   url: http://localhost:9000
+#   url: http://localhost:7000

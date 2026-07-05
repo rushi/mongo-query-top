@@ -6,7 +6,7 @@ servers:
     uri: mongodb://localhost:27017
 
 api:
-  port: 9001
+  port: 7001
   host: 0.0.0.0
   logLevel: info
   apiKey: dev-key-change-in-production
@@ -14,9 +14,8 @@ api:
   idleDisconnectMs: 300000
   cors:
     origins:
-      - http://localhost:9000 # Vite dev server (preferred)
-      - http://localhost:9173 # Vite preview server
+      - http://localhost:7000 # Vite dev server
     credentials: true
 
 frontend:
-  url: http://localhost:9000
+  url: http://localhost:7000

@@ -1,0 +1,10 @@
+# Production overrides — merged over default.yaml when NODE_ENV=production.
+# Only ports/URLs that differ between dev and prod builds live here.
+api:
+  port: 7011
+  cors:
+    origins:
+      - http://localhost:7010 # nginx-served production build
+
+frontend:
+  url: http://localhost:7010

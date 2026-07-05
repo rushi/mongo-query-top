@@ -1,6 +1,7 @@
 import type { CollectionActivity, ServerConfig, TopCommandResult, TopNode } from "@mongo-query-top/types";
 import config from "config";
 import dayjs from "dayjs";
+import { log } from "evlog";
 import type { FastifyInstance } from "fastify";
 import type { MongoClient } from "mongodb";
 import { getPinnedClient } from "../core/lib/pinnedClient.js";
@@ -48,7 +49,6 @@ const buildTopResponse = ({ serverId, collections, intervalMs, serverStartedAt, 
 // node (per-interval diffs across different secondaries are meaningless). Falls
 // back to the pooled client if pinning fails (e.g. mongodb+srv uris).
 const resolveSampleClient = async (
-    fastify: FastifyInstance,
     pooledClient: MongoClient,
     serverId: string,
     node: string | undefined,
@@ -62,7 +62,7 @@ const resolveSampleClient = async (
         const client = await getPinnedClient(serverId, node, uri);
         return { client, pinned: true };
     } catch (err) {
-        fastify.log.warn(`Node pinning failed for ${serverId}/${node}, using pooled client: ${(err as Error).message}`);
+        log.warn({ nodePinning: { event: "failed", server: serverId, node }, error: (err as Error).message });
         return { client: pooledClient, pinned: false };
     }
 };
@@ -177,7 +177,7 @@ export default async function topRoutes(fastify: FastifyInstance) {
         // Pinned reads use secondaryPreferred so a directConnection to a secondary is accepted.
         const { client: sampleClient, pinned } = isMock
             ? { client, pinned: false }
-            : await resolveSampleClient(fastify, client!, serverId, node);
+            : await resolveSampleClient(client!, serverId, node);
         const effectiveReadPreference = pinned ? "secondaryPreferred" : readPreference;
         const serverStartedAt = isMock ? MOCK_SERVER_STARTED_AT : await fetchServerStartedAt(sampleClient!);
 
@@ -229,7 +229,7 @@ export default async function topRoutes(fastify: FastifyInstance) {
             isActive = false;
             clearInterval(intervalId);
             clearInterval(heartbeatId);
-            fastify.log.info(`Top SSE connection closed for server: ${serverId}`);
+            log.info({ sse: { event: "closed", route: "top", server: serverId } });
         });
     });
 }

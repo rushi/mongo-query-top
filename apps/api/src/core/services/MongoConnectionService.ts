@@ -1,8 +1,5 @@
+import { log } from "evlog";
 import { Db, MongoClient } from "mongodb";
-
-interface Logger {
-    info: (message: string) => void;
-}
 
 export class MongoConnectionService {
     private readonly connections: Map<string, MongoClient> = new Map();
@@ -11,10 +8,7 @@ export class MongoConnectionService {
 
     // idleDisconnectMs comes from config/default.yaml (api.idleDisconnectMs) — no local default,
     // config is the single source of truth so the two values can't drift.
-    constructor(
-        private readonly idleDisconnectMs: number,
-        private readonly logger: Logger = console,
-    ) {}
+    constructor(private readonly idleDisconnectMs: number) {}
 
     async connect(serverId: string, uri: string): Promise<MongoClient> {
         if (this.connections.has(serverId)) {
@@ -80,9 +74,11 @@ export class MongoConnectionService {
                 return;
             }
 
-            this.logger.info(
-                `Idle disconnect: no viewers for server "${serverId}" in ${this.idleDisconnectMs}ms, closing MongoDB connection`,
-            );
+            log.info({
+                event: "idle_disconnect",
+                server: { id: serverId },
+                idleDisconnectMs: this.idleDisconnectMs,
+            });
             void this.disconnect(serverId);
         }, this.idleDisconnectMs);
 

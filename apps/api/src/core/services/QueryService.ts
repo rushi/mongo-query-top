@@ -6,6 +6,7 @@ import type {
     ProcessedQuery,
     QuerySummary,
 } from "@mongo-query-top/types";
+import { useLogger } from "evlog/fastify";
 import geoip from "geoip-lite";
 import shortHumanizeTime from "../lib/helpers.js";
 import { formatUserAgent, sanitizeQuery, shouldSkipConnection, shouldSkipQuery } from "../lib/queryProcessor.js";
@@ -16,9 +17,14 @@ export class QueryService {
     processQueries(queries: MongoQuery[], showAll = false): ProcessedQuery[] {
         const filtered = showAll ? queries : queries.filter((q) => !shouldSkipQuery(q));
 
-        return filtered
+        const processed = filtered
             .sort((a, b) => b.microsecs_running - a.microsecs_running) // Descending: longest at top
             .map((q, idx) => this.toProcessedQuery(q, idx + 1));
+
+        // Enrich the request's wide event from the service layer without threading `request` through.
+        useLogger().set({ queries: { received: queries.length, processed: processed.length, showAll } });
+
+        return processed;
     }
 
     private toProcessedQuery(q: MongoQuery, idx: number): ProcessedQuery {

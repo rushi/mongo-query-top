@@ -1,4 +1,5 @@
 import type { ProcessedQuery } from "@mongo-query-top/types";
+import { log } from "evlog";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiClient } from "../utils/api";
 
@@ -28,7 +29,11 @@ export const useSaveQuery = (serverId: string) => {
                 }, 2000);
                 clearSavedTimeouts.current.set(query.opid, timeoutId);
             } catch (err) {
-                console.error("Failed to save query:", err);
+                log.error({
+                    action: "save_query",
+                    query: { opid: query.opid },
+                    error: err instanceof Error ? err.message : String(err),
+                });
             } finally {
                 setSavingIds((prev) => {
                     const next = new Set(prev);

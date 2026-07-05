@@ -1,5 +1,6 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import type { ClientsData, ReadPreferenceMode } from "@mongo-query-top/types";
+import { createEvlogError } from "evlog";
 import { useEffect, useRef, useState } from "react";
 import { API_BASE, API_KEY } from "../utils/api";
 
@@ -58,7 +59,10 @@ export const useConnectedClients = (
                             setError(null);
                             retryDelayRef.current = INITIAL_RETRY_DELAY;
                         } else {
-                            throw new Error(`Failed to connect: ${response.statusText}`);
+                            throw createEvlogError({
+                                message: `Failed to connect: ${response.statusText}`,
+                                status: response.status,
+                            });
                         }
                     },
                     onmessage(event) {

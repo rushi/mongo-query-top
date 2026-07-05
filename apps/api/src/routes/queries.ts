@@ -1,4 +1,5 @@
 import type { MongoQuery, ProcessedQuery } from "@mongo-query-top/types";
+import { log } from "evlog";
 import type { FastifyInstance } from "fastify";
 import { parseReadPreference } from "../core/lib/readPreference.js";
 import { mockQueries } from "../data/mockQueries.js";
@@ -104,7 +105,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
         request.raw.on("close", () => {
             isActive = false;
             clearInterval(intervalId);
-            fastify.log.info(`Mock SSE connection closed`);
+            log.info({ sse: { event: "closed", route: "mock" } });
         });
 
         // Keep connection alive with heartbeat
@@ -260,34 +261,47 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
                         if (query.secs_running >= longRunningThresholdSecs) {
                             shouldSave = true;
                             saveType = "auto-save-long-running";
-                            fastify.log.info(
-                                `Auto-save: Long-running query ${query.opid} (${query.secs_running}s >= ${longRunningThresholdSecs}s)`,
-                            );
+                            log.info({
+                                autoSave: {
+                                    type: "long-running",
+                                    opid: query.opid,
+                                    secsRunning: query.secs_running,
+                                    thresholdSecs: longRunningThresholdSecs,
+                                },
+                            });
                         }
 
                         // Check COLLSCAN
                         if (autoSaveCollscan === "true" && query.isCollscan) {
                             shouldSave = true;
                             saveType = "auto-save-collscan";
-                            fastify.log.info(`Auto-save: COLLSCAN query ${query.opid} on ${query.namespace}`);
+                            log.info({ autoSave: { type: "collscan", opid: query.opid, namespace: query.namespace } });
                         }
 
                         // Check timeout risk
                         if (autoSaveTimeoutRisk === "true" && query.secs_running >= timeoutRiskSecs) {
                             shouldSave = true;
                             saveType = "auto-save-timeout-risk";
-                            fastify.log.info(
-                                `Auto-save: Timeout risk query ${query.opid} (${query.secs_running}s >= ${timeoutRiskSecs}s)`,
-                            );
+                            log.info({
+                                autoSave: {
+                                    type: "timeout-risk",
+                                    opid: query.opid,
+                                    secsRunning: query.secs_running,
+                                    thresholdSecs: timeoutRiskSecs,
+                                },
+                            });
                         }
 
                         if (shouldSave) {
                             try {
                                 await request.services.loggerService.saveQuery(serverId, query, saveType);
                                 savedQueryIds.add(query.opid);
-                                fastify.log.info(`Auto-saved query ${query.opid} (${saveType})`);
+                                log.info({ autoSave: { event: "saved", opid: query.opid, saveType } });
                             } catch (err) {
-                                fastify.log.error(`Failed to auto-save query ${query.opid}: ${(err as Error).message}`);
+                                log.error({
+                                    autoSave: { event: "failed", opid: query.opid },
+                                    error: (err as Error).message,
+                                });
                             }
                         }
                     }
@@ -322,7 +336,7 @@ export default async function queriesRoutes(fastify: FastifyInstance) {
             clearInterval(intervalId);
             savedQueryIds.clear();
             request.services.mongoService.unregisterStream(serverId);
-            fastify.log.info(`SSE connection closed for server: ${serverId}`);
+            log.info({ sse: { event: "closed", route: "queries", server: serverId } });
         });
 
         // Keep connection alive with heartbeat

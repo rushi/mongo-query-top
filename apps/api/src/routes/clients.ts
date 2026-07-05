@@ -1,4 +1,5 @@
 import type { MongoQuery } from "@mongo-query-top/types";
+import { log } from "evlog";
 import type { FastifyInstance } from "fastify";
 import type { MongoClient } from "mongodb";
 import type { QueryService } from "../core/index.js";
@@ -128,7 +129,7 @@ export default async function clientsRoutes(fastify: FastifyInstance) {
             isActive = false;
             clearInterval(intervalId);
             clearInterval(heartbeatId);
-            fastify.log.info(`Clients SSE connection closed for server: ${serverId}`);
+            log.info({ sse: { event: "closed", route: "clients", server: serverId } });
         });
     });
 }

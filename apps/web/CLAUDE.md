@@ -30,7 +30,15 @@ Lands in `src/components/ui/`. Import from there directly (no barrel imports fro
 
 ## API Client
 
-Centralized in `src/utils/api.ts` — Axios with base URL from `VITE_API_URL`. Always add new API calls there.
+Centralized in `src/utils/api.ts` — Axios with base URL from `VITE_API_URL`. Always add new API calls there. The response interceptor normalizes API errors with `parseError()` and re-throws a structured `createEvlogError` (keeps `.message`, adds `.why`/`.fix`).
+
+## Logging (evlog only)
+
+evlog is the only logger — **never** `console.log`/`console.error`. The `evlog/vite` plugin (service `mongo-query-top-web`, console-only) auto-inits the browser logger and strips `log.debug()` from prod builds.
+
+- Import explicitly from `evlog`: `import { log, parseError, createEvlogError } from "evlog"`.
+- Emit structured wide events: `log.info({ connection: { event: "established", url } })`, `log.error({ action: "save_query", error: msg })` — grouped objects, not strings. Pick the level by intent (`debug` for high-frequency/noise so it's stripped in prod).
+- Errors: `throw createEvlogError({ message, status })`; extract user-facing fields with `parseError(err)`. Note `useLogger`/`createError` are server-only — the client uses `log` + `createEvlogError`.
 
 ## Frontend Code Style
 

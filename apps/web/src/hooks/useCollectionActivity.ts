@@ -1,5 +1,6 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import type { ReadPreferenceMode, TopData } from "@mongo-query-top/types";
+import { createEvlogError } from "evlog";
 import { useEffect, useRef, useState } from "react";
 import { API_BASE, API_KEY } from "../utils/api";
 
@@ -69,7 +70,10 @@ export const useCollectionActivity = (
                             setError(null);
                             retryDelayRef.current = INITIAL_RETRY_DELAY;
                         } else {
-                            throw new Error(`Failed to connect: ${response.statusText}`);
+                            throw createEvlogError({
+                                message: `Failed to connect: ${response.statusText}`,
+                                status: response.status,
+                            });
                         }
                     },
                     onmessage(event) {

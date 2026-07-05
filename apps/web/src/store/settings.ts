@@ -1,3 +1,4 @@
+import { log } from "evlog";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -91,7 +92,7 @@ const DEFAULT_STATE = {
 
 const onSettingsRehydrated = (state: SettingsState | undefined, error: unknown) => {
     if (!error) {
-        console.log("[Settings] Hydrated from localStorage", state?.defaultFilters);
+        log.debug({ settings: { event: "hydrated", defaultFilters: state?.defaultFilters } });
         // Resolve the hydration promise
         settingsHydratedResolve();
     }

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { createEvlogError, parseError } from "evlog";
 import config from "../config";
 
 // Dynamically determine API URL based on config
@@ -27,10 +28,17 @@ const axiosInstance = axios.create({
 // Response interceptor for error handling
 axiosInstance.interceptors.response.use(
     (response) => response,
-    (error: { response?: { data?: { message?: string; error?: string } }; message?: string }) => {
-        const data = error.response?.data;
-        const errorMessage = data?.message ?? data?.error ?? error.message ?? "API request failed";
-        throw new Error(errorMessage);
+    (error: { response?: { data?: unknown }; message?: string }) => {
+        // The API sends structured errors ({ message, why, fix, link }). Normalize whatever
+        // we got and re-throw as an EvlogError so callers keep `.message` and gain `.why`/`.fix`.
+        const parsed = parseError(error.response?.data ?? error);
+        throw createEvlogError({
+            message: parsed.message ?? error.message ?? "API request failed",
+            status: parsed.status,
+            why: parsed.why,
+            fix: parsed.fix,
+            link: parsed.link,
+        });
     },
 );
 

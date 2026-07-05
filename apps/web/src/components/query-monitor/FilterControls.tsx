@@ -6,6 +6,7 @@ import {
     PlayIcon,
     XIcon,
 } from "@phosphor-icons/react/dist/ssr";
+import { log } from "evlog";
 import { useState } from "react";
 import { useUrlPreferences } from "../../hooks/useUrlPreferences";
 import { usePreferences } from "../../store/preferences";
@@ -44,7 +45,11 @@ export const FilterControls = () => {
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         } catch (err) {
-            console.error("Failed to save snapshot:", err);
+            log.error({
+                action: "save_snapshot",
+                server: { id: serverId },
+                error: err instanceof Error ? err.message : String(err),
+            });
         } finally {
             setIsSaving(false);
         }

@@ -1,4 +1,5 @@
 import type { ReadPreferenceMode } from "@mongo-query-top/types";
+import { log } from "evlog";
 import { create } from "zustand";
 import { persist, subscribeWithSelector } from "zustand/middleware";
 import { settingsHydrated, useSettings } from "./settings";
@@ -43,7 +44,7 @@ const syncWithSettingsDefaults = async (state: PreferencesState | undefined, err
 
         // Now sync with settings defaults
         const { defaultFilters } = useSettings.getState();
-        console.log("[Preferences] Syncing with settings defaults", defaultFilters);
+        log.debug({ preferences: { event: "sync_with_settings_defaults", defaultFilters } });
         usePreferences.setState({
             minTime: defaultFilters.minTimeMs,
             refreshInterval: defaultFilters.refreshSec,

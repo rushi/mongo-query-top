@@ -63,6 +63,17 @@ VITE_API_KEY=dev-key-change-in-production
 - Use package.json scripts (`npm run lint`) not direct tool invocation (`npx eslint`)
 - After multi-file edits: run `pnpm build` to catch TypeScript errors before declaring done
 
+## Logging (evlog — use everywhere)
+
+`evlog` is the ONLY logger in both apps. **Never** use `console.log`/`console.error`, `fastify.log`, or pino directly.
+
+- **Structured wide events, not strings.** Group data into objects: `log.info({ sse: { event: "closed", server: serverId } })`, not `log.info("closed " + serverId)`. The global `log` API takes an object (`log.info({...})`, `log.warn({...})`, `log.error({...})`).
+- **Errors:** `throw createError({ message, status, why, fix })` (backend) / `createEvlogError({...})` (frontend) instead of `throw new Error(...)`. Read user-facing fields with `parseError(err)`.
+- **Backend** (`apps/api`): request-scoped context → `request.log.set({...})` or `useLogger()` (from `evlog/fastify`) inside services; standalone events (startup, SSE lifecycle, background tasks) → global `log` (from `evlog`). Fastify's pino is disabled (`logger: false`) — `fastify.log` is a no-op, don't use it.
+- **Frontend** (`apps/web`): import `{ log, parseError, createEvlogError }` from `evlog` (console-only via the `evlog/vite` plugin).
+
+See per-app `CLAUDE.md` and the `review-logging-patterns` skill for details.
+
 ## Docker
 
 See [docs/DOCKER.md](docs/DOCKER.md). Config-driven — no env vars needed, reads `config/local.yaml`.

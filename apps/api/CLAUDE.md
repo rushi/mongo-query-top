@@ -53,3 +53,12 @@ servers:
 - Types defined in `packages/types/src/` — prefer extending there over local types
 - Routes as async functions registered with `fastify.register()` — these are the only default exports
 - Business logic in service classes, not route handlers
+
+## Logging (evlog only)
+
+Fastify's pino logger is **disabled** (`logger: false` in `server.ts`). evlog is the only logger. Never use `fastify.log`, `console.*`, or pino.
+
+- **Per request:** enrich the wide event with `request.log.set({ user: { id } })`, or `useLogger()` from `evlog/fastify` inside services (no need to thread `request` through).
+- **Standalone events** (startup/shutdown, SSE lifecycle, auto-save, idle disconnect): global `log` from `evlog` — `log.info({ ... })` / `log.warn({ ... })` / `log.error({ ... })`, always a grouped object, never a string.
+- **Errors:** `throw createError({ message, status, why, fix })` from `evlog`; the `setErrorHandler` in `server.ts` turns it into a structured JSON response via `parseError()`.
+- Service name (`mongo-query-top-api`) is set once via `initLogger()` in `server.ts`.

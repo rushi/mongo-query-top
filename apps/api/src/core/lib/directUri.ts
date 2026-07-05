@@ -1,3 +1,5 @@
+import { createError } from "evlog";
+
 const SCHEME = "mongodb://";
 
 // Rewrites a replica-set connection string to talk directly to a single host,
@@ -7,7 +9,12 @@ const SCHEME = "mongodb://";
 // mongodb+srv:// can't be pinned this way, so the caller must fall back.
 export const buildDirectUri = (uri: string, host: string): string => {
     if (!uri.startsWith(SCHEME)) {
-        throw new Error("Node pinning requires a standard mongodb:// connection string");
+        throw createError({
+            message: "Node pinning requires a standard mongodb:// connection string",
+            status: 400,
+            why: "The configured URI is a mongodb+srv:// (or otherwise non-standard) string, which can't be pinned to a single node.",
+            fix: "Use a standard mongodb://host:port connection string for the server you want to node-pin.",
+        });
     }
 
     const rest = uri.slice(SCHEME.length);

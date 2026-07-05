@@ -1,6 +1,7 @@
 import JsonView from "@microlink/react-json-view";
 import type { ProcessedQuery } from "@mongo-query-top/types";
 import { CheckIcon, CopyIcon, FloppyDiskIcon, ProhibitIcon, WarningIcon } from "@phosphor-icons/react/dist/ssr";
+import { log } from "evlog";
 import { useEffect, useMemo, useState } from "react";
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
 import { useUrlPreferences } from "../../hooks/useUrlPreferences";
@@ -134,7 +135,11 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
             setSaved(true);
             setTimeout(() => setSaved(false), 500);
         } catch (err) {
-            console.error("Failed to save query:", err);
+            log.error({
+                action: "save_query",
+                query: { opid: query.opid },
+                error: err instanceof Error ? err.message : String(err),
+            });
         } finally {
             setIsSaving(false);
         }
@@ -152,7 +157,11 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
             await apiClient.post(`/queries/${serverId}/kill/${query.opid}`, {});
             setKillStatus("success");
         } catch (err) {
-            console.error("Failed to kill operation:", err);
+            log.error({
+                action: "kill_operation",
+                query: { opid: query.opid },
+                error: err instanceof Error ? err.message : String(err),
+            });
             setKillError(err instanceof Error ? err.message : "Unknown error");
             setKillStatus("error");
         }

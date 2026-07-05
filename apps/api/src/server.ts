@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import cors from "@fastify/cors";
 import config from "config";
+import { initLogger, log, parseError } from "evlog";
+import { evlog } from "evlog/fastify";
 import Fastify from "fastify";
 import { MongoConnectionService, QueryLoggerService, QueryService } from "./core/index.js";
 import { closePinnedClients } from "./core/lib/pinnedClient.js";
@@ -20,14 +22,16 @@ declare module "fastify" {
     }
 }
 
-const fastify = Fastify({
-    logger: {
-        level: config.get<string>("api.logLevel"),
-    },
-});
+// Initialize evlog before Fastify so wide events carry the service name.
+initLogger({ env: { service: "mongo-query-top-api" } });
+
+// evlog is the only logger — Fastify's pino is disabled. The evlog plugin emits one wide
+// event per request via request.log; the global `log` (evlog) handles standalone events
+// (startup/shutdown, SSE lifecycle, auto-save, idle disconnect).
+const fastify = Fastify({ logger: false });
 
 // Services - singleton instances
-const mongoService = new MongoConnectionService(config.get<number>("api.idleDisconnectMs"), fastify.log);
+const mongoService = new MongoConnectionService(config.get<number>("api.idleDisconnectMs"));
 const queryService = new QueryService();
 const loggerService = new QueryLoggerService();
 
@@ -62,6 +66,11 @@ await fastify.register(cors, {
     credentials: config.get<boolean>("api.cors.credentials"),
 });
 
+// evlog — emit one structured wide event per request via request.log (the only request
+// logger, since Fastify's pino is disabled). Registered before the auth/service hooks so
+// request.log is available inside them.
+await fastify.register(evlog);
+
 // Simple API key auth middleware (supports both header and query parameter for EventSource compatibility)
 fastify.addHook("onRequest", async (request, reply) => {
     // Skip auth for OPTIONS requests (CORS preflight)
@@ -95,6 +104,19 @@ await fastify.register(queriesRoutes, { prefix: "/api/queries" });
 await fastify.register(clientsRoutes, { prefix: "/api/clients" });
 await fastify.register(topRoutes, { prefix: "/api/top" });
 
+// Translate thrown errors into structured JSON. createError() carries why/fix/link/status;
+// parseError() also normalizes plain Errors so the shape is consistent for the web client.
+fastify.setErrorHandler((error, request, reply) => {
+    request.log.error(error);
+    const parsed = parseError(error);
+    reply.status(parsed.status ?? 500).send({
+        message: parsed.message,
+        why: parsed.why,
+        fix: parsed.fix,
+        link: parsed.link,
+    });
+});
+
 // Health check
 fastify.get("/health", async () => {
     return {
@@ -106,7 +128,7 @@ fastify.get("/health", async () => {
 
 // Graceful shutdown
 process.on("SIGINT", async () => {
-    fastify.log.info("Shutting down gracefully...");
+    log.info({ server: { event: "shutdown" } });
     await mongoService.disconnectAll();
     await closePinnedClients();
     await fastify.close();
@@ -114,7 +136,7 @@ process.on("SIGINT", async () => {
 });
 
 process.on("SIGTERM", async () => {
-    fastify.log.info("Shutting down gracefully...");
+    log.info({ server: { event: "shutdown" } });
     await mongoService.disconnectAll();
     await closePinnedClients();
     await fastify.close();
@@ -128,9 +150,12 @@ const start = async () => {
         const host = config.get<string>("api.host");
 
         await fastify.listen({ port, host });
-        fastify.log.info(`API server running on http://${host}:${port}`);
+        log.info({ server: { event: "started", host, port } });
     } catch (err) {
-        fastify.log.error(err);
+        log.error({
+            server: { event: "startup_failed" },
+            error: err instanceof Error ? (err.stack ?? err.message) : String(err),
+        });
         process.exit(1);
     }
 };

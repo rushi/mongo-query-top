@@ -1,6 +1,7 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import type { QueryData, ReadPreferenceMode } from "@mongo-query-top/types";
 import { useDocumentVisibility, useInterval } from "ahooks";
+import { createEvlogError, log } from "evlog";
 import { useEffect, useRef, useState } from "react";
 import { useSettings } from "../store/settings";
 import { API_BASE, API_KEY } from "../utils/api";
@@ -34,7 +35,7 @@ export const useServerSentEvents = (
         if (isPaused || !enabled) {
             if (abortControllerRef.current) {
                 // Cleanup connection if paused
-                console.log("[Connection] Pausing SSE connection");
+                log.debug({ connection: { event: "pausing" } });
                 abortControllerRef.current.abort();
                 abortControllerRef.current = null;
             }
@@ -80,21 +81,30 @@ export const useServerSentEvents = (
             const url = `${API_BASE}/queries/${serverId}/stream?${params.toString()}`;
 
             try {
-                console.log("[Connection] Establishing SSE connection to", { url });
+                log.info({ connection: { event: "connecting", url } });
                 await fetchEventSource(url, {
                     signal: abortController.signal,
                     headers: { "X-API-Key": API_KEY },
                     async onopen(response) {
                         if (response.ok) {
-                            console.log("[Connection] SSE connection established");
+                            log.info({ connection: { event: "established", url } });
                             setIsConnected(true);
                             setIsReconnecting(false);
                             setError(null);
                             retryDelayRef.current = INITIAL_RETRY_DELAY;
                             reconnectAttemptsRef.current = 0;
                         } else {
-                            console.log("[Connection] SSE connection failed to open", { response });
-                            throw new Error(`Failed to connect: ${response.statusText}`);
+                            log.warn({
+                                connection: {
+                                    event: "open_failed",
+                                    status: response.status,
+                                    statusText: response.statusText,
+                                },
+                            });
+                            throw createEvlogError({
+                                message: `Failed to connect: ${response.statusText}`,
+                                status: response.status,
+                            });
                         }
                     },
                     onmessage(event) {
@@ -106,18 +116,24 @@ export const useServerSentEvents = (
                                 lastUpdateTimeRef.current = Date.now();
                                 setIsStale(false);
                             } catch (err) {
-                                console.log("[Connection] Failed to parse query data:", { err });
+                                log.error({
+                                    connection: { event: "parse_failed" },
+                                    error: err instanceof Error ? err.message : String(err),
+                                });
                                 setError("Failed to parse query data");
                             }
                         }
                     },
                     onerror(err) {
                         setError("Connection lost");
-                        console.log("[Connection] SSE connection lost", { err });
+                        log.warn({
+                            connection: { event: "lost" },
+                            error: err instanceof Error ? err.message : String(err),
+                        });
                         setIsConnected(false);
 
                         if (!isActive) {
-                            console.log("[Connection] SSE connection aborted");
+                            log.debug({ connection: { event: "aborted" } });
                             throw err; // Stops reconnection
                         }
 
@@ -127,21 +143,27 @@ export const useServerSentEvents = (
 
                         // Exponential backoff: double the delay, up to MAX_RETRY_DELAY
                         retryDelayRef.current = Math.min(retryDelayRef.current * 2, MAX_RETRY_DELAY);
-                        console.log(`[Connection] Reconnecting in ${retryDelayRef.current} ms`);
+                        log.info({
+                            connection: {
+                                event: "reconnecting",
+                                delayMs: retryDelayRef.current,
+                                attempt: reconnectAttemptsRef.current,
+                            },
+                        });
 
                         // Return the retry delay to trigger reconnection
                         return retryDelayRef.current;
                     },
                     onclose() {
                         // Connection closed by server, will attempt to reconnect
-                        console.log("[Connection] SSE connection closed by server");
+                        log.info({ connection: { event: "closed_by_server" } });
                         setIsConnected(false);
                     },
                 });
             } catch (err: unknown) {
                 const errMessage = err instanceof Error ? err.message : "Connection failed";
                 const errName = err instanceof Error ? err.name : "";
-                console.log("[Connection] SSE connection error:", errMessage);
+                log.warn({ connection: { event: "error", name: errName }, error: errMessage });
                 if (errName !== "AbortError" && isActive) {
                     setError(errMessage ?? "Connection failed");
                     setIsConnected(false);
@@ -185,7 +207,7 @@ export const useServerSentEvents = (
             if (isCurrentlyStale !== isStale) {
                 setIsStale(isCurrentlyStale);
                 if (isCurrentlyStale) {
-                    console.log("[Connection] Connection appears stale - no updates for 2+ seconds");
+                    log.debug({ connection: { event: "stale" } });
                 }
             }
         },

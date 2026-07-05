@@ -302,6 +302,71 @@ See [apps/web/src/hooks/useServerSentEvents.ts](apps/web/src/hooks/useServerSent
 
 ---
 
+### Kill Operation
+
+Terminate a running MongoDB operation via `killOp`.
+
+**Request:**
+
+```http
+POST /api/queries/:serverId/kill/:opid
+```
+
+**Parameters:**
+
+- `serverId` - Server ID
+- `opid` - Numeric operation ID (as shown in the query list)
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "opid": 12345,
+    "result": { "ok": 1 },
+    "timestamp": "2025-01-03T12:00:00.000Z"
+}
+```
+
+**Error Response (400):** `{ "error": "Invalid opid" }` — opid must be a positive integer.
+
+**Error Response (404):** `{ "error": "Server not connected" }`
+
+---
+
+### Save Single Query
+
+Save one query to disk on demand (distinct from the threshold/COLLSCAN auto-save and the full snapshot below).
+
+**Request:**
+
+```http
+POST /api/queries/:serverId/save
+```
+
+**Body:**
+
+```json
+{
+    "query": { "...": "processed query object" },
+    "type": "manual-save"
+}
+```
+
+- `type` (optional) - Label used in the saved filename (default: `manual-save`)
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "message": "Query saved successfully",
+    "timestamp": "2025-01-03T12:00:00.000Z"
+}
+```
+
+---
+
 ### Save Snapshot
 
 Save current queries to disk as JSON files.
@@ -388,6 +453,148 @@ Returns the JSON content of the log file.
   "queries": [...],
   "summary": {...},
   "timestamp": "2025-01-03T12:00:00.000Z"
+}
+```
+
+---
+
+### Connected Clients
+
+Lists live connections via `$currentOp` (including idle ones), so the view reflects who's connected, not just who's running an operation.
+
+**Request:**
+
+```http
+GET /api/clients/:serverId?showAll=false&readPreference=secondaryPreferred
+```
+
+**Parameters:**
+
+- `serverId` - Server ID
+- `showAll` (optional) - Include system/internal clients (default: false)
+- `readPreference` (optional) - MongoDB read preference for the `$currentOp` aggregation
+
+**Response:**
+
+```json
+{
+    "clients": [
+        {
+            "ip": "192.168.1.100",
+            "port": 51234,
+            "appName": "mongosh 2.0.0",
+            "active": false,
+            "geo": { "country": "US", "city": "San Francisco" }
+        }
+    ],
+    "summary": {
+        "totalClients": 1,
+        "uniqueIps": 1
+    },
+    "metadata": {
+        "serverId": "localhost",
+        "timestamp": "2025-01-03T12:00:00.000Z"
+    }
+}
+```
+
+---
+
+### Connected Clients (Server-Sent Events)
+
+Real-time stream of connected clients. Emits `clients` events at the specified refresh interval.
+
+**Request:**
+
+```http
+GET /api/clients/:serverId/stream?refreshInterval=2&showAll=false
+```
+
+**Parameters:** same as the one-time fetch above, plus `refreshInterval` (optional) - seconds between updates (default: 2)
+
+---
+
+### Collection Activity (One-Time)
+
+Runs the MongoDB `top` command and groups read/write activity by collection. Powers the dashboard's Collection Activity tab.
+
+**Request:**
+
+```http
+GET /api/top/:serverId?showAll=false&readPreference=secondaryPreferred
+```
+
+**Parameters:**
+
+- `serverId` - Server ID
+- `showAll` (optional) - Include system collections (default: false)
+- `readPreference` (optional) - MongoDB read preference for the `top` command
+
+**Response:**
+
+```json
+{
+    "collections": [
+        {
+            "ns": "mydb.users",
+            "database": "mydb",
+            "collection": "users",
+            "total": { "time": 1200, "count": 5 },
+            "readLock": { "time": 800, "count": 3 },
+            "writeLock": { "time": 400, "count": 2 }
+        }
+    ],
+    "metadata": {
+        "serverId": "localhost",
+        "timestamp": "2025-01-03T12:00:00.000Z",
+        "intervalMs": 0,
+        "serverStartedAt": "2025-01-01T00:00:00.000Z"
+    }
+}
+```
+
+A one-time fetch has no previous sample to diff against, so deltas are zero. `serverStartedAt` is derived from `serverStatus.uptime` and used by the dashboard to show a live uptime readout.
+
+---
+
+### Collection Activity (Server-Sent Events)
+
+Real-time per-interval stream of collection activity. Emits `top` events; each frame's counts are the delta since the previous sample (like `mongotop`), so the first frame after connecting is always zero.
+
+**Request:**
+
+```http
+GET /api/top/:serverId/stream?refreshInterval=2&showAll=false&node=host:27017
+```
+
+**Parameters:**
+
+- `serverId` - Server ID
+- `refreshInterval` (optional) - Fetch interval in seconds (default: 2)
+- `showAll` (optional) - Include system collections (default: false)
+- `readPreference` (optional) - MongoDB read preference
+- `node` (optional) - Pin sampling to a specific replica-set member (see below) so consecutive diffs are computed against the same node instead of jumping between secondaries
+
+---
+
+### List Replica Set Nodes
+
+List replica-set members so the client can offer node-pinned sampling for the Collection Activity stream.
+
+**Request:**
+
+```http
+GET /api/top/:serverId/nodes
+```
+
+**Response:**
+
+```json
+{
+    "nodes": [
+        { "host": "host1:27017", "role": "primary" },
+        { "host": "host2:27017", "role": "secondary" }
+    ]
 }
 ```
 

@@ -3,7 +3,7 @@
   <h1>MongoDB Query "Top"</h1>
 </div>
 
-A modern, full-stack MongoDB monitoring tool that presents `db.currentOp()` results in an intuitive interface. Built with TypeScript in a monorepo architecture, featuring a REST API with Server-Sent Events and a React web dashboard.
+Watch what your MongoDB cluster is doing right now — a `top`-style live view of `db.currentOp()`, streamed to a web dashboard via SSE, with slow and unindexed queries called out automatically.
 
 ## Features
 
@@ -13,8 +13,9 @@ A modern, full-stack MongoDB monitoring tool that presents `db.currentOp()` resu
 - **GeoIP location display** for public IPs
 - **Auto-save** long-running and problematic queries
 - **Interactive controls** (pause, reverse, snapshot, show all)
-- **Multi-server support** with connection management
+- **Multi-server support** with connection management and idle auto-disconnect
 - **Web dashboard** with virtualized table and JSON viewer
+- **Collection activity tab** with per-interval/cumulative view and live server uptime, bookmarkable via URL
 
 ## Why?
 
@@ -110,6 +111,7 @@ Opens **http://localhost:9000** with:
 - Interactive table with virtualization
 - Query details with JSON viewer
 - Server selection and connection management
+- Collection activity tab — per-interval or cumulative op counts by collection, plus live server uptime
 
 ### API Server
 
@@ -137,6 +139,7 @@ api:
     host: 0.0.0.0
     logLevel: info
     apiKey: dev-key-change-in-production
+    idleDisconnectMs: 300000 # close a server's MongoDB connection after this long with no viewers
     cors:
         origins:
             - http://localhost:9000

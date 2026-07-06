@@ -1,15 +1,12 @@
-import type { CollectionActivity, ServerConfig, TopCommandResult, TopNode } from "@mongo-query-top/types";
-import config from "config";
+import type { CollectionActivity, TopCommandResult, TopNode } from "@mongo-query-top/types";
 import dayjs from "dayjs";
 import { log } from "evlog";
 import type { FastifyInstance } from "fastify";
 import type { MongoClient } from "mongodb";
-import { getPinnedClient } from "../core/lib/pinnedClient.js";
+import { resolveSampleClient } from "../core/lib/pinnedClient.js";
 import { parseReadPreference } from "../core/lib/readPreference.js";
 import { buildCollectionActivity } from "../core/lib/topProcessor.js";
 import { MOCK_SERVER_STARTED_AT, nextMockTop } from "../data/mockTop.js";
-
-const serverConfigs = config.get<Record<string, ServerConfig>>("servers");
 
 const parseBoolQuery = (value: string | undefined): boolean => value === "true";
 
@@ -43,29 +40,6 @@ const buildTopResponse = ({ serverId, collections, intervalMs, serverStartedAt, 
         ...(isMock ? { isMockData: true } : {}),
     },
 });
-
-// Resolves the sampling client for a stream. When a specific node is requested,
-// pins to it via a directConnection client so consecutive samples hit the same
-// node (per-interval diffs across different secondaries are meaningless). Falls
-// back to the pooled client if pinning fails (e.g. mongodb+srv uris).
-const resolveSampleClient = async (
-    pooledClient: MongoClient,
-    serverId: string,
-    node: string | undefined,
-): Promise<{ client: MongoClient; pinned: boolean }> => {
-    const uri = serverConfigs[serverId]?.uri;
-    if (!node || !uri) {
-        return { client: pooledClient, pinned: false };
-    }
-
-    try {
-        const client = await getPinnedClient(serverId, node, uri);
-        return { client, pinned: true };
-    } catch (err) {
-        log.warn({ nodePinning: { event: "failed", server: serverId, node }, error: (err as Error).message });
-        return { client: pooledClient, pinned: false };
-    }
-};
 
 export default async function topRoutes(fastify: FastifyInstance) {
     // GET /api/top/:serverId - One-time fetch (deltas are zero: no previous sample)

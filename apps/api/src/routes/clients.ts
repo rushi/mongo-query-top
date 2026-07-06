@@ -3,6 +3,7 @@ import { log } from "evlog";
 import type { FastifyInstance } from "fastify";
 import type { MongoClient } from "mongodb";
 import type { QueryService } from "../core/index.js";
+import { resolveSampleClient } from "../core/lib/pinnedClient.js";
 import { parseReadPreference } from "../core/lib/readPreference.js";
 
 // Lists live connections via $currentOp (includes idle connections), so the
@@ -60,13 +61,13 @@ export default async function clientsRoutes(fastify: FastifyInstance) {
     // GET /api/clients/:serverId/stream - Real-time SSE stream of connected clients
     fastify.get<{
         Params: { serverId: string };
-        Querystring: { refreshInterval?: string; showAll?: string; readPreference?: string };
+        Querystring: { refreshInterval?: string; showAll?: string; readPreference?: string; node?: string };
     }>("/:serverId/stream", async (request, reply) => {
         // SSE: take over the socket so Fastify never auto-sends a reply (see queries.ts).
         reply.hijack();
 
         const { serverId } = request.params;
-        const { refreshInterval = "2", showAll = "false", readPreference } = request.query;
+        const { refreshInterval = "2", showAll = "false", readPreference, node } = request.query;
 
         const client = request.services.mongoService.getConnection(serverId);
         if (!client) {
@@ -88,6 +89,12 @@ export default async function clientsRoutes(fastify: FastifyInstance) {
             "Access-Control-Allow-Credentials": "true",
         });
 
+        // Pin sampling to the requested node so we report clients on that specific
+        // member. When pinned, read directly from it (secondaryPreferred lets a
+        // secondary accept the read); otherwise honor the requested preference.
+        const { client: sampleClient, pinned } = await resolveSampleClient(client, serverId, node);
+        const effectiveReadPreference = pinned ? "secondaryPreferred" : readPreference;
+
         let isActive = true;
 
         const sendClientUpdate = async () => {
@@ -97,11 +104,11 @@ export default async function clientsRoutes(fastify: FastifyInstance) {
 
             try {
                 const data = await buildClientsData(
-                    client,
+                    sampleClient,
                     request.services.queryService,
                     serverId,
                     showAll === "true",
-                    readPreference,
+                    effectiveReadPreference,
                 );
                 reply.raw.write(`event: clients\ndata: ${JSON.stringify(data)}\n\n`);
             } catch (err) {

@@ -12,6 +12,7 @@ export const useConnectedClients = (
     refreshInterval: number,
     showAll: boolean,
     readPreference: ReadPreferenceMode,
+    node: string | undefined,
     enabled = true,
 ) => {
     const [data, setData] = useState<ClientsData | null>(null);
@@ -50,6 +51,9 @@ export const useConnectedClients = (
                 showAll: String(showAll),
                 readPreference,
             });
+            if (node) {
+                params.set("node", node);
+            }
             const url = `${API_BASE}/clients/${serverId}/stream?${params.toString()}`;
 
             try {
@@ -113,7 +117,7 @@ export const useConnectedClients = (
             isActive = false;
             resetConnection();
         };
-    }, [serverId, refreshInterval, showAll, readPreference, enabled]);
+    }, [serverId, refreshInterval, showAll, readPreference, node, enabled]);
 
     return { data, error, isConnected, isReconnecting };
 };

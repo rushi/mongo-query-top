@@ -1,23 +1,19 @@
 import type { ConnectedClient, ReadPreferenceMode } from "@mongo-query-top/types";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSetState, useTitle } from "ahooks";
-import { useDeferredValue, useEffect, useMemo } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { NodePicker } from "../components/collection-activity/NodePicker";
 import { ClientSummary } from "../components/connected-clients/ClientSummary";
 import { ClientTable, getClientUserKeys } from "../components/connected-clients/ClientTable";
 import { ConnectionBadge } from "../components/shared/ConnectionBadge";
-import { Button } from "../components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useConnectedClients } from "../hooks/useConnectedClients";
 import { useFetchServers } from "../hooks/useFetchServers";
+import { useTopNodes } from "../hooks/useTopNodes";
 import { useUrlPreferences } from "../hooks/useUrlPreferences";
+import { getNodeRole } from "../lib/formatActivity";
 import { cn } from "../lib/utils";
-import { usePreferences } from "../store/preferences";
 import { apiClient, getApiBaseUrl } from "../utils/api";
-
-const resolveReadPreference = (
-    urlValue: ReadPreferenceMode | undefined,
-    perServerValue: ReadPreferenceMode | undefined,
-): ReadPreferenceMode => urlValue ?? perServerValue ?? "primary";
 
 // Stable empty reference so useDeferredValue doesn't churn before data arrives
 const EMPTY_CLIENTS: ConnectedClient[] = [];
@@ -26,26 +22,8 @@ export const Route = createFileRoute("/clients")({ component: ConnectedUsers });
 
 function ConnectedUsers() {
     const { servers, loading: serversLoading } = useFetchServers();
-    const {
-        serverId,
-        setServerId,
-        refreshInterval,
-        showAll,
-        appFilter,
-        userFilter,
-        setAppFilter,
-        setUserFilter,
-        readPreference: urlReadPreference,
-        setReadPreference: setUrlReadPreference,
-    } = useUrlPreferences();
-
-    const readPreferenceByServer = usePreferences((state) => state.readPreferenceByServer);
-    const setStoredReadPreference = usePreferences((state) => state.setReadPreference);
-    const readPreference = resolveReadPreference(urlReadPreference, readPreferenceByServer[serverId]);
-    const isSecondary = readPreference === "secondaryPreferred";
-    const accentClass = isSecondary
-        ? { border: "border-secondary-read", text: "text-secondary-read" }
-        : { border: "border-primary", text: "text-primary" };
+    const { serverId, setServerId, refreshInterval, showAll, appFilter, userFilter, setAppFilter, setUserFilter } =
+        useUrlPreferences();
 
     const [connectionState, setConnectionState] = useSetState({
         isConnecting: false,
@@ -53,11 +31,37 @@ function ConnectedUsers() {
         connectError: null as string | null,
     });
 
+    const [selectedNode, setSelectedNode] = useState<string>();
+    const nodes = useTopNodes(serverId, connectionState.mongoConnected);
+    const selectedRole = getNodeRole(nodes, selectedNode);
+    const isSecondary = selectedRole === "secondary";
+    const readPreference: ReadPreferenceMode = isSecondary ? "secondaryPreferred" : "primary";
+    const accentClass = isSecondary
+        ? { border: "border-secondary-read", text: "text-secondary-read" }
+        : { border: "border-primary", text: "text-primary" };
+
+    // Default the node picker to the primary once the member list loads (or when the
+    // current selection no longer belongs to the selected server).
+    useEffect(() => {
+        if (nodes.length === 0) {
+            return;
+        }
+
+        const isStillValid = selectedNode && nodes.some((node) => node.host === selectedNode);
+        if (isStillValid) {
+            return;
+        }
+
+        const primary = nodes.find((node) => node.role === "primary");
+        setSelectedNode((primary ?? nodes[0]).host);
+    }, [nodes, selectedNode]);
+
     const { data, error, isConnected, isReconnecting } = useConnectedClients(
         serverId,
         refreshInterval,
         showAll,
         readPreference,
+        selectedNode,
         connectionState.mongoConnected,
     );
 
@@ -109,14 +113,9 @@ function ConnectedUsers() {
     const connCount = data?.summary.totalConnections ?? 0;
     useTitle(connCount >= 1 ? `(${connCount}) [${serverName}] Connected Clients` : `[${serverName}] Connected Clients`);
 
-    const handleReadPreferenceChange = (pref: ReadPreferenceMode) => {
-        setUrlReadPreference(pref);
-        setStoredReadPreference(serverId, pref);
-    };
-
     const handleServerChange = (newServerId: string) => {
         setServerId(newServerId);
-        setUrlReadPreference(undefined);
+        setSelectedNode(undefined);
         setConnectionState({ mongoConnected: false, connectError: null });
     };
 
@@ -161,25 +160,13 @@ function ConnectedUsers() {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <span className="ml-2 text-muted-foreground">READ:</span>
-                                <Button
-                                    variant={readPreference === "primary" ? "default" : "outline"}
-                                    className="h-8 border-2 font-mono text-xs tracking-wide uppercase"
-                                    onClick={() => handleReadPreferenceChange("primary")}
-                                >
-                                    PRIMARY
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className={cn(
-                                        "h-8 border-2 font-mono text-xs tracking-wide uppercase",
-                                        isSecondary &&
-                                            "border-secondary-read bg-secondary-read text-secondary-read-foreground",
-                                    )}
-                                    onClick={() => handleReadPreferenceChange("secondaryPreferred")}
-                                >
-                                    SECONDARY
-                                </Button>
+                                <span className="ml-2 text-muted-foreground">NODE:</span>
+                                <NodePicker
+                                    isSecondary={isSecondary}
+                                    nodes={nodes}
+                                    value={selectedNode}
+                                    onChange={setSelectedNode}
+                                />
                             </div>
                             <div>
                                 <ConnectionBadge

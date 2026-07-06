@@ -26,6 +26,7 @@ export interface ProcessedQuery {
     collection: string;
     database: string;
     query: Record<string, unknown>;
+    rawLog: Record<string, unknown>;
     client: ClientLocation;
     userAgent: string;
     planSummary?: string;

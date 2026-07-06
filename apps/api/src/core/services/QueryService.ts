@@ -46,6 +46,7 @@ export class QueryService {
             database: db,
             collection,
             query: sanitizeQuery(q),
+            rawLog: { type: q.op, ns: q.ns, command: q.command },
             client: clientInfo,
             userAgent: formatUserAgent(q),
             planSummary: q.planSummary,

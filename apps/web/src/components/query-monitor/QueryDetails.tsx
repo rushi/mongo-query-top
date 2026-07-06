@@ -11,7 +11,9 @@ import { apiClient } from "../../utils/api";
 import { convertSettingsToThresholds, detectQueryIssues, getSeverityClasses } from "../../utils/queryIssueDetector";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { Label } from "../ui/label";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "../ui/sheet";
+import { Switch } from "../ui/switch";
 
 interface QueryDetailsProps {
     query: ProcessedQuery | null;
@@ -117,12 +119,14 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
     const [killStatus, setKillStatus] = useState<"idle" | "killing" | "success" | "error">("idle");
     const [killError, setKillError] = useState<string>();
     const isKilling = killStatus === "killing";
+    const [showRawLog, setShowRawLog] = useState(false);
     const { copied: copiedKillOp, copy: copyKillOp } = useCopyToClipboard();
     const { copied: copiedCommand, copy: copyCommand } = useCopyToClipboard();
 
     useEffect(() => {
         setKillStatus("idle");
         setKillError(undefined);
+        setShowRawLog(false);
     }, [query?.opid]);
 
     // Self-cleaning reset: only arms the timeout while `saved` is true, avoiding a
@@ -172,7 +176,7 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
     };
 
     const handleCopyCommand = async () => {
-        const command = query.query?.command ?? query.query;
+        const command = showRawLog ? query.rawLog : (query.query?.command ?? query.query);
         await copyCommand(JSON.stringify(command, null, 2));
     };
 
@@ -366,32 +370,43 @@ export const QueryDetails = ({ query, open, onOpenChange }: QueryDetailsProps) =
                             <span className="font-mono text-xs tracking-wider text-primary uppercase">
                                 ■ QUERY_OBJECT
                             </span>
-                            <Button
-                                size="sm"
-                                variant={copiedCommand ? "default" : "ghost"}
-                                disabled={copiedCommand}
-                                className="h-6 cursor-copy font-mono text-[10px] uppercase"
-                                onClick={handleCopyCommand}
-                            >
-                                {copiedCommand ? (
-                                    <>
-                                        <CheckIcon weight="bold" className="mr-1 h-3 w-3" />
-                                        COPIED
-                                    </>
-                                ) : (
-                                    <>
-                                        <CopyIcon weight="bold" className="mr-1 h-3 w-3" />
-                                        COPY
-                                    </>
-                                )}
-                            </Button>
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2">
+                                    <Label
+                                        htmlFor="showRawLog"
+                                        className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase"
+                                    >
+                                        Full Log
+                                    </Label>
+                                    <Switch id="showRawLog" checked={showRawLog} onCheckedChange={setShowRawLog} />
+                                </div>
+                                <Button
+                                    size="sm"
+                                    variant={copiedCommand ? "default" : "ghost"}
+                                    disabled={copiedCommand}
+                                    className="h-6 cursor-copy font-mono text-[10px] uppercase"
+                                    onClick={handleCopyCommand}
+                                >
+                                    {copiedCommand ? (
+                                        <>
+                                            <CheckIcon weight="bold" className="mr-1 h-3 w-3" />
+                                            COPIED
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CopyIcon weight="bold" className="mr-1 h-3 w-3" />
+                                            COPY
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
                         </div>
                         <div className="bg-card p-4">
                             <JsonView
                                 sortKeys
                                 name={false}
                                 collapsed={6}
-                                src={query.query}
+                                src={showRawLog ? query.rawLog : query.query}
                                 displayDataTypes={false}
                                 displayObjectSize={false}
                                 enableClipboard={false}

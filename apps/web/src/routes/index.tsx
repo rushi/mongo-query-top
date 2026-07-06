@@ -225,7 +225,7 @@ function Dashboard() {
                                     PRIMARY
                                 </Button>
                                 <Button
-                                    variant="outline"
+                                    variant={isSecondary ? "default" : "outline"}
                                     className={cn(
                                         "h-8 border-2 font-mono text-xs tracking-wide uppercase",
                                         isSecondary &&

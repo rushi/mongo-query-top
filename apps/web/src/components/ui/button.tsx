@@ -11,7 +11,9 @@ const buttonVariants = cva(
                 default: "bg-primary text-primary-foreground hover:opacity-90 active:scale-[0.98]",
                 destructive: "bg-destructive text-white hover:opacity-90 active:scale-[0.98] dark:bg-destructive/80",
                 outline:
-                    "border bg-background hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+                    // border-border (the visible theme grey) not the near-invisible border-input:
+                    // on this dark terminal theme input (#141414) is indistinguishable from the bg.
+                    "border border-border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
                 secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
                 ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 link: "text-primary underline-offset-4 hover:underline",

@@ -13,7 +13,10 @@ const buttonVariants = cva(
                 outline:
                     // border-border (the visible theme grey) not the near-invisible border-input:
                     // on this dark terminal theme input (#141414) is indistinguishable from the bg.
-                    "border border-border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
+                    // Hover keeps readable foreground text on the subtle dark bg; the shadcn
+                    // hover:text-accent-foreground (near-black) went invisible once dark:hover:bg-input
+                    // overrode the chartreuse hover:bg-accent it was meant to sit on.
+                    "border border-border bg-background hover:text-foreground dark:bg-input/30 dark:hover:bg-input/50",
                 secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
                 ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 link: "text-primary underline-offset-4 hover:underline",

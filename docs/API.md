@@ -507,10 +507,13 @@ Real-time stream of connected clients. Emits `clients` events at the specified r
 **Request:**
 
 ```http
-GET /api/clients/:serverId/stream?refreshInterval=2&showAll=false
+GET /api/clients/:serverId/stream?refreshInterval=2&showAll=false&node=host:27017
 ```
 
-**Parameters:** same as the one-time fetch above, plus `refreshInterval` (optional) - seconds between updates (default: 2)
+**Parameters:** same as the one-time fetch above, plus:
+
+- `refreshInterval` (optional) - seconds between updates (default: 2)
+- `node` (optional) - Pin sampling to a specific replica-set member so you see the clients connected to that node (e.g. a chosen secondary)
 
 ---
 
@@ -579,7 +582,7 @@ GET /api/top/:serverId/stream?refreshInterval=2&showAll=false&node=host:27017
 
 ### List Replica Set Nodes
 
-List replica-set members so the client can offer node-pinned sampling for the Collection Activity stream.
+List replica-set members so the client can offer node-pinned sampling for the Collection Activity and Connected Clients streams.
 
 **Request:**
 
